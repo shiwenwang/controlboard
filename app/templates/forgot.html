@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+
+{% block styles %}
+    {{ super() }}
+    <!-- Custom styles for this template -->
+    <link href="../static/css/floating-labels.css" rel="stylesheet">
+{% endblock styles %}
+{% block flash %}
+{% for message in get_flashed_messages() %}
+{% if "成功" in message  %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+{% else %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock flash %}
+
+{% block content %}
+    <div class="container fixed-top fixed-left">
+        <span style="font-size: 25px; color: Blue">
+            <i class="fas fa-arrow-left"></i>
+            <a href="{{ url_for('auth.login') }}">返回登录</a>
+        </span>
+    </div>
+
+    <!-- send password -->
+    <form class="form-signin" method="POST">
+        {{ form.csrf_token }}
+        <div class="form-label-group">     
+            {{ form.email(class="form-control", placeholder="Email", autofocus=true) }}                
+            <label for="email">Email</label>
+        </div>
+        {{ form.submit(class="btn btn-lg btn-primary btn-block ", value="发送临时密码") }}
+    </form>
+    <!-- /send password -->
+
+{% endblock %}
+
+{% block footer %}
+<div class="footer">
+    <div class="container fixed-bottom">
+        <p class="mt-5 mb-3 text-muted text-center">&copy 2019 GoldWind 
+            <a href="http://confluence.goldwind.com.cn/display/CZDP" target="_blank" white-space="nowrap" data-toggle="tooltip" title="风电场定制化部">
+                CZDP
+            </a>
+        </p>
+    </div>
+</div>    
+{% endblock footer %}

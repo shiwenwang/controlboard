@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    {% block head %}
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="shortcut icon" href="{{ url_for('static',filename='img/favicon.ico') }}">
+
+    {% block styles %}
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap.min.css') }}">        
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/docsearch.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/fileinput.min.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/fontawesome.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/docs.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/solid.min.css') }}">    
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/fileinput.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap-table.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap-select.min.css') }}">
+
+    <script src="{{ url_for('static',filename='js/jquery-3.4.1.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/jquery.validate.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/popper.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/fontawesome.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/solid.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/fileinput.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/theme.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/bootstrap-table.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/bootstrap-select.js') }}"></script>
+    {% endblock %}
+
+    <title>{{ title }} - Control Board</title>
+    {% endblock head%}
+
+    {% block nav %}
+    
+    {% endblock nav %}
+
+  </head>
+  <body>
+      <div class="container fixed-top col-sm-4">
+        {% block flash %}
+            
+        {% endblock flash %}
+      </div>
+
+    
+    <!-- Your page content -->
+    {% block content %}{% endblock %}  
+
+
+    {% block scripts %}
+    
+
+    {% endblock %}
+    
+    {% block footer %}{% endblock footer %}
+  </body>    
+</html>

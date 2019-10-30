@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+<style>
+    a {
+        color: black;
+        text-decoration: none;
+        background-color: transparent;
+    }
+
+    a:hover {
+        color: #0056b3;
+        text-decoration: none;
+    }
+
+    #work-content-title {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+</style>
+{% endblock styles %}
+
+{% block content %}
+<header class="navbar navbar-expand-lg navbar-dark bd-navbar navbar-static-top">
+    <div class="container-fluid" id="top-navbar">
+        <a class="navbar-brand" href="{{ url_for('main.index') }}">
+            <span><img src="{{ url_for('static', filename='img/title-logo.png') }}" alt="" height="35px">
+                <label style="color: white; font-weight: bold; font-size: 18px;"> 定制化控制业务工作台</label>
+            </span>
+        </a>
+        <button class="navbar-toggler btn-sm" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"
+            style="height: 35px;">
+            <span class="fas fa-bars"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('task.work', taskname=taskname, obj='symbol') }}">Symbol</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('task.work', taskname=taskname, obj='xml') }}">XML</a>
+                </li>
+            </ul>
+            <form class="form-inline my-3 my-lg-0">
+                <div class="dropdown">
+                    <button class="btn btn-sm dropdown-toggle btn-bd-download" type="button" id="dropdownMenu2"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                        style="width: 130px; height: 35px;">
+                        <i class="fas fa-user-cog"></i> {{ user.realname }}
+                    </button>
+                    <div class="dropdown-menu  dropdown-menu-left" aria-labelledby="dropdownMenu2"
+                        style="min-width: 100%">
+                        <button class="dropdown-item" type="button" data-toggle="modal" data-target="#ProfileModal">
+                            <span><i class="fas fa-user" style="color: gray"></i> 个人信息</span>
+                        </button>
+                        <a class="dropdown-item" href="{{ url_for('auth.reset') }}">
+                            <span><i class="fas fa-lock" style="color: gray"></i> 修改密码</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                            <span><i class="fas fa-sign-out-alt" style="color: gray"></i> 注销</span>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</header>
+
+<div class="container-fluid" onscroll="scroll()">
+    <div id="work-content-title">
+        <span>
+            <a href="{{ url_for('task.work', taskname=taskname) }}">
+                <label style="font-size: 20px; font-weight: bold; cursor: pointer;">{{ taskname }}</label>
+            </a>
+        </span>
+
+        <nav>
+            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab"
+                    aria-controls="nav-home" aria-selected="true">Params</a>
+                <a class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#nav-profile" role="tab"
+                    aria-controls="nav-profile" aria-selected="false">Tables</a>
+                <a class="nav-item nav-link" id="nav-contact-tab" data-toggle="tab" href="#nav-contact" role="tab"
+                    aria-controls="nav-contact" aria-selected="false">Filters</a>
+            </div>
+        </nav>
+        <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+                <div class="table-responsive">
+                    <table id="params-table" class="table table-striped table-sm table-bordered table-hover">
+                    </table>
+                </div>
+                Params
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+                <p>
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt
+                    officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure
+                    magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod
+                    consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu
+                    exercitation irure Lorem incididunt nostrud.
+                </p>
+            </div>
+            <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+                Tables
+            </div>
+            <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
+                Filters
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.onscroll = function() {
+        if (document.documentElement.scrollTop > 5){
+            $(".navbar")[0].style.boxShadow = "0px 6px 5px rgba(121,82,179,.25)";
+        }else{
+            $(".navbar")[0].style.boxShadow = "";
+        }
+    }
+
+    function initTable(data) {
+        var $table = $('#table');
+        $table.bootstrapTable('destroy').bootstrapTable({
+            columns: [
+                {
+                    title: "参数",
+                    field: 'params',
+                    align: 'center',
+                    valign: 'middle', 
+                    class: "thread"
+                },
+                {
+                    title: "Bladed",
+                    field: 'Bladed',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead"
+                },
+                {
+                    title: "Symbol表",
+                    field: 'symbol',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead"
+                },
+            ]
+        });
+    }
+    function getData() {
+        var $table = $('#params-table');
+        var tableData = {};
+
+        $.ajax({
+            type: 'GET',
+            url: "task/read/{{ taskname }}",
+            dataType: "json",
+            contentType: 'application/json; charset=UTF-8',
+            data: JSON.stringify({
+            }),
+            success: function (data) { //成功的话，得到消息
+                tableData = data;
+            },
+            complete: function () {
+                initTable(tableData);
+            }
+        });
+    }
+    $(document).ready(getData());
+</script>
+{% endblock content %}

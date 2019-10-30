@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block styles %}
+    {{ super() }}
+    <style type="text/css">
+        body{
+            background-color: #FBFFA6;
+            padding: 20px;
+            background-image: url("../static/images/turbine.gif");
+            background-repeat:no-repeat;
+            background-size:100% 100%; 
+            background-attachment: fixed;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="page-header text-center">
+    <h1>Forbidden</h1>
+</div>
+    <hr>
+{% endblock content %}

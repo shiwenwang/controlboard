@@ -1,0 +1,202 @@
+{
+    "P_Airdensity": {
+        "bladed": "RHO",
+        "zh": ""
+    },
+    "P_LowSpeedSyncSpeed": {
+        "bladed": "OMMIN",
+        "zh": ""
+    },
+    "P_LowWindSpeedGenSpeed": {
+        "bladed": "OMMIN",
+        "zh": ""
+    },
+    "P_OptimalModeGain": {
+        "bladed": "GAIN_TSR",
+        "zh": ""
+    },
+    "P_MinimumFinePitch": {
+        "bladed": "PITMIN",
+        "zh": ""
+    },
+    "P_PositiveFeatherAngle": {
+        "bladed": "PITMAX",
+        "zh": ""
+    },
+    "P_RatedGeneratorSpeed": {
+        "bladed": "OMDEM_QS",
+        "zh": ""
+    },
+    "P_MaximumGeneratorTorque": {
+        "bladed": "GTMAX",
+        "zh": ""
+    },
+    "B_DMGT": {
+        "bladed": "GTORREF",
+        "zh": ""
+    },
+    "P_MaxGeneratorSpeedForSwTrip": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_SteadyShaftPowerLimit": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_pitchdeadband": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_pitchratedeadband": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_pitchbiaspowerfactor": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_PitchBiasSpeedFactor": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_FaultOverspeedRampRate": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_PitchSanityGeneratorSpeedLevel": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_PitchSanityPitchRateLimit": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_FaultPitchRunawayLimit": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_LowPitchAngleOverspeedSpeedLevel": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_NacelleAccFAEnabled": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_TowerExcEnabled": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_TowerExcLowSpeed": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_TowerExcHighSpeed": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_TowerExcLowSpeedMaxTorque": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_TowerExcHighSpeedMinTorque": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_ConstantPowerControlFlag": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_ExtraPitchRateAboveThreshold": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_ExtraPitchRateAboveThresholdEEdot": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_PowerShootEnabled": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_V385ControlFlag": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_V46PControlFlag": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_FFControlEnable": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_DthetaDvMax": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_GRTPitchKickEnable": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_YawErrorDeratingEnable": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_FinePitchScheduleAvT": {
+        "bladed": "",
+        "zh": ""
+    },
+    "P_HighYawErrorWindSpeedAvT": {
+        "bladed": "",
+        "zh": ""
+    },
+    "T_FinePitchScheduleYaw": {
+        "bladed": "",
+        "zh": ""
+    },
+    "T_HighYawErrorThresholdSchedule": {
+        "bladed": "",
+        "zh": ""
+    },
+    "T_FinePitchSchedule": {
+        "bladed": "",
+        "zh": ""
+    },
+    "T_DynamicFinePitch": {
+        "bladed": "",
+        "zh": ""
+    },
+    "T_HighWindSpeedLimitFactorSchedule": {
+        "bladed": "",
+        "zh": ""
+    },
+    "T_HighWindPowerLimitFactorSchedule": {
+        "bladed": "",
+        "zh": ""
+    },
+    "T_normalshutdownpitchrate": {
+        "bladed": "",
+        "zh": ""
+    },
+    "T_GridLossShutdownPitchRate": {
+        "bladed": "",
+        "zh": ""
+    },
+    "F_PitchSpeedFilters": {
+        "bladed": "",
+        "zh": ""
+    },
+    "F_TorqueSpeedFilters": {
+        "bladed": "",
+        "zh": ""
+    },
+    "F_ConstantPowerFilters": {
+        "bladed": "",
+        "zh": ""
+    },
+    "F_shaftpowershaping": {
+        "bladed": "",
+        "zh": ""
+    }
+}

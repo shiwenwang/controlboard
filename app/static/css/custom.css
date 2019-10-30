@@ -1,0 +1,49 @@
+a {
+    color: #0056b3;
+    text-decoration: none;
+    background-color: transparent;
+}
+
+a:hover {
+    color: #7952b3;
+    text-decoration: none;
+    /* font-weight: bold; */
+}
+
+.navbar-brand{
+    padding-top: 4px;
+    padding-bottom: 6px;
+}
+
+.thead {
+    font-size: 8px;
+    font-family: '微软雅黑', Times, serif;
+}
+
+.container-fluid {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.navbar-brand {
+    height: 40px;
+}
+
+.file-select {
+    height: 38px;
+}
+/* .bd-navbar{
+    border-color:#7952b3;
+    -moz-box-shadow:0px 5px 7px rgba(121,82,179,.25); 
+    -webkit-box-shadow:0px 5px 7px rgba(121,82,179,.25); 
+    box-shadow:0px 5px 7px rgba(121,82,179,.25);
+} */
+#tool-bar-row {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#search-input:focus {
+    border-color: #7952b3;
+    box-shadow: 0 0 0 3px rgba(121, 82, 179, .25)
+}

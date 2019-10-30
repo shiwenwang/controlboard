@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block styles %}
+    {{ super() }}
+    <!-- Custom styles for this template -->
+    <link href="../static/css/floating-labels.css" rel="stylesheet">
+{% endblock styles %}
+
+{% block flash %}
+{% for message in get_flashed_messages() %}
+{% if "成功" in message  %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+{% else %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock flash %}
+
+{% block content %}
+    <div class="container fixed-top fixed-left">
+        <span style="font-size: 25px; color: Blue">
+            <i class="fas fa-arrow-left"></i>
+            <a href="{{ url_for('auth.login') }}">返回登录</a>
+        </span>
+    </div>
+
+    <!-- register -->
+    <form class="form-signin" method="POST">
+        {{ form.csrf_token }}
+        <div class="form-label-group">
+            {% if form.username.errors %}
+            {{ form.username(class="form-control is-invalid", placeholder="OA号", autofocus=true) }}
+            <label for="username">OA号</label>
+            {% for error in form.username.errors %}            
+                <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+            {% else %}
+            {{ form.username(class="form-control", placeholder="OA号", autofocus=true) }}
+            <label for="username">OA号</label>            
+            {% endif %}                    
+        </div>
+        
+        <div class="form-label-group">
+            {% if form.email.errors %}
+            {{ form.email(class="form-control is-invalid", placeholder="邮箱") }}
+            <label for="email">邮箱</label>
+            {% for error in form.email.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+            {% else %}
+            {{ form.email(class="form-control", placeholder="邮箱") }}
+            <label for="email">邮箱</label>
+            {% endif %}   
+        </div>        
+
+        <div class="form-label-group">
+            {{ form.password(class="form-control", placeholder="密码") }}
+            <label for="password">密码</label>
+        </div>       
+
+        <div class="form-label-group">
+            {% if form.password2.errors %}
+            {{ form.password2(class="form-control is-invalid", placeholder="确认密码") }}
+            <label for="password">确认密码</label>
+            {% for error in form.password2.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %} 
+            {% else %}
+            {{ form.password2(class="form-control", placeholder="确认密码") }}
+            <label for="password">确认密码</label>
+            {% endif %} 
+        </div>          
+        
+        {{ form.register_submit(class="btn btn-lg btn-primary btn-block", value="注册") }}
+        
+    </form>
+    <!-- /register -->
+{% endblock content %}
+
+{% block footer %}
+<div class="footer">
+    <div class="container fixed-bottom">
+        <p class="mt-5 mb-3 text-muted text-center">&copy 2019 GoldWind 
+            <a href="http://confluence.goldwind.com.cn/display/CZDP" target="_blank" data-toggle="tooltip" data-placement="bottom" title="风电场定制化部">
+                CZDP
+            </a>
+        </p>
+    </div>
+</div>    
+{% endblock footer %}

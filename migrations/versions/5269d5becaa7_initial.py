@@ -1,8 +1,8 @@
-"""Initial
+"""initial
 
-Revision ID: b931e07d1780
+Revision ID: 5269d5becaa7
 Revises: 
-Create Date: 2019-10-04 12:52:36.719462
+Create Date: 2019-11-14 16:42:27.621673
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b931e07d1780'
+revision = '5269d5becaa7'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,7 +21,9 @@ def upgrade():
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=24), nullable=True),
+    sa.Column('realname', sa.String(length=24), nullable=True),
     sa.Column('email', sa.String(length=120), nullable=True),
+    sa.Column('role', sa.String(length=120), nullable=True),
     sa.Column('password', sa.String(length=128), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
@@ -32,7 +34,15 @@ def upgrade():
     sa.Column('name', sa.String(length=256), nullable=True),
     sa.Column('status', sa.String(length=24), nullable=True),
     sa.Column('date_stamp', sa.DateTime(), nullable=True),
+    sa.Column('bladed_version', sa.String(length=8), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('bladed_filename', sa.String(length=128), nullable=True),
+    sa.Column('bladed_url', sa.String(length=256), nullable=True),
+    sa.Column('xml_filename', sa.String(length=128), nullable=True),
+    sa.Column('xml_url', sa.String(length=256), nullable=True),
+    sa.Column('symbol_index', sa.Integer(), nullable=True),
+    sa.Column('symbol_filename', sa.String(length=128), nullable=True),
+    sa.Column('symbol_url', sa.String(length=256), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')

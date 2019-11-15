@@ -3,6 +3,7 @@ from openpyxl.styles import PatternFill
 import sqlite3
 import os
 import pandas as pd
+import re
 
 
 class SymbolDB:
@@ -17,6 +18,9 @@ class SymbolDB:
     def __init__(self):
         pass
 
+    def get_wb(self):
+        return self._symbol
+
     def load_sym(self, sym_file, db_name=None):
         if self.verification(sym_file, '.xlsx'):
             self.src_file = sym_file
@@ -29,7 +33,7 @@ class SymbolDB:
         if self.verification(db_file, '.db'):
             self.db_file = db_file
             self.src_file = self.db_file.replace('.db', '.xlsx') if excel_name is None else os.path.join(
-                os.path.split(self.src_file)[0], excel_name + '.xlsx')
+                os.path.split(self.db_file)[0], excel_name)
 
     def verification(self, file, post_fix):
         if os.path.isfile(file) and os.path.splitext(file)[1] == post_fix:
@@ -65,6 +69,8 @@ class SymbolDB:
         if self.is_connect():
             self.close()
 
+        self._symbol.close()
+
     def _create_db(self):
         self.connect()
         sheet_names = self._symbol.sheetnames
@@ -92,26 +98,43 @@ class SymbolDB:
                 continue
 
             start_with = row[0].value
+            if start_with and ';' in start_with:
+                continue
 
             row_values = [c.value for c in row]
 
-            if start_with and ';' in start_with:
-                continue
-            elif start_with in ['Name', 'Channel Name']:
+            if row_values[0] is not None:
+                last_name = row_values[0]
+            else:
+                row_values[0] = last_name
+
+            positions = [(row[0].row, i + 1) for i, value in enumerate(row_values)]
+
+            if start_with in ['Name', 'Channel Name']:
                 column_names = self.__get_column_names(row_values)
                 column_name_str = self.__get_column_name_str(column_names)
                 unique_item = self.__get_unique_item(sheet, start_with)
+
+                # 创建数值表
                 sql_statement = f"CREATE TABLE {table_name} (" \
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
                     f"{column_name_str}, " \
                     f"CONSTRAINT name_unique UNIQUE ({unique_item}))"
+                cursor.execute(sql_statement)
 
+                # 创建位置表
+                sql_statement = f"CREATE TABLE {table_name}_pos (" \
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
+                    f"{column_name_str}, " \
+                    f"CONSTRAINT name_unique UNIQUE ({unique_item}))"
                 cursor.execute(sql_statement)
 
                 # 给表加索引有时会失败， 此时忽略
                 try:
                     cursor.execute(
                         f"CREATE UNIQUE INDEX index_name ON {table_name} ({start_with.replace(' ', '_')})")
+                    cursor.execute(
+                        f"CREATE UNIQUE INDEX index_name ON {table_name}_pos ({start_with.replace(' ', '_')})")
                 except sqlite3.OperationalError:
                     pass
             else:
@@ -120,10 +143,12 @@ class SymbolDB:
                 column_name_str = self.__get_column_name_str(
                     column_names, no_text=True)
                 sql_statement = f"INSERT INTO {table_name} ({column_name_str}) VALUES ({column_value_str})"
-                try:
-                    cursor.execute(sql_statement)
-                except:
-                    pass
+                cursor.execute(sql_statement)
+
+                positions[0] = row_values[0]
+                positions_str = self.__get_value_position_str(column_names, positions)
+                sql_statement = f"INSERT INTO {table_name}_pos ({column_name_str}) VALUES ({positions_str})"
+                cursor.execute(sql_statement)
 
         cursor.close()
 
@@ -147,8 +172,9 @@ class SymbolDB:
 
     @staticmethod
     def __get_unique_item(sheet, start_with):
-        unique_item = "id" if sheet in [
-            'Schedules', 'Filters'] else f"id, {start_with.replace(' ', '_')}"
+        # unique_item = "id" if sheet in [
+        #     'Schedules', 'Filters'] else f"id, {start_with.replace(' ', '_')}"
+        unique_item = 'id'
 
         return unique_item
 
@@ -157,6 +183,14 @@ class SymbolDB:
         """数据库中的值全部为字符串格式"""
         column_value_str = ', '.join(
             [f"'{str(row_values[i])}'" for i in column_names.values()])
+
+        return column_value_str
+
+    @staticmethod
+    def __get_value_position_str(column_names, positions):
+        """数据库中的值全部为字符串格式"""
+        column_value_str = ', '.join(
+            [f"'{str(positions[i])}'" for i in column_names.values()])
 
         return column_value_str
 
@@ -173,7 +207,7 @@ class SymbolDB:
         cursor.execute(sql_statement)
         result = cursor.fetchall()
         cursor.close()
-        tables = [r[0] for r in result]
+        tables = [r[0] for r in result if '_pos' not in r[0]]
 
         return tables
 
@@ -184,6 +218,46 @@ class SymbolDB:
             cursor.execute(f"SELECT * FROM {table} WHERE {key_name}=?", (param,))
             if cursor.fetchone() is not None:
                 return table
+
+    def multi_query(self, keywords):
+        if not isinstance(keywords, list):
+            return self.query(keywords, self.belong_to(keywords))
+        # 隶属关系
+        relationship = {}
+        for keyword in keywords:
+            table_name = self.belong_to(keyword)
+            if table_name is None:
+                continue
+            if table_name not in relationship.keys():
+                relationship.update({table_name: [keyword]})
+            relationship[table_name].append(keyword)
+
+        result = {}
+        for k, v in relationship.items():
+            result.update(self._multi_query(v, k))
+
+        return result
+
+    def _multi_query(self, keywords, table_name):
+        key_name = 'Channel_Name' if table_name == 'DISCON_Mappings' else 'Name'
+        cursor = self._db.cursor()
+        sql_statement = f"SELECT * FROM {table_name} WHERE {key_name} in {tuple(keywords)}"
+        cursor.execute(sql_statement)
+        values = cursor.fetchall()
+
+        cursor.execute(f"PRAGMA table_info({table_name})")
+        keys_info = cursor.fetchall()
+        cursor.close()
+
+        keys = [k[1] for k in keys_info]
+
+        result = {}
+        for value in values:
+            # table变量名追加ID
+            key_name = value[1] + str(value[0]) if value[1][:2] in ['T_', 'F_'] else value[1]
+            result.update({key_name: pd.Series(data=value, index=keys)})
+
+        return result
 
     def query(self, keyword, sheet_name=None):
         """
@@ -209,12 +283,13 @@ class SymbolDB:
             return result
 
         if sheet_name is None:
-            all_tables = self.tables
+            all_tables = ['State_Filter', 'Alarm', 'Auto_System', 'CIO', 'State', 'Derived', 'Param',
+                          'Filters', 'Schedules', 'DISCON_Parameters', 'DISCON_Mappings']
             sql_statement_list = []
             for table_name in all_tables:
                 key_name = 'Channel_Name' if table_name == 'DISCON_Mappings' else 'Name'
                 sql_statement_list.append(
-                    f"SELECT {key_name}  FROM {table_name} WHERE {key_name} LIKE '%{keyword}%'")
+                    f"SELECT {key_name} FROM {table_name} WHERE {key_name} LIKE '%{keyword}%' escape '/'")
             sql_statement = ' UNION '.join(sql_statement_list)
 
             cursor = self._db.cursor()
@@ -238,7 +313,7 @@ class SymbolDB:
         keys = [k[1] for k in keys_info]
 
         result = {v[1]: pd.Series(data=v, index=keys) for v in values}
-        
+
         return result
 
     def _TData_result(self, table_name):
@@ -271,63 +346,84 @@ class SymbolDB:
         return df_dict
 
     def update(self, **kwargs):
+        # 变量和表的隶属关系
+        relationship = {}
+        for keyword in kwargs.keys():
+            pattern = re.compile(r'\d+-\S*$')
+            fine_keyword = keyword.split('-')[0] if 'P_' in keyword else pattern.sub('', keyword, 1)
+            table_name = self.belong_to(fine_keyword)
+            if table_name is None:
+                continue
+            if table_name not in relationship.keys():
+                relationship.update({table_name: [keyword]})
+            else:
+                relationship[table_name].append(keyword)
+        self.db_update(relationship, kwargs)
+        self.excel_update(relationship, kwargs)
+
+    def excel_update(self, relationship, kwargs):
         """
-        kwargs =
-        {
-            name1: {
-                sheet: "",
-                value: ""
-            },            
-            name2: {
-                sheet: "",
-                value: ""
-            }
-        }
+        更新Symbol表
         """
-        if not self.verification(self.src_file, '.xlsx'):
-            return None
+        from time import time
+        start = time()
         wb = openpyxl.load_workbook(self.src_file)
-        sheet_names_to_update = set([v['sheet'] for k, v in kwargs.items()])
-        sheets = [wb[sheet_name] for sheet_name in sheet_names_to_update]
+        print(f'读： {time() - start}')
+        sheets = [wb[table_name.replace('_', ' ')] for table_name in relationship.keys()]
+        for table_name, params in relationship.items():
+            sheet_name = table_name.replace('_', ' ')
+            ws = wb[sheet_name]
+            key_name = 'Channel_Name' if table_name == 'DISCON_Mappings' else 'Name'
+            cursor = self._db.cursor()
+            if table_name in ['Filters', 'Schedules']:
+                pass
+            else:
+                for param in params:
+                    sql_statement = f'SELECT Initial_Value FROM {table_name}_pos WHERE {key_name} = "{param.split("-")[0]}"'
+                    cursor.execute(sql_statement)
+                    result = cursor.fetchall()[0][0]
+                    row, col = eval(result)
+                    ws.cell(column=col, row=row, value=kwargs[param])
+        print(f'写： {time() - start}')
+        wb.save(self.src_file)
+        print(f'存： {time() - start}')
 
-        for sheet in sheets:
-            iter_row = sheet.rows
-            irow = 0
+    def db_update(self, relationship, kwargs):
+        """
+        更新数据库
+        """
+        cursor = self._db.cursor()
+        for table_name, params in relationship.items():
+            # 更新表
+            key_name = 'Channel_Name' if table_name == 'DISCON_Mappings' else 'Name'
+            if table_name in ['Filters', 'Schedules']:
+                # 逐条记录更新
+                pattern = re.compile(r'(\d+)-(\S+)$')
+                set_statement = {}
+                for param in params:
+                    m = pattern.search(param)
+                    id, col = m.groups()
+                    col = f'_{col}' if col.isdigit() else col
+                    set_statement[id] = set_statement[id] + f', {col} = "{kwargs[param]}"' \
+                        if id in set_statement.keys() else f'{col} = "{kwargs[param]}"'
 
-            while True:
-                try:
-                    row = next(iter_row)
-                    irow += 1
-                except StopIteration:
-                    break
+                for id, sta in set_statement.items():
+                    sql_statement = f'UPDATE {table_name} SET {sta} WHERE id = {id}'
+                    cursor.execute(sql_statement)
+            else:
+                # 一次更新
+                case_statement = []
+                true_params = [p.split('-')[0] for p in params]
+                for param in params:
+                    case_statement.append(f'WHEN "{param.split("-")[0]}" THEN "{kwargs[param]}"')
 
-                if not row:  # 过滤空行
-                    continue
+                sql_statement = f'UPDATE {table_name} SET Initial_Value = CASE {key_name} ' \
+                    f'{" ".join(case_statement)}' \
+                    f' END WHERE {key_name} IN {tuple(true_params)}' \
+                    if len(params) > 1 else \
+                    f'UPDATE {table_name} SET Initial_Value = "{list(kwargs.values())[0]}" WHERE {key_name} ' \
+                        f'= "{true_params[0]}"'
 
-                start_with = row[0].value
-                row_values = [c.value for c in row]
-                column_names = []
-                if start_with in ['Name', 'Channel Name']:
-                    column_names = self.__get_column_names(row_values)
-                elif start_with in kwargs.keys():
-                    if 'P_' in start_with:
-                        icol = column_names.index('Initial Value') + 2
-                        sheet.cell(irow, icol, kwargs[start_with]['value'])
-                        font = sheet.cell(irow, icol).font
-                        alignment = sheet.cell(irow, icol).alignment
-                        fill = PatternFill(patternType=sheet.cell(irow, icol).fill.patternType,
-                                           bgColor=sheet.cell(
-                                               irow, icol).fill.bgColor,
-                                           fgColor=sheet.cell(irow, icol).fill.fgColor)
-
-                        sheet.cell(irow, icol).font = font
-                        sheet.cell(irow, icol).alignment = alignment
-                        sheet.cell(irow, icol).fil = fill
-
-                        self._update_P(sheet, start_with, kwargs)
-                    if 'T_' in start_with:
-                        self._update_T(sheet, start_with, kwargs)
-                    if 'F_' in start_with:
-                        self._update_F(sheet, start_with, kwargs)
-
-    # def _update_P(self, sheet, start_with, kwargs):
+                cursor.execute(sql_statement)
+        cursor.close()
+        self._db.commit()

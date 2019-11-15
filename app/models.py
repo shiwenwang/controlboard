@@ -43,6 +43,7 @@ class Task(db.Model):
     xml_filename = db.Column(db.String(128))
     xml_url = db.Column(db.String(256))
     symbol_index = db.Column(db.Integer)
+    symbol_filename = db.Column(db.String(128))
     symbol_url = db.Column(db.String(256))
 
     @staticmethod
@@ -50,13 +51,14 @@ class Task(db.Model):
         return datestamp.strftime('%Y-%m-%d %H:%M:%S')
 
     def to_json(self, show_id):
-        status_map = {"New": "secondary",
-                      "Working": "warning",
-                      "Done": "success"}
+        status_map = {"New": ["secondary", "等待开始"],
+                      "Working": ["warning", "工作中"],
+                      "Done": ["success", "结束"]}
         return {'id': show_id,
                 'name': f'<a href="{url_for("task.work", taskname=self.name)}" target="_blank">{self.name}</a>',
                 'date': self.date_str(self.date_stamp),
-                'status': f'<span class="badge badge-{status_map[self.status]}">{self.status}</span>',
+                'status': f'<span class="badge badge-{status_map[self.status][0]}" data-toggle="tooltip" title="'
+                f'{status_map[self.status][1]}">{self.status}</span>',
                 'bladed_version': self.bladed_version,
                 'creator': self.user.realname,
                 'operate': '''

@@ -127,3 +127,8 @@ class DeleteTaskForm(FlaskForm):
     taskname = StringField(validators=[DataRequired()])
     delete_files = BooleanField()
     delete_submit = SubmitField()
+
+
+class WorkingForm(FlaskForm):
+    save_submit = SubmitField()
+    download_submit = SubmitField()

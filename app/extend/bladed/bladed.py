@@ -5,6 +5,7 @@ class Bladed(object):
 
     def __init__(self, path):
         self.content = None
+        self.path = path
         with open(path, 'r') as f:
             self.content = f.read()
 
@@ -27,22 +28,25 @@ class Bladed(object):
             mapping = {'GTMAX': 'torqueDemandMax'}
             return self.query_v47(mapping[param])
 
-        pattern = re.compile(r'(%s)\s+(\d*\.*\d*)\n' % param)
+        pattern = re.compile(r'(%s)\s+(-?\d*\.*\d*E?-?\+?\d*)\n' % param)
         result = pattern.search(self.content)
 
-        return (param, '') if result is None else result.groups()
+        return (param, '') if result is None else (result.groups()[0], str(float(result.groups()[1])))
 
     def query_v47(self, param):
-        pattern = re.compile(r'<(%s)>(\d.)<>' % (param, ))
+        pattern = re.compile(r'<(%s)>(\d*)<' % (param, ))
         result = pattern.search(self.content)
 
         return (param, '') if result is None else result.groups()
 
     def set(self, **kwargs):
         for key, value in kwargs.items():
-            pattern = re.compile(r'((%s)\s+)\d*\.*\d*\n' % key)
+            pattern = re.compile(r'((%s)\s+)-?\d*\.*\d*E?-?\+?\d*\n' % key)
             self.content = pattern.sub(
                 lambda m: m.groups()[0] + str(value) + '\n', self.content, 1)
+
+        with open(self.path, 'w') as f:
+            f.write(self.content)
 
 
 if __name__ == "__main__":
@@ -61,7 +65,7 @@ if __name__ == "__main__":
     print(bladed_v46.version())
 
     print(bladed_v43.query("RHO"))
-    print(bladed_v43.query("OMMIN"))
+    print(bladed_v43.query("PITMIN"))
     print(bladed_v43.query("OMMAX"))
 
     bladed_v43.set(RHO=1.225, OMMIN=0.10101, OMMAX=9.9999)

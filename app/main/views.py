@@ -10,7 +10,7 @@ import os
 import shutil
 
 from app.extend.bladed import Bladed
-from app.extend.symbol import excel
+from app.extend.symbol import SymbolDB
 
 main = Blueprint('main', __name__)
 
@@ -57,6 +57,16 @@ def modify_config(user, new_task_form):
     patch_request_class(current_app)
 
 
+def reset_config():
+    cfg = current_app.config
+    for uset in usets:
+        dest_name = 'UPLOADED_%s_' % uset.name.upper() + 'DEST'
+        cfg.update({dest_name: cfg.get('UPLOADS_DEFAULT_DEST')})
+
+    configure_uploads(current_app, usets)
+    patch_request_class(current_app)
+
+
 def create_new_task(user, new_task_form):
     modify_config(user, new_task_form)
 
@@ -74,7 +84,9 @@ def create_new_task(user, new_task_form):
                 bladed_url=saved_files['bladed']['url'],
                 xml_filename="" if saved_files['xml'] is None else saved_files['xml']['filename'],
                 xml_url="" if saved_files['xml'] is None else saved_files['xml']['url'],
-                symbol_index=new_task_form.symbol.data
+                symbol_index=new_task_form.symbol.data,
+                symbol_filename="" if saved_files['symbol'] is None else saved_files['symbol']['name'],
+                symbol_url="" if saved_files['symbol'] is None else saved_files['symbol']['url']
                 )
 
     db.session.add(task)
@@ -84,9 +96,11 @@ def create_new_task(user, new_task_form):
         cfg = current_app.config
         local_symbol_path = os.path.join(
             uset_symbol.config.destination, os.listdir(cfg.get('UPLOADS_TEMPL_DEST'))[new_task_form.symbol.data-1])
-        db_symbol = excel.SymbolDB()
-        db_symbol.load_sym(local_symbol_path, db_name='symbol')
+        db_symbol = SymbolDB()
+        db_symbol.load_sym(local_symbol_path, db_name=task.name)
         db_symbol.create_db()
+
+    reset_config()
 
 
 def update_task(user, edit_task_form):
@@ -108,11 +122,25 @@ def update_task(user, edit_task_form):
         if saved_files['xml'] is not None:
             task.xml_filename = saved_files['xml']['filename']
             task.xml_url = saved_files['xml']['url']
-        if saved_files['symbol'] is not None:
+        if saved_files['symbol'] is not None and edit_task_form.symbol.data != task.symbol_index:
             task.symbol_index = saved_files['symbol']['index']
+            task.symbol_filename = saved_files['symbol']['name']
             task.symbol_url = saved_files['symbol']['url']
 
+            cfg = current_app.config
+            local_symbol_path = os.path.join(
+                uset_symbol.config.destination,
+                os.listdir(cfg.get('UPLOADS_TEMPL_DEST'))[edit_task_form.symbol.data - 1])
+            local_db_symbol_path = os.path.join(os.path.split(local_symbol_path)[0], task_name + '.db')
+            if os.path.isfile(local_db_symbol_path):
+                os.remove(local_db_symbol_path)
+            db_symbol = SymbolDB()
+            db_symbol.load_sym(local_symbol_path, db_name=task_name)
+            db_symbol.create_db()
+            db_symbol.close()
+
     db.session.commit()
+    reset_config()
 
 
 def get_symbol_choices():
@@ -154,6 +182,7 @@ def files_save(form, task=None):
             symbols_dir, os.listdir(symbols_dir)[symbol_index - 1])
         shutil.copy(select_file_path, uset_symbol.config.destination)
         saved_files['symbol'] = {'index': symbol_index,
+                                 'name': os.path.split(select_file_path)[1],
                                  'url': uset_symbol.url(uset_symbol.name)}
 
     return saved_files

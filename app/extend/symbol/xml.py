@@ -15,6 +15,7 @@ class XML:
         self._tree = None
         self._channels = None
         self._tables = None
+        self._path = None
 
     @property
     def tree(self):
@@ -48,6 +49,7 @@ class XML:
             root_child = [child for child in self.tree.getroot()]
             self._channels = root_child[0]
             self._tables = root_child[1]
+            self._path = filename
 
     def query(self, key_word, name_only=False, strict=False):
         result_list = []
@@ -118,33 +120,65 @@ class XML:
 
         return result
 
-    def update(self, **kwargs):
+    def update_channels(self, kwargs):
+        for ch in self.channels:
+            name = ch.find('Name').text
+            if name in kwargs.keys():
+                ch.find('InitialValue').text = kwargs[name]['']['symbol']
+
+    def update_tables(self, kwargs):
+        for tb in self.tables:
+            name = tb.find('Name').text
+            if name in kwargs.keys():
+                for r, dt in kwargs[name].items():
+                    if 'T_' in name and 'Enabled' in dt.keys():
+                        tb.find('Enabled').text = dt['Enabled']
+                    row = tb.findall('Row')[int(r)]
+                    for value in row.findall('Value'):
+                        if value.attrib['Name'] in dt.keys():
+                            value.text = dt[value.attrib['Name']]
+
+    def update(self, p_list, t_list, **kwargs):
+        """
+        lastest version
+        """
+        if p_list:
+            self.update_channels(kwargs)
+        if t_list:
+            self.update_tables(kwargs)
+
+        self.write(self._path)
+
+    def bad_update(self, **kwargs):
+        """
+        older version
+        """
         for k, v in kwargs.items():
             if 'P_' in k:
                 for ch in self.channels:
                     name = ch.find('Name')
                     if name.text == k:
-                        self._update_P(ch, v)
+                        self._update_param(ch, v)
             elif 'T_' in k:
                 for tb in self.tables:
                     name = tb.find('Name')
                     if name.text == k:
-                        self._update_T(tb, v)
+                        self._update_sched(tb, v)
             elif 'F_' in k:
                 for tb in self.tables:
                     name = tb.find('Name')
                     if name.text == k:
-                        self._update_F(tb, v)
+                        self._update_filter(tb, v)
             else:
                 pass
 
     @staticmethod
-    def _update_P(ele, value):
+    def _update_param(ele, value):
         iv = ele.find('InitialValue')
         iv.text = str(value)
 
     @staticmethod
-    def _update_T(ele, value):
+    def _update_sched(ele, value):
         """value is a instance of DataFrame"""
         none_cols = [c for c in value.columns if value.at[0, c] == 'None']
         valide_value = value.drop(none_cols, axis=1)
@@ -171,7 +205,7 @@ class XML:
                 row.append(new_ele)
 
     @staticmethod
-    def _update_F(ele, value):
+    def _update_filter(ele, value):
         """value is a instance of DataFrame"""
         none_cols = [c for c in value.columns if value.at[0, c] == 'None']
         valide_value = value.drop(none_cols, axis=1)

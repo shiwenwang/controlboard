@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="{{ url_for('static',filename='css/fileinput.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap-table.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap-select.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
 
     <script src="{{ url_for('static',filename='js/jquery-3.4.1.min.js') }}"></script>
     <script src="{{ url_for('static',filename='js/jquery.validate.js') }}"></script>
@@ -29,9 +30,10 @@
     <script src="{{ url_for('static',filename='js/fontawesome.min.js') }}"></script>
     <script src="{{ url_for('static',filename='js/solid.min.js') }}"></script>
     <script src="{{ url_for('static',filename='js/fileinput.js') }}"></script>
-    <script src="{{ url_for('static',filename='js/theme.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/theme.min.js') }}"></script>    
     <script src="{{ url_for('static',filename='js/bootstrap-table.js') }}"></script>
-    <script src="{{ url_for('static',filename='js/bootstrap-select.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/bootstrap-select.js') }}"></script> 
+    
     {% endblock %}
 
     <title>{{ title }} - Control Board</title>
@@ -53,12 +55,14 @@
     <!-- Your page content -->
     {% block content %}{% endblock %}  
 
-
+    
     {% block scripts %}
     
-
     {% endblock %}
     
+    
     {% block footer %}{% endblock footer %}
+
+    
   </body>    
 </html>

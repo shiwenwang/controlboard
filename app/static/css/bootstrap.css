@@ -5338,7 +5338,7 @@ a.badge-dark:focus, a.badge-dark.focus {
   z-index: 1;
   color: #495057;
   text-decoration: none;
-  background-color: #f8f9fa;
+  background-color: #ffe484;
 }
 
 .list-group-item-action:active {

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/custom.css') }}">
+<style>
+    #work-content-title {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+
+    .list-group-item {
+        padding-top: 0px;
+        padding-bottom: 0px;
+        border: none;
+    }
+
+    .alert {
+        position: fixed;
+        top: 56px;
+    }
+
+    /* svg path,svg rect{fill: #FF6700;} */
+</style>
+{% endblock styles %}
+{% block content %}
+<div class="container fixed-top col-sm-2">
+    <div class="alert mx-auto" id="alert" role="alert" style="width: 240px;">
+    </div>
+</div>
+
+{% endblock content %}

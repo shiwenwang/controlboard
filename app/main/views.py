@@ -1,5 +1,5 @@
 from flask import (Blueprint, render_template, redirect,
-                   url_for, current_app, g)
+                   url_for, current_app, g, flash)
 from flask_login import current_user, login_required
 from flask_uploads import configure_uploads, patch_request_class
 from app.models import load_user, Task
@@ -20,6 +20,7 @@ main = Blueprint('main', __name__)
 @login_required
 def index():
     user = load_user(current_user.get_id())
+    tasks_amount = len(Task.query.filter_by(user_id=user.id).all())
     new_task_form = NewTaskForm()
     new_task_form.symbol.choices = get_symbol_choices()
     if new_task_form.save_submit.data and new_task_form.validate():
@@ -37,7 +38,7 @@ def index():
         delete_task(user, delete_task_form)
         return redirect(url_for('main.index'))
 
-    return render_template('index.html', title='主页', user=user,
+    return render_template('index.html', title='主页', user=user, tasks_amount=tasks_amount,
                            new_task_form=new_task_form, 
                            edit_task_form=edit_task_form,
                            delete_task_form=delete_task_form)
@@ -90,7 +91,7 @@ def create_new_task(user, new_task_form):
                 )
 
     db.session.add(task)
-    db.session.commit()
+    db.session.commit()    
 
     if saved_files['symbol'] is not None:
         cfg = current_app.config
@@ -139,7 +140,7 @@ def update_task(user, edit_task_form):
             db_symbol.create_db()
             db_symbol.close()
 
-    db.session.commit()
+    db.session.commit()   
     reset_config()
 
 

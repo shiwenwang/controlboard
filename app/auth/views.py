@@ -1,9 +1,9 @@
 from flask import Blueprint, flash, render_template, redirect, url_for
 from flask_login import current_user, login_user, logout_user, login_required
-from app.forms import LoginForm, RegistrationForm, SendEmail, ResetPassWordForm, employees_query
+from app.forms import LoginForm, RegistrationForm, ConfirmForm, ResetPassWordForm, employees_query
 from app.models import User, load_user
 from app import db
-
+import base64
 
 auth = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -52,20 +52,40 @@ def reset():
     form = ResetPassWordForm()
     next_state = "返回"
     if form.validate_on_submit():
-        user = load_user(current_user.get_id())
+        user_id = current_user.get_id()
+        user = load_user(user_id)
         if user.check_password(form.old_password.data):
             user.password = form.new_password.data
             logout_user()
             next_state = "重新登录"
-            flash("密码修改成功！")            
-        else:            
+            flash("密码修改成功！")
+        else:
             flash("密码错误！")
     return render_template('resetpw.html', form=form, next=next_state, title='修改密码')
 
 
-@auth.route('/forgot')
+@auth.route('/forgot',  methods=['GET', 'POST'])
 def forgot():
-    form = SendEmail()
+    form = ConfirmForm()
     if form.validate_on_submit():
-        pass
+        real_name = User.query.filter_by(username=form.username.data).first().realname
+        secure_name = base64.encodebytes(real_name.encode())
+        return redirect(url_for('auth.cold_reset', name=secure_name))
+
     return render_template('forgot.html', form=form, title='忘记密码')
+
+
+@auth.route('/cold-reset/<name>', methods=['GET', 'POST'])
+def cold_reset(name):
+    form = ResetPassWordForm()
+    next_state = "返回"
+    if form.validate_on_submit():
+        user = User.query.filter_by(realname=base64.decodebytes(name.encode()).decode()).first()
+        if user.check_password(form.old_password.data):
+            user.password = form.new_password.data
+            logout_user()
+            next_state = "登录"
+            flash("密码修改成功！")
+        else:
+            flash("密码错误！")
+    return render_template('resetpw.html', form=form, next=next_state, title='修改密码')

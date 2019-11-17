@@ -4,7 +4,7 @@
 {% block styles %}
     {{ super() }}
     <!-- Custom styles for this template -->
-    <link href="../static/css/floating-labels.css" rel="stylesheet">
+    <link href="{{ url_for('static',filename='css/floating-labels.css') }}" rel="stylesheet">
 {% endblock styles %}
 {% block flash %}
 {% for message in get_flashed_messages() %}
@@ -38,10 +38,30 @@
     <form class="form-signin" method="POST">
         {{ form.csrf_token }}
         <div class="form-label-group">     
-            {{ form.email(class="form-control", placeholder="Email", autofocus=true) }}                
-            <label for="email">Email</label>
+            {% if form.username.errors %}
+            {{ form.username(class="form-control is-invalid", placeholder="OA号", autofocus=true) }}
+            <label for="username">OA号</label>
+            {% for error in form.username.errors %}            
+                <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+            {% else %}
+            {{ form.username(class="form-control", placeholder="OA号", autofocus=true) }}
+            <label for="username">OA号</label>            
+            {% endif %}             
         </div>
-        {{ form.submit(class="btn btn-lg btn-primary btn-block ", value="发送临时密码") }}
+        <div class="form-label-group">     
+            {% if form.email.errors %}
+            {{ form.email(class="form-control is-invalid", placeholder="确认邮箱") }}
+            <label for="email">确认邮箱</label>
+            {% for error in form.email.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+            {% else %}
+            {{ form.email(class="form-control", placeholder="确认邮箱") }}
+            <label for="email">确认邮箱</label>
+            {% endif %} 
+        </div>
+        {{ form.submit(class="btn btn-lg btn-primary btn-block ", value="下一步") }}
     </form>
     <!-- /send password -->
 

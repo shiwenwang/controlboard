@@ -44,17 +44,25 @@ class LoginForm(FlaskForm):
     login_submit = SubmitField()
 
 
-class SendEmail(FlaskForm):
+class ConfirmForm(FlaskForm):
+    username = StringField(validators=[DataRequired()])
     email = StringField(validators=[DataRequired(), Email(message='邮箱不合法。')])
     submit = SubmitField()
-    emails = employees_query('电子邮箱')[0]
+
+    def validate_username(self, username):
+        users = User.query.all()
+        user = User.query.filter_by(username=username.data).first()
+        if user not in users:
+            raise ValidationError('OA号不存在。')
 
     def validate_email(self, email):
         if self.email.errors:
             raise ValidationError()
+        users = User.query.all()
+        user = User.query.filter_by(email=email.data).first()
 
-        if self.email.data not in self.emails:
-            raise ValidationError('请输入注册使用的邮箱。')
+        if user not in users:
+            raise ValidationError('邮箱不存在。')
 
 
 class RegistrationForm(FlaskForm):

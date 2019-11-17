@@ -44,8 +44,8 @@ a:hover {
 }
 
 #search-input:focus {
-    border-color: #7952b3;
-    box-shadow: 0 0 0 3px rgba(121, 82, 179, .25)
+    border-color: white;
+    box-shadow: 0 0 0 3px rgba(252, 252, 252, 0.24)
 }
 
 /* .form-label-group > input:focus{

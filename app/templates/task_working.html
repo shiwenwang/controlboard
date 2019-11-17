@@ -1,10 +1,5 @@
 {% extends 'base.html' %}
 
-
-{% block flash %}
-<div class="alert" id="alert"></div>
-{% endblock flash %}
-
 {% block styles %}
 {{ super() }}
 <link rel="stylesheet" href="{{ url_for('static',filename='css/custom.css') }}">
@@ -19,9 +14,20 @@
         padding-bottom: 0px;
         border: none;
     }
+
+    .alert {
+        position: fixed;
+        top: 56px;
+    }
+
+    /* svg path,svg rect{fill: #FF6700;} */
 </style>
 {% endblock styles %}
 {% block content %}
+<div class="container fixed-top col-sm-2">
+    <div class="alert mx-auto" id="alert" role="alert" style="width: 240px;">
+    </div>
+</div>
 
 <header class="navbar navbar-expand-lg navbar-dark bd-navbar navbar-static-top">
     <div class="container-fluid" id="top-navbar">
@@ -56,7 +62,15 @@
                         href="{{ url_for('task.work', taskname=taskname, obj='xml') }}">XML</a>
                     {% endif %}
                 </li>
-                <li class="nav-item" style="padding-left: 100px;border-color: #ffe484;">
+                <li class="nav-item">
+                    <a class="nav-link" target="blank" onclick="waiting()">线性化</a>
+                    <!-- href="{{ url_for('task.campbell', taskname=taskname) }}">线性化</a> -->
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" target="blank"  onclick="waiting()">控制器编译</a>
+                    <!-- href="{{ url_for('task.compiling', taskname=taskname) }}">控制器编译</a> -->
+                </li>
+                <li class="nav-item" style="padding-left: 60px;border-color: #ffe484;">
                     <span class="algolia-autocomplete algolia-autocomplete-left"
                         style="position: relative; display: inline-block; direction: ltr;"><input type="search"
                             class="form-control ds-input" id="search-input" placeholder="Search..."
@@ -65,7 +79,7 @@
                             aria-owns="algolia-autocomplete-listbox-0" dir="auto"
                             style="position: relative; vertical-align: top; width: 500px;"
                             oninput="searchInpuChanged()">
-                        <span class="ds-dropdown-menu" role="listbox" id="algolia-autocomplete-listbox-0" 
+                        <span class="ds-dropdown-menu" role="listbox" id="algolia-autocomplete-listbox-0"
                             style="position: absolute; top: 100%; z-index: 100; display: none; width: 500px; max-height: 500px;">
                             <div class="list-group list-group-flush" id="name-list"></div>
                         </span>
@@ -97,14 +111,80 @@
         </div>
     </div>
 </header>
-
-<!-- Profile Modal -->
-<!-- <div class="modal fade" id="ProfileModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
+<!-- tip Modal -->
+<div class="modal fade" id="tipmodel" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">个人信息 - {{ user.realname }}</h5>
+                <h5 class="modal-title" style="color:#7952b3;">提示</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label for="">正在开发，暂未开放。</label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Save Modal -->
+<div class="modal fade" id="ConfirmSaveModal" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 style="font-weight: bold; color: #7952b3;"><i class="fas fa-question-circle"></i> 提示</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul>
+                    <li>保存至Symbol表将花费较长时间，且暂未找到读写Excel更快速的方法。</li>
+                    <li>保存后的Symbol表文件打开时有弹出修复的提示，这是由Setting页中的图片丢失导致，忽略即可。</li>
+                    <li>除上述问题外，其余功能正常。</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">放弃</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="savePage('db')"
+                    data-toggle="modal" data-target="#SavingModal">仅更新数据库</button>
+                <button type="button" class="btn btn-primary symbol-save-btn" data-dismiss="modal" data-toggle="tooltip"
+                    title="暂不开放" disabled onclick="savePage('all')">保存至Symbol表</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Saving Modal -->
+<div class="modal fade" id="SavingModal" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-body text-center">
+            <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
+                xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="48px" height="60px"
+                viewBox="0 0 24 30" style="enable-background:new 0 0 50 50;" xml:space="preserve">
+                <rect x="0" y="0" width="4" height="10" fill="#FF6700" transform="translate(0 15.1665)">
+                    <animateTransform attributeType="xml" attributeName="transform" type="translate"
+                        values="0 0; 0 20; 0 0" begin="0" dur="0.6s" repeatCount="indefinite"></animateTransform>
+                </rect>
+                <rect x="10" y="0" width="4" height="10" fill="#FF6700" transform="translate(0 11.5002)">
+                    <animateTransform attributeType="xml" attributeName="transform" type="translate"
+                        values="0 0; 0 20; 0 0" begin="0.2s" dur="0.6s" repeatCount="indefinite"></animateTransform>
+                </rect>
+                <rect x="20" y="0" width="4" height="10" fill="#FF6700" transform="translate(0 1.83315)">
+                    <animateTransform attributeType="xml" attributeName="transform" type="translate"
+                        values="0 0; 0 20; 0 0" begin="0.4s" dur="0.6s" repeatCount="indefinite"></animateTransform>
+                </rect>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Modal -->
+<div class="modal fade" id="ProfileModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">个人信息 - {{ user.realname }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -113,30 +193,29 @@
                 <form>
                     <div class="form-group">
                         <label for="message-text" class="col-form-label">总任务数:</label>
-                        <input type="text" class="form-control" id="recipient-name"
-                            value="{{ user_tasks | list | length }}" disabled>
+                        <input type="text" class="form-control" value="{{ tasks_amount }}" disabled>
                     </div>
                     <div class="form-group">
                         <label for="recipient-name" class="col-form-label">用户名：</label>
-                        <input type="text" class="form-control" id="recipient-name" value="{{ user.username }}"
-                            disabled>
+                        <input type="text" class="form-control" value="{{ user.username }}" disabled>
                     </div>
                     <div class="form-group">
                         <label for="message-text" class="col-form-label">职位：</label>
-                        <input type="text" class="form-control" id="recipient-name" value="{{ user.role }}" disabled>
+                        <input type="text" class="form-control" value="{{ user.role }}" disabled>
                     </div>
                     <div class="form-group">
                         <label for="message-text" class="col-form-label">电子邮箱：</label>
-                        <input type="text" class="form-control" id="recipient-name" value="{{ user.email }}" disabled>
+                        <input type="text" class="form-control" value="{{ user.email }}" disabled>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
             </div>
         </div>
     </div>
-</div> -->
+</div>
 
 <div class="container-fluid" onscroll="scroll()">
     <div id="work-content-title">
@@ -155,7 +234,7 @@
             </div>
 
             <div class="p-2 align-self-center">
-                <button type="submit" class="btn btn-bd-primary" id="save-submit" onclick="savePage()">
+                <button type="submit" class="btn btn-bd-primary" id="save-submit" onclick="savePageTrigger()">
                     <i class="fas fa-save"></i> 保存
                 </button>
             </div>
@@ -223,8 +302,7 @@
                                                 <i class="fas fa-arrow-alt-circle-right"></i>
                                         </div>
                                         <div class="p-2 align-self-center">
-                                            <input type="text" class="form-control" id="radpsrpm"
-                                                placeholder="rad/s">
+                                            <input type="text" class="form-control" id="radpsrpm" placeholder="rad/s">
                                         </div>
                                     </div>
                                     <div class="d-flex">
@@ -240,8 +318,7 @@
                                             <i class="fas fa-arrow-alt-circle-right"></i>
                                         </div>
                                         <div class="p-2 align-self-center">
-                                            <input type="text" class="form-control" id="radpshz"
-                                                placeholder="rad/s">
+                                            <input type="text" class="form-control" id="radpshz" placeholder="rad/s">
                                         </div>
                                     </div>
                                 </form>
@@ -267,8 +344,7 @@
                                             </div>
                                         </div>
                                         <div class="p-6 align-self-center">
-                                            <button class="btn btn-sm btn-primary"
-                                                onclick="setTowerExc()">应用</button>
+                                            <button class="btn btn-sm btn-primary" onclick="setTowerExc()">应用</button>
                                         </div>
                                     </div>
                                     <div class="d-flex">
@@ -354,6 +430,9 @@
 </div>
 
 <script>
+    function waiting(){
+        $("#tipmodel").modal();
+    }
     window.onscroll = function () {
         if (document.documentElement.scrollTop > 5) {
             $(".navbar")[0].style.boxShadow = "0px 6px 5px rgba(121,82,179,.25)";
@@ -576,14 +655,14 @@
         } else {
             listBox.style.display = "none";
             getData();
-            $("#towerExc-block")[0].style.display = "block";      
-            $("#tool-block")[0].style.display = "block";  
+            $("#towerExc-block")[0].style.display = "block";
+            $("#tool-block")[0].style.display = "block";
         }
     }
 
-    function showSearchResult(param){
+    function showSearchResult(param) {
         $("#search-input").val(param);
-        var tableData = {};               
+        var tableData = {};
         $.ajax({
             type: 'POST',
             url: "/task/search/{{ taskname }}/{{ obj }}/" + param,
@@ -594,27 +673,27 @@
             success: function (data) { //成功的话，得到消息
                 tableData = data;
             },
-            complete: function () {               
+            complete: function () {
                 initTable(tableData);
-                setDisplay(tableData); 
+                setDisplay(tableData);
                 window.pageInitialData = getInitialTableData();
                 $("#edit-switch")[0].checked = false;
             }
         });
     }
-    
-    function setDisplay(tableData, displayname){
+
+    function setDisplay(tableData, displayname) {
         $("#algolia-autocomplete-listbox-0")[0].style.display = "none";
-        for (var key in tableData){
-            if (String(tableData[key]) != ""){              
-                $('#nav-tab a[href="#nav-' + key + '"]').tab('show'); 
-                if (key == "filters"){
+        for (var key in tableData) {
+            if (String(tableData[key]) != "") {
+                $('#nav-tab a[href="#nav-' + key + '"]').tab('show');
+                if (key == "filters") {
                     $('#filters-table').bootstrapTable('mergeCells', { index: 0, field: 'Name', colspan: 1, rowspan: tableData['filters'].length });
-                }               
-            }              
-        }        
-        $("#towerExc-block")[0].style.display = "none";      
-        $("#tool-block")[0].style.display = "none";  
+                }
+            }
+        }
+        $("#towerExc-block")[0].style.display = "none";
+        $("#tool-block")[0].style.display = "none";
     }
 
     function initTable(data) {
@@ -900,12 +979,15 @@
                 $("#edit-switch")[0].checked = false;
             }
         });
-    }    
+    }
     $(document).ready(function () {
         getData();
         editModeSwitch();
         $('.tips').tooltip('show');
         $('.tips').tooltip('hide');
+        $(".symbol-save-btn").tooltip('show');
+        $(".symbol-save-btn").tooltip('hide');
+        $(".alert")[0].classList.remove("col-md-4");
     });
 
     function getInitialTableData() {
@@ -929,49 +1011,64 @@
         return data;
     }
 
-    function savePage() {
+    function savePageTrigger() {
         var dataChanged = getModifiedTableData();
         if (JSON.stringify(dataChanged) == "{}") {
-            // $('#alert').html('未检测到修改!').addClass('alert-warning').show().delay(1000).fadeOut();
-            $('#alert').html('未检测到修改!').addClass('alert-warning').show();
+            var list = $(".alert")[0].classList;
+            for (var i = 1; i < list.length; i++) {
+                $('.alert').removeClass(list[i]);
+            }
+            $('.alert').html('未修改!').addClass('alert-warning').show().delay(1000).fadeOut();
+            return;
         }
+        if ("{{ obj }}" == "symbol") {
+            $("#ConfirmSaveModal").modal();
+            return;
+        }
+        savePage('xml');
+        $("#SavingModal").modal('show');
+    }
+
+    function savePage(target) {
+        var dataChanged = getModifiedTableData();
         $.ajax({
             cache: false,
             type: 'POST',
             url: "/task/write/{{ taskname }}/{{ obj }}",
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
-            data: JSON.stringify(
-                dataChanged
+            data: JSON.stringify({
+                'data': dataChanged,
+                'target': target
+            }
             ),
             success: function (data) { //成功的话，得到消息
                 tableData = data;
                 if (JSON.stringify(dataChanged) != "{}") {
-                    $('#alert').html('保存成功!').addClass('alert-success').show().delay(1000).fadeOut();
+                    var list = $(".alert")[0].classList;
+                    for (var i = 1; i < list.length; i++) {
+                        $('.alert').removeClass(list[i]);
+                    }
+                    $('.alert').html('保存成功!').addClass('alert-success').show().delay(1000).fadeOut();
                 }
             },
             complete: function () {
                 initTable(tableData);
                 window.pageInitialData = getInitialTableData();
                 $("#edit-switch")[0].checked = false;
+                $("#SavingModal").modal('hide');
             },
             error: function () {
                 if (JSON.stringify(dataChanged) != "{}") {
-                    $('#alert').html('保存失败!').addClass('alert-danger').show().delay(2000).fadeOut();
+                    var list = $(".alert")[0].classList;
+                    for (var i = 1; i < list.length; i++) {
+                        $('.alert').removeClass(list[i]);
+                    }
+                    $('.alert').html('保存失败!').addClass('alert-danger').show().delay(2000).fadeOut();
                 }
             }
         });
     }
-
-    // function downLoad(){
-    //     $.ajax({
-    //         cache: false,
-    //         type: 'GET',
-    //         url: "/task/download/{{ taskname }}/{{ obj }}",
-    //         dataType: "json",
-    //         contentType: 'application/json; charset=UTF-8'
-    //     });
-    // }
 
 </script>
 {% endblock content %}

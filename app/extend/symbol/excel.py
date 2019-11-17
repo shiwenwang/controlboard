@@ -108,7 +108,7 @@ class SymbolDB:
             else:
                 row_values[0] = last_name
 
-            positions = [(row[0].row, i + 1) for i, value in enumerate(row_values)]
+            # positions = [(row[0].row, i + 1) for i, value in enumerate(row_values)]
 
             if start_with in ['Name', 'Channel Name']:
                 column_names = self.__get_column_names(row_values)
@@ -123,18 +123,18 @@ class SymbolDB:
                 cursor.execute(sql_statement)
 
                 # 创建位置表
-                sql_statement = f"CREATE TABLE {table_name}_pos (" \
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
-                    f"{column_name_str}, " \
-                    f"CONSTRAINT name_unique UNIQUE ({unique_item}))"
-                cursor.execute(sql_statement)
+                # sql_statement = f"CREATE TABLE {table_name}_pos (" \
+                #     "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
+                #     f"{column_name_str}, " \
+                #     f"CONSTRAINT name_unique UNIQUE ({unique_item}))"
+                # cursor.execute(sql_statement)
 
                 # 给表加索引有时会失败， 此时忽略
                 try:
                     cursor.execute(
                         f"CREATE UNIQUE INDEX index_name ON {table_name} ({start_with.replace(' ', '_')})")
-                    cursor.execute(
-                        f"CREATE UNIQUE INDEX index_name ON {table_name}_pos ({start_with.replace(' ', '_')})")
+                    # cursor.execute(
+                    #     f"CREATE UNIQUE INDEX index_name ON {table_name}_pos ({start_with.replace(' ', '_')})")
                 except sqlite3.OperationalError:
                     pass
             else:
@@ -145,10 +145,10 @@ class SymbolDB:
                 sql_statement = f"INSERT INTO {table_name} ({column_name_str}) VALUES ({column_value_str})"
                 cursor.execute(sql_statement)
 
-                positions[0] = row_values[0]
-                positions_str = self.__get_value_position_str(column_names, positions)
-                sql_statement = f"INSERT INTO {table_name}_pos ({column_name_str}) VALUES ({positions_str})"
-                cursor.execute(sql_statement)
+                # positions[0] = row_values[0]
+                # positions_str = self.__get_value_position_str(column_names, positions)
+                # sql_statement = f"INSERT INTO {table_name}_pos ({column_name_str}) VALUES ({positions_str})"
+                # cursor.execute(sql_statement)
 
         cursor.close()
 
@@ -345,7 +345,7 @@ class SymbolDB:
 
         return df_dict
 
-    def update(self, **kwargs):
+    def update(self, target, **kwargs):
         # 变量和表的隶属关系
         relationship = {}
         for keyword in kwargs.keys():
@@ -358,8 +358,10 @@ class SymbolDB:
                 relationship.update({table_name: [keyword]})
             else:
                 relationship[table_name].append(keyword)
+
         self.db_update(relationship, kwargs)
-        self.excel_update(relationship, kwargs)
+        if target == 'all':
+            self.excel_update(relationship, kwargs)
 
     def excel_update(self, relationship, kwargs):
         """

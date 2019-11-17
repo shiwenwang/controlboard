@@ -118,7 +118,9 @@ def search_by(filters, search_key):
 @login_required
 def work(taskname, obj):
     user = load_user(current_user.get_id())
+    tasks_amount = len(Task.query.filter_by(user_id=user.id).all())
     task = Task.query.filter_by(name=taskname).first()
+
     if task is not None:
         if task.status == 'New':
             task.status = 'Working'
@@ -133,7 +135,7 @@ def work(taskname, obj):
         pass
         return redirect(url_for('task.work', taskname=taskname))
 
-    return render_template('task_working.html', user=user, obj=obj,
+    return render_template('task_working.html', user=user, tasks_amount=tasks_amount, obj=obj,
                            taskname=taskname, title=taskname, working_form=working_form)
 
 
@@ -172,12 +174,12 @@ def initial_value(taskname, obj):
             # 保证显示顺序
             symbols_value['params'] = [{
                 'name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                f'{p_queried[name].at["Description_en_GB"] if name not in only_in_bladed else symbols_name[name]["description_zh"]}'
+                f'{p_queried[name].at["Description_en_GB"] if name not in only_in_bladed and name in p_queried.keys() else symbols_name[name]["description_zh"]}'
                 f'">{name}</span>',
                 'bladed_value': '-' if not symbols_name[name]['bladed'] else
                 f'<input type="text" class="table-value text-primary" id="{name}-bladed" disabled value="{bladed.query(symbols_name[name]["bladed"])[1]}"'
                 f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                'symbol_value': '-' if name in only_in_bladed else
+                'symbol_value': '-' if name in only_in_bladed or name not in p_queried.keys() else
                 f'<input type="text" class="table-value text-primary" id="{name}-symbol" disabled value="{p_queried[name].at["Initial_Value"]}"'
                 f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
                 'description': symbols_name[name]["description_zh"]
@@ -375,9 +377,11 @@ def set_value(taskname, obj):
     dest = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), user.username, taskname)
     _task = Task.query.filter_by(name=taskname).first()
+    data = request.json['data']
+    target = request.json['target']
 
-    bladed_data = {k.split('-')[0]: v.strip() for k, v in request.json.items() if '-bladed' in k}
-    symbol_data = {k: v.strip() for k, v in request.json.items() if '-bladed' not in k}
+    bladed_data = {k.split('-')[0]: v.strip() for k, v in data.items() if '-bladed' in k}
+    symbol_data = {k: v.strip() for k, v in data.items() if '-bladed' not in k}
 
     if bladed_data:
         with current_app.open_instance_resource('name_mapping.json') as f:
@@ -392,7 +396,7 @@ def set_value(taskname, obj):
         db_symbol = SymbolDB()
         db_symbol.load_db(db_symbol_path, excel_name=_task.symbol_filename)
         db_symbol.connect()
-        db_symbol.update(**symbol_data)
+        db_symbol.update(target, **symbol_data)
         db_symbol.close()
 
     if symbol_data and obj == 'xml':
@@ -683,3 +687,23 @@ def download(taskname, obj):
         return send_from_directory(directory=folder, filename=_task.xml_filename, as_attachment=True)
 
     abort(404)
+
+
+@task.route('campbell/<taskname>', methods=['GET', 'POST'])
+@login_required
+def campbell(taskname):
+    user = load_user(current_user.get_id())
+    tasks_amount = len(Task.query.filter_by(user_id=user.id).all())
+    pass
+
+    return render_template('campbell.html', title="线性化", user=user, tasks_amount=tasks_amount)
+
+
+@task.route('compiling/<taskname>', methods=['GET', 'POST'])
+@login_required
+def compiling(taskname):
+    user = load_user(current_user.get_id())
+    tasks_amount = len(Task.query.filter_by(user_id=user.id).all())
+    pass
+
+    return render_template('compile.html', title='控制器编译', user=user, tasks_amount=tasks_amount)

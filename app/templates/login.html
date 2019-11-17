@@ -4,7 +4,8 @@
 {% block styles %}
 {{ super() }}
 <!-- Custom styles for this template -->
-<link href="../static/css/floating-labels.css" rel="stylesheet">
+<link href="{{ url_for('static',filename='css/floating-labels.css') }}" rel="stylesheet">
+
 <style>
     #register-forgot {
         margin-right: 0px;
@@ -61,7 +62,7 @@
         <div class="row">
             <div class="col-sm text-left"><a href="{{ url_for('auth.register') }}">没有账号？ 注册一个</a></div>
             <div class="col-auto"></div>
-            <div class="col-sm text-right"><a data-toggle="modal" data-target="#tipmodel"
+            <div class="col-sm text-right"><a 
                     href="{{ url_for('auth.forgot') }}">忘记密码？</a></div>
         </div>
     </div>

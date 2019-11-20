@@ -6,6 +6,7 @@ from app.forms import NewTaskForm, EditTaskForm, WorkingForm
 from app.models import User, Task, load_user
 from app.extend.symbol import SymbolDB, XML
 from app.extend.bladed import Bladed
+from app.extend.git import git_commit_push
 from app import db
 
 import os
@@ -93,6 +94,21 @@ def file_info():
     return jsonify(files)
 
 
+@task.route('enter', methods=['POST'])
+@login_required
+def enter():
+    taskname = request.json
+    _task = Task.query.filter_by(name=taskname).first()
+
+    if _task is not None:
+        if _task.status == 'New':
+            _task.status = 'Working'
+            db.session.commit()
+        return jsonify({})
+    else:
+        abort(404)
+
+
 def search_by(filters, search_key):
     search_key = search_key.strip()
     filter_map = {"任务名": "name", "创建人": "user",
@@ -113,20 +129,14 @@ def search_by(filters, search_key):
     return ', '.join(filter_statements)
 
 
+@task.route('work')
 @task.route('work/<taskname>/', methods=['GET', 'POST'], defaults={'obj': 'symbol'})
 @task.route('work/<taskname>/<obj>', methods=['GET', 'POST'])
 @login_required
 def work(taskname, obj):
     user = load_user(current_user.get_id())
     tasks_amount = len(Task.query.filter_by(user_id=user.id).all())
-    task = Task.query.filter_by(name=taskname).first()
 
-    if task is not None:
-        if task.status == 'New':
-            task.status = 'Working'
-            db.session.commit()
-    else:
-        abort(404)
     working_form = WorkingForm()
     if working_form.save_submit.data and working_form.validate():
         pass
@@ -158,6 +168,8 @@ def initial_value(taskname, obj):
     if obj == "symbol":
         db_symbol_path = os.path.join(dest, taskname + '.db')
         db_symbol = SymbolDB()
+        if not os.path.exists(db_symbol_path):
+            return jsonify(symbols_value)
         db_symbol.load_db(db_symbol_path)
         db_symbol.connect()
 

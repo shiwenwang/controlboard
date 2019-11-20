@@ -34,6 +34,7 @@ class Task(db.Model):
     status = db.Column(db.String(24))
     date_stamp = db.Column(db.DateTime, index=True, default=datetime.now)
     bladed_version = db.Column(db.String(8))
+    isgitted = db.Column(db.Integer)
 
     user = db.relationship('User')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -55,7 +56,8 @@ class Task(db.Model):
                       "Working": ["warning", "工作中"],
                       "Done": ["success", "结束"]}
         return {'id': show_id,
-                'name': f'<a href="{url_for("task.work", taskname=self.name)}" target="_blank">{self.name}</a>',
+                # 'name': f'<a id="task" href="{url_for("task.work", taskname=self.name)}" target="_blank">{self.name}</a>',
+                'name': f"<a href=\"javascript: openTask('{self.name}')\">{self.name}</a>",
                 'date': self.date_str(self.date_stamp),
                 'status': f'<span class="badge badge-{status_map[self.status][0]}" data-toggle="tooltip" title="'
                 f'{status_map[self.status][1]}">{self.status}</span>',

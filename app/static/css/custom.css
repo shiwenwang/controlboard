@@ -43,7 +43,7 @@ a:hover {
     padding-bottom: 5px;
 }
 
-#search-input:focus {
+#symbol-search-input:focus {
     border-color: white;
     box-shadow: 0 0 0 3px rgba(252, 252, 252, 0.24)
 }

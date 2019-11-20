@@ -33,7 +33,7 @@
     <div class="container-fluid" id="top-navbar">
         <a class="navbar-brand" href="{{ url_for('main.index') }}">
             <span><img src="{{ url_for('static', filename='img/title-logo.png') }}" alt="" height="35px">
-                <label style="color: white; font-weight: bold; font-size: 18px;"> 定制化控制业务工作台</label>
+                <label style="color: white; font-weight: bold; font-size: 18px;"> 定制化控制业务工作台（暂定）</label>
             </span>
         </a>
         <button class="navbar-toggler btn-sm" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
@@ -73,11 +73,11 @@
                 <li class="nav-item" style="padding-left: 60px;border-color: #ffe484;">
                     <span class="algolia-autocomplete algolia-autocomplete-left"
                         style="position: relative; display: inline-block; direction: ltr;"><input type="search"
-                            class="form-control ds-input" id="search-input" placeholder="Search..."
+                            class="form-control ds-input" id="symbol-search-input" placeholder="Search..."
                             aria-label="Search for..." autocomplete="off" data-docs-version="4.3" spellcheck="false"
                             role="combobox" aria-autocomplete="list" aria-expanded="false"
                             aria-owns="algolia-autocomplete-listbox-0" dir="auto"
-                            style="position: relative; vertical-align: top; width: 500px;"
+                            style="position: relative; vertical-align: top; width: 400px;"
                             oninput="searchInpuChanged()">
                         <span class="ds-dropdown-menu" role="listbox" id="algolia-autocomplete-listbox-0"
                             style="position: absolute; top: 100%; z-index: 100; display: none; width: 500px; max-height: 500px;">
@@ -122,7 +122,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <label for="">正在开发，暂未开放。</label>
+                <label for="">正在配置，暂未开放。</label>
             </div>
         </div>
     </div>
@@ -175,6 +175,7 @@
                         values="0 0; 0 20; 0 0" begin="0.4s" dur="0.6s" repeatCount="indefinite"></animateTransform>
                 </rect>
             </svg>
+            <p style="color: white;" Bold>正在保存......</p>
         </div>
     </div>
 </div>
@@ -610,7 +611,7 @@
     }
 
     $(function () {
-        $("#search-input").keyup(function () {
+        $("#symbol-search-input").keyup(function () {
             var keyWord = $(this).val().toLowerCase();
             $.ajax({
                 type: 'POST',
@@ -650,7 +651,7 @@
 
     function searchInpuChanged() {
         var listBox = $("#algolia-autocomplete-listbox-0")[0];
-        if ($("#search-input").val() != "") {
+        if ($("#symbol-search-input").val() != "") {
             listBox.style.display = "block";
         } else {
             listBox.style.display = "none";
@@ -661,7 +662,7 @@
     }
 
     function showSearchResult(param) {
-        $("#search-input").val(param);
+        $("#symbol-search-input").val(param);
         var tableData = {};
         $.ajax({
             type: 'POST',
@@ -698,6 +699,7 @@
 
     function initTable(data) {
         var $paramsTable = $('#params-table');
+        var symbol_head = {'symbol': 'Symbol值', 'xml': 'XML值'}
         $paramsTable.bootstrapTable('destroy').bootstrapTable({
             columns: [
                 {
@@ -717,7 +719,7 @@
                     sortable: true
                 },
                 {
-                    title: "Symbol值",
+                    title: symbol_head['{{ obj }}'],
                     field: 'symbol_value',
                     align: 'center',
                     valign: 'middle',
@@ -960,7 +962,6 @@
         $('.name').tooltip('hide');
     }
     function getData() {
-        var $table = $('#params-table');
         var tableData = {};
 
         $.ajax({
@@ -1023,10 +1024,10 @@
         }
         if ("{{ obj }}" == "symbol") {
             $("#ConfirmSaveModal").modal();
-            return;
+        }else{
+            // $("#SavingModal").modal();
+            savePage('xml');
         }
-        savePage('xml');
-        $("#SavingModal").modal('show');
     }
 
     function savePage(target) {
@@ -1052,11 +1053,11 @@
                     $('.alert').html('保存成功!').addClass('alert-success').show().delay(1000).fadeOut();
                 }
             },
-            complete: function () {
+            complete: function () {              
                 initTable(tableData);
                 window.pageInitialData = getInitialTableData();
                 $("#edit-switch")[0].checked = false;
-                $("#SavingModal").modal('hide');
+                $(".modal").modal('hide')
             },
             error: function () {
                 if (JSON.stringify(dataChanged) != "{}") {

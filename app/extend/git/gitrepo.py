@@ -55,6 +55,10 @@ class GitRepo(object):
             self.repo.index.add(untracked_files)
             self.repo.index.commit(commit_despec)
 
+    def commit_with_remove(self, file):
+        git = self.repo.git
+        git.execute(f'git rm {file}')
+
     def easy_push(self):
         self.pull()
         self.push()
@@ -68,38 +72,34 @@ class GitRepo(object):
     @staticmethod
     def abspath(path):
         return os.path.abspath(path)
-        
 
-if __name__ == "__main__":
-    import os
-    import time
-    from multiprocessing import Process, current_process, Pool
 
-    remote_repo = 'http://bitbucket.goldwind.com.cn/scm/~36719/controller-files.git'
-    user1_repo_dir = os.path.abspath('./user111')
-    user2_repo_dir = os.path.abspath('./user222')
-    user3_repo_dir = os.path.abspath('./user333')
-    user4_repo_dir = os.path.abspath('./user444')
+def git_init(git_path, username):
+    repo = GitRepo()
+    if not repo.git_exists(git_path):
+        repo.clone(f'http://bitbucket.goldwind.com.cn/scm/~36719/{username}.git', git_path)
+        # .gitignore
+        gitignore_path = os.path.join(git_path, '.gitignore')
+        if not os.path.exists(gitignore_path):
+            with open(gitignore_path, 'w') as f:
+                f.write('*.xlsx\n*.xlsx\n*.db')
+        repo.commit_with_added('Initial Commit.')
+        repo.push()
 
-    user1_repo = GitRepo()
-    user2_repo = GitRepo()
-    user3_repo = GitRepo()
-    user4_repo = GitRepo()
-    
-    pool = Pool(4)
-    pool.apply_async(user1_repo.clone, args=(remote_repo, user1_repo_dir))
-    pool.apply_async(user2_repo.clone, args=(remote_repo, user2_repo_dir))
-    pool.apply_async(user3_repo.clone, args=(remote_repo, user3_repo_dir))
-    pool.apply_async(user4_repo.clone, args=(remote_repo, user4_repo_dir))
 
-    pool.close()
-    pool.join()
+def git_commit_push(git_path, commit_str):
+    repo = GitRepo()
+    repo.open(git_path)
+    if repo.is_dirty():
+        repo.commit_with_added(commit_str)
+        repo.easy_push()
 
-    print('main')
 
-    user1_repo.commit_with_added('user1 commit')
-    user2_repo.commit_with_added('user2 commit')
+def git_remove_push(git_path, filelist):
+    repo = GitRepo()
+    repo.open(git_path)
+    for file in filelist:
+        repo.commit_with_remove(file)
 
-    user1_repo.easy_push()
-    user2_repo.easy_push()
-
+    repo.repo.git.execute(f'git commit -m "Deleted"')
+    repo.easy_push()

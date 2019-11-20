@@ -5,6 +5,7 @@ from flask_uploads import configure_uploads, patch_request_class
 from app.models import load_user, Task
 from app.forms import NewTaskForm, EditTaskForm, DeleteTaskForm
 from app import usets, db
+from app.extend.git import git_init, git_commit_push, git_remove_push
 
 import os
 import shutil
@@ -69,18 +70,28 @@ def reset_config():
 
 
 def create_new_task(user, new_task_form):
+    uset_bladed, uset_symbol, uset_xml = usets
     modify_config(user, new_task_form)
+    taskname = new_task_form.taskname.data.strip()
+    destination = uset_bladed.config.destination
+
+    cfg = current_app.config
+    git_path = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username)
+    git_init(git_path, user.username)  # 初始化
 
     saved_files = files_save(new_task_form)
+    
+    isgitted = new_task_form.add_to_git.data
+    if isgitted:
+        git_commit_push(git_path, "Created " + taskname)  # 添加并提交文件
 
-    uset_bladed, uset_symbol, uset_xml = usets
-    local_bladed_path = os.path.join(
-        uset_bladed.config.destination, new_task_form.bladed.data.filename)
+    local_bladed_path = os.path.join(destination, new_task_form.bladed.data.filename)
 
-    task = Task(name=new_task_form.taskname.data.strip(),
+    task = Task(name=taskname,
                 status="New",
                 bladed_version=Bladed(local_bladed_path).version(),
                 user_id=user.id,
+                isgitted=int(isgitted),
                 bladed_filename=saved_files['bladed']['filename'],
                 bladed_url=saved_files['bladed']['url'],
                 xml_filename="" if saved_files['xml'] is None else saved_files['xml']['filename'],
@@ -91,7 +102,7 @@ def create_new_task(user, new_task_form):
                 )
 
     db.session.add(task)
-    db.session.commit()    
+    db.session.commit()
 
     if saved_files['symbol'] is not None:
         cfg = current_app.config
@@ -108,6 +119,7 @@ def update_task(user, edit_task_form):
     modify_config(user, edit_task_form)
 
     uset_bladed, uset_symbol, uset_xml = usets
+    destination = uset_bladed.config.destination
 
     task_name = edit_task_form.taskname.data
     task = Task.query.filter_by(name=task_name).first()
@@ -115,8 +127,7 @@ def update_task(user, edit_task_form):
         saved_files = files_save(edit_task_form, task)
 
         if saved_files['bladed'] is not None:
-            local_bladed_path = os.path.join(
-                uset_bladed.config.destination, edit_task_form.bladed.data.filename)
+            local_bladed_path = os.path.join(destination, edit_task_form.bladed.data.filename)
             task.bladed_version = Bladed(local_bladed_path).version()
             task.bladed_filename = saved_files['bladed']['filename']
             task.bladed_url = saved_files['bladed']['url']
@@ -140,7 +151,11 @@ def update_task(user, edit_task_form):
             db_symbol.create_db()
             db_symbol.close()
 
-    db.session.commit()   
+    db.session.commit()
+    cfg = current_app.config
+    git_path = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username)
+    if task and task.isgitted:
+        git_commit_push(git_path, "Updated " + task.name)
     reset_config()
 
 
@@ -168,7 +183,7 @@ def files_save(form, task=None):
         if task is not None:
             delete_file(uset_xml.config.destination, ['.xml'])
         xml_filename = uset_xml.save(
-            form.xml.data, name=form.xml.data.filename)
+            form.xml.data, name=form.taskname.data + '.xml')  # form.xml.data.filename)
         saved_files['xml'] = {'filename': xml_filename,
                               'url': uset_xml.url(xml_filename)}
 
@@ -182,6 +197,9 @@ def files_save(form, task=None):
         select_file_path = os.path.join(
             symbols_dir, os.listdir(symbols_dir)[symbol_index - 1])
         shutil.copy(select_file_path, uset_symbol.config.destination)
+                    #os.path.join(uset_symbol.config.destination,
+                                                   # form.taskname.data + os.path.splitext(select_file_path)[-1]))
+
         saved_files['symbol'] = {'index': symbol_index,
                                  'name': os.path.split(select_file_path)[1],
                                  'url': uset_symbol.url(uset_symbol.name)}
@@ -198,12 +216,20 @@ def delete_file(folder, exts):
 def delete_task(user, delete_task_form):
     taskname = delete_task_form.taskname.data
     task = Task.query.filter_by(name=taskname).first()
+    cfg = current_app.config
+    destination = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username, taskname)
+    git_path = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username)
+    files_to_rm = []
+    for f in os.listdir(destination):
+        files_to_rm.append('/'.join([taskname, f]))
+
     if task is not None:
         db.session.delete(task)
         db.session.commit()
+        if task.isgitted:
+            git_remove_push(git_path, files_to_rm)
 
     if delete_task_form.delete_files.data:
-        cfg = current_app.config
-        destination = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username, taskname)
         if os.path.isdir(destination):
             shutil.rmtree(destination)
+

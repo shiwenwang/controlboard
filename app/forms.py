@@ -119,6 +119,7 @@ class NewTaskForm(FlaskForm):
     bladed = FileField(validators=[FileAllowed(uset_bladed), FileRequired()])
     xml = FileField(validators=[FileAllowed(uset_xml)])
     symbol = SelectField(default=0, coerce=int)
+    add_to_git = BooleanField()
     save_submit = SubmitField()
 
 

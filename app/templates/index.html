@@ -17,6 +17,11 @@
         position: fixed;
         top: 56px;
     }
+
+    #task-search-input:focus {
+        border-color: #7952b3;
+        box-shadow: 0 0 0 3px rgba(121, 82, 179, .25)
+    }
 </style>
 {% endblock styles %}
 
@@ -25,7 +30,7 @@
     <div class="container-fluid">
         <a class="navbar-brand" id="navbar-brand" href="{{ url_for('main.index') }}">
             <span><img src="{{ url_for('static', filename='img/title-logo.png') }}" alt="" height="35px">
-                <label style="color: white; font-weight: bold; font-size: 18px;"> 定制化控制业务工作台</label>
+                <label style="color: white; font-weight: bold; font-size: 18px;"> 定制化控制业务工作台（暂定）</label>
             </span>
         </a>
         <button class="navbar-toggler btn-sm" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
@@ -87,8 +92,8 @@
             </select>
         </div>
         <div class="p-2 flex-grow-1">
-            <input type="search" class="form-control" id="search-input" placeholder="查询..." aria-label="Search for..."
-                autocomplete="off" data-docs-version="4.3" onsearch="getData()">
+            <input type="search" class="form-control" id="task-search-input" placeholder="查询..."
+                aria-label="Search for..." autocomplete="off" data-docs-version="4.3" onsearch="getData()">
         </div>
         <div class="p-2 align-self-center">
             <div class="custom-control custom-switch" id="switch">
@@ -228,9 +233,22 @@
                         <div class="invalid-feedback" id="xml-file-errors"></div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    {{ new_task_form.save_submit(class="btn btn-primary", type="submit", value="保存", onclick="loadingShow()") }}
+                <div class="modal-footer" style="padding-right: 0px;">
+                    <div class="container-fluid" style="padding-right: 10px;">
+                    <div class="d-flex justify-content-between">
+                        <div class="form-check p-2 align-self-center">
+                            <!-- <input class="form-check-input" type="checkbox" value="" id="add-to-git" checked> -->
+                            {{ new_task_form.add_to_git(class="form-check-input", type="checkbox", id="add-to-git", checked=true) }}
+                            <label class="form-check-label" for="add-to-git">
+                                提交至Git仓库
+                            </label>
+                        </div>
+                        <div class="p-2"></div>
+                        <div class="p-2">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                            {{ new_task_form.save_submit(class="btn btn-primary", type="submit", value="保存", onclick="loadingShow()") }}
+                        </div></div>
+                    </div>
                 </div>
             </form>
         </div>
@@ -446,6 +464,27 @@
         $("#edit-bladed-file-input").find(".file-caption-name")[0].value = "";
         $("#edit-xml-file-input").find(".file-caption-name")[0].value = "";
     });
+
+    function openTask(taskname) {
+        url = "{{ url_for('task.work') }}";
+        window.open(url + "/" + taskname)
+
+        $.ajax({
+            type: 'POST',
+            url: "/task/enter",
+            dataType: "json",
+            contentType: 'application/json; charset=UTF-8',
+            data: JSON.stringify(
+                taskname
+            ),
+            success: function (data) {
+            },
+            complete: function () {
+                getData();
+            }
+        });
+    }
+
     window.operateEvents = {
         'click #edit-badge': function (e, value, row, index) {
             var pattern = /">(.+)</i;
@@ -607,7 +646,7 @@
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
             data: JSON.stringify({
-                search_key: $("#search-input").val(),
+                search_key: $("#task-search-input").val(),
                 filter: $('#selectpicker').val()
             }),
             success: function (data) { //成功的话，得到消息

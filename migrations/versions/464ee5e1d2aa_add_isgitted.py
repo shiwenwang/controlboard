@@ -1,8 +1,8 @@
-"""initial
+"""add isgitted
 
-Revision ID: 5269d5becaa7
+Revision ID: 464ee5e1d2aa
 Revises: 
-Create Date: 2019-11-14 16:42:27.621673
+Create Date: 2019-11-20 13:55:56.946260
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '5269d5becaa7'
+revision = '464ee5e1d2aa'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -35,6 +35,7 @@ def upgrade():
     sa.Column('status', sa.String(length=24), nullable=True),
     sa.Column('date_stamp', sa.DateTime(), nullable=True),
     sa.Column('bladed_version', sa.String(length=8), nullable=True),
+    sa.Column('isgitted', sa.Integer(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('bladed_filename', sa.String(length=128), nullable=True),
     sa.Column('bladed_url', sa.String(length=256), nullable=True),

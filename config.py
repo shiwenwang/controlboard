@@ -14,7 +14,7 @@ class Config:
     FLASKY_MAIL_SUBJECT_PREFIX = '[Flasky]'
     FLASKY_MAIL_SENDER = 'Flasky Admin <flasky@example.com>'
     FLASKY_ADMIN = os.environ.get('FLASKY_ADMIN')
-    UPLOADS_DEFAULT_DEST = os.path.join(basedir, 'repository')
+    UPLOADS_DEFAULT_DEST = os.path.join(basedir, '../repository')
     UPLOADED_BLADED_DEST = UPLOADS_DEFAULT_DEST
     UPLOADED_SYMBOL_DEST = UPLOADS_DEFAULT_DEST
     UPLOADED_XML_DEST = UPLOADS_DEFAULT_DEST

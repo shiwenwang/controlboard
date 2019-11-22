@@ -1,5 +1,6 @@
 from git import Repo
 from git.repo.fun import is_git_dir
+from git.exc import GitCommandError
 import os
 
 
@@ -51,16 +52,24 @@ class GitRepo(object):
             commit_despec {str} -- the description of commit
         """
         if self.is_dirty():
-            untracked_files = self.repo.untracked_files
-            self.repo.index.add(untracked_files)
-            self.repo.index.commit(commit_despec)
+            # untracked_files = self.repo.untracked_files  # 不包含已删除的文件
+            # self.repo.index.add(untracked_files)
+            # self.repo.index.commit(commit_despec)
+            git = self.repo.git
+            git.execute(f'git add .')  # 可以将未添加的和已删除的都提交到Changes to be committed状态
+            git.execute(f'git commit -m "{commit_despec}"')
 
-    def commit_with_remove(self, file):
+    def remove(self, file):
         git = self.repo.git
         git.execute(f'git rm {file}')
 
     def easy_push(self):
-        self.pull()
+        try:
+            self.pull()
+        except GitCommandError:
+            git = self.repo.git
+            git.execute('git reset --hard FETCH_HEAD')  # 解决冲突
+            self.origin.pull()
         self.push()
 
     def push(self):
@@ -74,7 +83,7 @@ class GitRepo(object):
         return os.path.abspath(path)
 
 
-def git_init(git_path, username):
+def git_init(git_path, username, isgitted, newfolder=None):
     repo = GitRepo()
     if not repo.git_exists(git_path):
         repo.clone(f'http://bitbucket.goldwind.com.cn/scm/~36719/{username}.git', git_path)
@@ -83,15 +92,18 @@ def git_init(git_path, username):
         if not os.path.exists(gitignore_path):
             with open(gitignore_path, 'w') as f:
                 f.write('*.xlsx\n*.xlsx\n*.db')
+                if not isgitted and newfolder is not None:
+                    f.write(f'\n{newfolder}/')
         repo.commit_with_added('Initial Commit.')
         repo.push()
 
 
-def git_commit_push(git_path, commit_str):
+def git_commit_push(git_path, commit_str, wait_push=False):
     repo = GitRepo()
     repo.open(git_path)
     if repo.is_dirty():
         repo.commit_with_added(commit_str)
+    if not wait_push:
         repo.easy_push()
 
 
@@ -99,7 +111,12 @@ def git_remove_push(git_path, filelist):
     repo = GitRepo()
     repo.open(git_path)
     for file in filelist:
-        repo.commit_with_remove(file)
+        repo.remove(file)
 
-    repo.repo.git.execute(f'git commit -m "Deleted"')
+    repo.commit_with_added('Deleted')
     repo.easy_push()
+
+
+def git_exists(folder):
+    repo = GitRepo()
+    return repo.git_exists(folder)

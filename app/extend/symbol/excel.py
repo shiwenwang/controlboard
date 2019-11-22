@@ -1,5 +1,5 @@
 import openpyxl
-from openpyxl.styles import PatternFill
+from openpyxl.cell.read_only import EmptyCell
 import sqlite3
 import os
 import pandas as pd
@@ -77,24 +77,26 @@ class SymbolDB:
         for sheet in sheet_names:
             if sheet in ['Settings', 'State Machine']:
                 continue
-            self._create_table(sheet)
+            self._create_table(sheet, creat_pos=True)
 
         self._db.commit()
 
-    def _create_table(self, sheet):
+    def _create_table(self, sheet, creat_pos=False):
         cursor = self._db.cursor()
         ws = self._symbol[sheet]
         iter_row = ws.rows
         column_names = {}
         table_name = sheet.replace(' ', '_')
 
+        n_row = 0
         while True:
             try:
                 row = next(iter_row)
+                n_row = n_row + 1
             except StopIteration:
                 break
 
-            if not row:  # 过滤空行
+            if not row or all([isinstance(r, EmptyCell) for r in row]):  # 过滤空行
                 continue
 
             start_with = row[0].value
@@ -108,7 +110,8 @@ class SymbolDB:
             else:
                 row_values[0] = last_name
 
-            # positions = [(row[0].row, i + 1) for i, value in enumerate(row_values)]
+            if creat_pos:
+                positions = [(n_row, i + 1) for i, value in enumerate(row_values)]
 
             if start_with in ['Name', 'Channel Name']:
                 column_names = self.__get_column_names(row_values)
@@ -123,18 +126,20 @@ class SymbolDB:
                 cursor.execute(sql_statement)
 
                 # 创建位置表
-                # sql_statement = f"CREATE TABLE {table_name}_pos (" \
-                #     "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
-                #     f"{column_name_str}, " \
-                #     f"CONSTRAINT name_unique UNIQUE ({unique_item}))"
-                # cursor.execute(sql_statement)
+                if creat_pos:
+                    sql_statement = f"CREATE TABLE {table_name}_pos (" \
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
+                        f"{column_name_str}, " \
+                        f"CONSTRAINT name_unique UNIQUE ({unique_item}))"
+                    cursor.execute(sql_statement)
 
                 # 给表加索引有时会失败， 此时忽略
                 try:
                     cursor.execute(
                         f"CREATE UNIQUE INDEX index_name ON {table_name} ({start_with.replace(' ', '_')})")
-                    # cursor.execute(
-                    #     f"CREATE UNIQUE INDEX index_name ON {table_name}_pos ({start_with.replace(' ', '_')})")
+                    if creat_pos:
+                        cursor.execute(
+                            f"CREATE UNIQUE INDEX index_name ON {table_name}_pos ({start_with.replace(' ', '_')})")
                 except sqlite3.OperationalError:
                     pass
             else:
@@ -145,10 +150,11 @@ class SymbolDB:
                 sql_statement = f"INSERT INTO {table_name} ({column_name_str}) VALUES ({column_value_str})"
                 cursor.execute(sql_statement)
 
-                # positions[0] = row_values[0]
-                # positions_str = self.__get_value_position_str(column_names, positions)
-                # sql_statement = f"INSERT INTO {table_name}_pos ({column_name_str}) VALUES ({positions_str})"
-                # cursor.execute(sql_statement)
+                if creat_pos:
+                    positions[0] = row_values[0]
+                    positions_str = self.__get_value_position_str(column_names, positions)
+                    sql_statement = f"INSERT INTO {table_name}_pos ({column_name_str}) VALUES ({positions_str})"
+                    cursor.execute(sql_statement)
 
         cursor.close()
 
@@ -360,7 +366,7 @@ class SymbolDB:
                 relationship[table_name].append(keyword)
 
         self.db_update(relationship, kwargs)
-        if target == 'all':
+        if target == 'symbol':
             self.excel_update(relationship, kwargs)
 
     def excel_update(self, relationship, kwargs):

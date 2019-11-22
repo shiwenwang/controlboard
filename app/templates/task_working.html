@@ -47,19 +47,19 @@
                 <li class="nav-item">
                     {% if obj == 'symbol' %}
                     <a class="nav-link active" id="nav-symbol"
-                        href="{{ url_for('task.work', taskname=taskname, obj='symbol') }}">Symbol</a>
+                        href="{{ url_for('task.work', taskname=task.name, obj='symbol') }}">Symbol</a>
                     {% else %}
                     <a class="nav-link" id="nav-symbol"
-                        href="{{ url_for('task.work', taskname=taskname, obj='symbol') }}">Symbol</a>
+                        href="{{ url_for('task.work', taskname=task.name, obj='symbol') }}">Symbol</a>
                     {% endif %}
                 </li>
                 <li class="nav-item">
                     {% if obj == 'xml' %}
                     <a class="nav-link active" id="nav-xml"
-                        href="{{ url_for('task.work', taskname=taskname, obj='xml') }}">XML</a>
+                        href="{{ url_for('task.work', taskname=task.name, obj='xml') }}">XML</a>
                     {% else %}
                     <a class="nav-link" id="nav-xml"
-                        href="{{ url_for('task.work', taskname=taskname, obj='xml') }}">XML</a>
+                        href="{{ url_for('task.work', taskname=task.name, obj='xml') }}">XML</a>
                     {% endif %}
                 </li>
                 <li class="nav-item">
@@ -67,7 +67,7 @@
                     <!-- href="{{ url_for('task.campbell', taskname=taskname) }}">线性化</a> -->
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" target="blank"  onclick="waiting()">控制器编译</a>
+                    <a class="nav-link" target="blank" onclick="waiting()">控制器编译</a>
                     <!-- href="{{ url_for('task.compiling', taskname=taskname) }}">控制器编译</a> -->
                 </li>
                 <li class="nav-item" style="padding-left: 60px;border-color: #ffe484;">
@@ -133,14 +133,17 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 style="font-weight: bold; color: #7952b3;"><i class="fas fa-question-circle"></i> 提示</h5>
+                <h5 style="font-weight: bold; color: #7952b3;">
+                    <i class="fas fa-save"></i> 保存
+                </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
+            {% if obj == 'symbol' %}
             <div class="modal-body">
                 <ul>
-                    <li>保存至Symbol表将花费较长时间，且暂未找到读写Excel更快速的方法。</li>
+                    <!-- <li>保存至Symbol表将花费较长时间，且暂未找到读写Excel更快速的方法。</li> -->
                     <li>保存后的Symbol表文件打开时有弹出修复的提示，这是由Setting页中的图片丢失导致，忽略即可。</li>
                     <li>除上述问题外，其余功能正常。</li>
                 </ul>
@@ -149,9 +152,38 @@
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">放弃</button>
                 <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="savePage('db')"
                     data-toggle="modal" data-target="#SavingModal">仅更新数据库</button>
-                <button type="button" class="btn btn-primary symbol-save-btn" data-dismiss="modal" data-toggle="tooltip"
-                    title="暂不开放" disabled onclick="savePage('all')">保存至Symbol表</button>
+                <button type="button" class="btn btn-primary symbol-save-btn" data-dismiss="modal" data-toggle="modal"
+                    data-target="#SavingModal" onclick="savePage('symbol')">保存至Symbol表</button>
             </div>
+            {% else %}
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="rename">文件名：</label>
+                        <input type="text" class="form-control" id="rename" autocomplete="off"
+                            placeholder="{{ task.xml_filename }}">
+                        <div class="invalid-feedback" id="rename-feedback"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">备注：</label>
+                        <textarea class="form-control" id="description" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">放弃</button>
+                <button type="button" class="btn btn-info symbol-save-btn" data-dismiss="modal" data-toggle="modal"
+                    id="save-btn" data-target="#SavingModal" onclick="savePage('xml')">保存至工作区</button>
+                {% if task.isgitted %}
+                <button type="button" class="btn btn-primary symbol-save-btn" data-dismiss="modal" data-toggle="modal"
+                    id="save-git-btn" data-target="#SavingModal" onclick="savePage('git')">保存并提交至Git</button>
+                {% else %}
+                <button type="button" class="btn btn-primary symbol-save-btn" data-dismiss="modal" data-toggle="modal"
+                    data-target="#SavingModal" disabled onclick="savePage('git')">保存并提交至Git</button>
+                {% endif %}
+            </div>
+            {% endif %}
+
         </div>
     </div>
 </div>
@@ -175,7 +207,7 @@
                         values="0 0; 0 20; 0 0" begin="0.4s" dur="0.6s" repeatCount="indefinite"></animateTransform>
                 </rect>
             </svg>
-            <p style="color: white;" Bold>正在保存......</p>
+            <p id="modal-status" style="color: white;" Bold>正在保存......</p>
         </div>
     </div>
 </div>
@@ -223,7 +255,7 @@
         <div class="d-md-flex justify-content-between">
             <div class="p-2 align-self-center">
                 <div>
-                    <label style="font-size: 20px; font-weight: bold;">{{ taskname }}</label>
+                    <label style="font-size: 18px; font-weight: bold;">{{ task.name }}</label>
                 </div>
             </div>
             <div class="p-2 flex-grow-1"></div>
@@ -236,17 +268,21 @@
 
             <div class="p-2 align-self-center">
                 <button type="submit" class="btn btn-bd-primary" id="save-submit" onclick="savePageTrigger()">
-                    <i class="fas fa-save"></i> 保存
+                    <i class="fas fa-cloud-upload-alt"></i> 保存
                 </button>
             </div>
             <div class="p-2 align-self-center">
-                <!-- <button class="btn btn-bd-primary" id="download" href="{{ url_for('task.download', taskname=taskname, obj=obj) }}">
-                    <i class="fas fa-cloud-download-alt"></i> 下载
-                </button> -->
-                <a class="btn btn-bd-primary" href="{{ url_for('task.download', taskname=taskname, obj=obj) }}">
+                <a class="btn btn-bd-primary" href="{{ url_for('task.download', taskname=task.name, obj=obj) }}">
                     <i class="fas fa-cloud-download-alt"></i> 下载
                 </a>
             </div>
+            {% if obj == "xml" %}
+            <div class="p-2 align-self-center">
+                <a class="btn btn-bd-primary" href="{{ url_for('task.watch', taskname=task.name) }}" target="blank">
+                    <i class="fas fa-eye"></i> 查看
+                </a>
+            </div>
+            {% endif %}
         </div>
 
         <nav id="tabs-nav" style="display: block;">
@@ -431,7 +467,7 @@
 </div>
 
 <script>
-    function waiting(){
+    function waiting() {
         $("#tipmodel").modal();
     }
     window.onscroll = function () {
@@ -563,6 +599,12 @@
         $("#P_TowerExcHighSpeedMinTorque-symbol").val($("#HighSpeedMaxTorque").val());
     }
 
+    function equals(src, dst){
+        if (src.match(/(\d+)-/)[1] != "0"){
+            $("#"+dst).val($("#"+src).val());
+        }
+    }
+
     function editModeSwitch() {
         tableValues = document.getElementsByClassName("table-value");
         if ($("#edit-switch")[0].checked) {
@@ -582,7 +624,9 @@
                     tableValues[i].style.marginLeft = "auto";
                     tableValues[i].style.marginRight = "auto";
                 }
-                if (tableValues[i].classList.contains('enable-col') || tableValues[i].classList.contains('frequency-col')) {
+                if (tableValues[i].classList.contains('enable-col') ||
+                    tableValues[i].classList.contains('num-frequency-col') ||
+                    tableValues[i].classList.contains('den-frequency-col')) {
                     tableValues[i].style.backgroundColor = "#ffe484";
                 }
             }
@@ -615,7 +659,7 @@
             var keyWord = $(this).val().toLowerCase();
             $.ajax({
                 type: 'POST',
-                url: "/task/search/{{ taskname }}/{{ obj }}",
+                url: "/task/search/{{ task.name }}/{{ obj }}",
                 dataType: "json",
                 contentType: 'application/json; charset=UTF-8',
                 data: JSON.stringify(keyWord),
@@ -666,7 +710,7 @@
         var tableData = {};
         $.ajax({
             type: 'POST',
-            url: "/task/search/{{ taskname }}/{{ obj }}/" + param,
+            url: "/task/search/{{ task.name }}/{{ obj }}/" + param,
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
             data: JSON.stringify({
@@ -699,7 +743,7 @@
 
     function initTable(data) {
         var $paramsTable = $('#params-table');
-        var symbol_head = {'symbol': 'Symbol值', 'xml': 'XML值'}
+        var symbol_head = { 'symbol': 'Symbol值', 'xml': 'XML值' }
         $paramsTable.bootstrapTable('destroy').bootstrapTable({
             columns: [
                 {
@@ -966,7 +1010,7 @@
 
         $.ajax({
             type: 'POST',
-            url: "/task/read/{{ taskname }}/{{ obj }}",
+            url: "/task/read/{{ task.name }}/{{ obj }}",
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
             data: JSON.stringify({
@@ -1013,36 +1057,57 @@
     }
 
     function savePageTrigger() {
-        var dataChanged = getModifiedTableData();
-        if (JSON.stringify(dataChanged) == "{}") {
-            var list = $(".alert")[0].classList;
-            for (var i = 1; i < list.length; i++) {
-                $('.alert').removeClass(list[i]);
-            }
-            $('.alert').html('未修改!').addClass('alert-warning').show().delay(1000).fadeOut();
-            return;
+        if ("{{ obj }}" == "xml") {
+            $("#rename").val("{{ task.xml_filename }}");
         }
-        if ("{{ obj }}" == "symbol") {
-            $("#ConfirmSaveModal").modal();
-        }else{
-            // $("#SavingModal").modal();
-            savePage('xml');
-        }
+        $("#ConfirmSaveModal").modal();
     }
+
+    $("#rename").keyup(function () {
+        // strip()
+        if ($(this).val().replace(/^\s\s*/, '').replace(/\s\s*$/, '') == "") {
+            $("#rename-feedback").html("文件名不能为空。");
+            $("#rename-feedback")[0].style.display = "block";
+            $("#save-btn")[0].disabled = true;
+            $("#save-git-btn")[0].disabled = true;
+        } else {
+            $("#rename-feedback")[0].style.display = "none";
+            $("#rename-feedback").html("");
+            $("#save-btn")[0].disabled = false;
+            $("#save-git-btn")[0].disabled = false;
+        }
+    })
 
     function savePage(target) {
         var dataChanged = getModifiedTableData();
+        if (target == "git") {
+            $("#modal-status").html("Saving, Committing & Pushing...");
+        } else {
+            $("#modal-status").html("Saving...");
+        }
+        function postData() {
+            if ("{{ obj }}" == "xml") {
+                var data = JSON.stringify({
+                    'data': dataChanged,
+                    'target': target,
+                    'newname': $("#rename").val(),
+                    'description': $("#description").val()
+                })
+            } else {
+                var data = JSON.stringify({
+                    'data': dataChanged,
+                    'target': target
+                })
+            }
+            return data;
+        }
         $.ajax({
             cache: false,
             type: 'POST',
-            url: "/task/write/{{ taskname }}/{{ obj }}",
+            url: "/task/write/{{ task.name }}/{{ obj }}",
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
-            data: JSON.stringify({
-                'data': dataChanged,
-                'target': target
-            }
-            ),
+            data: postData(),
             success: function (data) { //成功的话，得到消息
                 tableData = data;
                 if (JSON.stringify(dataChanged) != "{}") {
@@ -1051,13 +1116,19 @@
                         $('.alert').removeClass(list[i]);
                     }
                     $('.alert').html('保存成功!').addClass('alert-success').show().delay(1000).fadeOut();
+                } else {
+                    var list = $(".alert")[0].classList;
+                    for (var i = 1; i < list.length; i++) {
+                        $('.alert').removeClass(list[i]);
+                    }
+                    $('.alert').html('提交成功，参数没有变动!').addClass('alert-warning').show().delay(1000).fadeOut();
                 }
             },
-            complete: function () {              
+            complete: function () {
                 initTable(tableData);
                 window.pageInitialData = getInitialTableData();
                 $("#edit-switch")[0].checked = false;
-                $(".modal").modal('hide')
+                $("#SavingModal").modal('hide');
             },
             error: function () {
                 if (JSON.stringify(dataChanged) != "{}") {
@@ -1066,6 +1137,7 @@
                         $('.alert').removeClass(list[i]);
                     }
                     $('.alert').html('保存失败!').addClass('alert-danger').show().delay(2000).fadeOut();
+                    $("#SavingModal").modal('hide');
                 }
             }
         });

@@ -41,11 +41,11 @@
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
-                <li class="nav-item active">
-
+                <li class="nav-item">
+                    <!-- <a class="nav-link active" id="nav-symbol">Symbol对比</a>                     -->
                 </li>
                 <li class="nav-item">
-
+                    <!-- <a class="nav-link active" id="nav-symbol">XML对比</a>    -->
                 </li>
             </ul>
             <form class="form-inline my-3 my-lg-0">
@@ -81,6 +81,8 @@
         <div class="align-self-center">
             <button class="btn btn-bd-primary col-auto" type="button" data-toggle="modal"
                 data-target="#NewTaskModal">新建任务</button>
+            <a class="btn btn-bd-primary" href="{{ url_for('main.compare') }}" target="blank">XML对比</a>
+            <!-- <button class="btn btn-bd-primary col-auto" type="button">XML对比</button> -->
         </div>
         <div class="p-2 flex-grow-1"></div>
         <div class="p-2">
@@ -340,7 +342,7 @@
                     <span>
                         <!-- <input type="checkbox" id="check-delete-files"> -->
                         {{ delete_task_form.delete_files(type="checkbox", id="check-delete-files") }}
-                        <label for="check-delete-files">同时删除已上传文件</label>
+                        <label for="check-delete-files">同时删除已上传文件（将同时删除Git记录）</label>
                     </span>
                 </div>
                 <div class="modal-footer">

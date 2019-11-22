@@ -12,7 +12,9 @@ from app import db
 import os
 import re
 import json
+import shutil
 from collections import OrderedDict
+from datetime import datetime
 
 task = Blueprint('task', __name__, url_prefix='/task')
 
@@ -130,12 +132,15 @@ def search_by(filters, search_key):
 
 
 @task.route('work')
-@task.route('work/<taskname>/', methods=['GET', 'POST'], defaults={'obj': 'symbol'})
+@task.route('work/<taskname>/', methods=['GET', 'POST'], defaults={'obj': 'xml'})
 @task.route('work/<taskname>/<obj>', methods=['GET', 'POST'])
 @login_required
 def work(taskname, obj):
     user = load_user(current_user.get_id())
     tasks_amount = len(Task.query.filter_by(user_id=user.id).all())
+    _task = Task.query.filter_by(name=taskname).first()
+    if _task is None:
+        abort(404)
 
     working_form = WorkingForm()
     if working_form.save_submit.data and working_form.validate():
@@ -146,7 +151,7 @@ def work(taskname, obj):
         return redirect(url_for('task.work', taskname=taskname))
 
     return render_template('task_working.html', user=user, tasks_amount=tasks_amount, obj=obj,
-                           taskname=taskname, title=taskname, working_form=working_form)
+                           task=_task, title=taskname, working_form=working_form)
 
 
 @task.route('read/<taskname>/<obj>', methods=['GET', 'POST'])
@@ -171,7 +176,7 @@ def initial_value(taskname, obj):
         if not os.path.exists(db_symbol_path):
             return jsonify(symbols_value)
         db_symbol.load_db(db_symbol_path)
-        db_symbol.connect()
+        db_symbol.connect()        
 
         p_name = [p for p in symbols_name.keys() if 'P_' in p and p not in only_in_bladed]
         f_name = [p for p in symbols_name.keys() if 'F_' in p]
@@ -253,14 +258,14 @@ def initial_value(taskname, obj):
                 # f'<input type="text" class="table-value" disabled value="{f_queried[name].at["Denominator_TC"]}"'
                 # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
                 'Numerator_Frequency':
-                f'<input type="text" class="table-value text-primary frequency-col" id="{name}-Numerator_Frequency" disabled value="{f_queried[name].at["Numerator_Frequency"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                f'<input type="text" class="table-value text-primary num-frequency-col" id="{name}-Numerator_Frequency" disabled value="{f_queried[name].at["Numerator_Frequency"]}"'
+                f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}-Numerator_Frequency\', \'{name}-Denominator_Frequency\')">',
                 'Numerator_Damping_Ratio':
                 f'<input type="text" class="table-value text-primary" id="{name}-Numerator_Damping_Ratio" disabled value="{f_queried[name].at["Numerator_Damping_Ratio"]}"'
                 f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
                 'Denominator_Frequency':
-                f'<input type="text" class="table-value text-primary frequency-col" id="{name}-Denominator_Frequency" disabled value="{f_queried[name].at["Denominator_Frequency"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                f'<input type="text" class="table-value text-primary den-frequency-col" id="{name}-Denominator_Frequency" disabled value="{f_queried[name].at["Denominator_Frequency"]}"'
+                f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}-Denominator_Frequency\', \'{name}-Numerator_Frequency\')">',
                 'Denominator_Damping_Ratio':
                 f'<input type="text" class="table-value text-primary" id="{name}-Denominator_Damping_Ratio" disabled value="{f_queried[name].at["Denominator_Damping_Ratio"]}"'
                 f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
@@ -360,14 +365,14 @@ def initial_value(taskname, obj):
                             # f'<input type="text" class="table-value" disabled value="{value.at[index, "Denominator_TC"]}"'
                             # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
                             'Numerator_Frequency':
-                            f'<input type="text" class="table-value frequency-col text-primary" id="{name}{index}-Numerator_Frequency" disabled value="{value.at[index, "Numerator_Frequency"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                            f'<input type="text" class="table-value num-frequency-col text-primary" id="{name}{index}-Numerator_Frequency" disabled value="{value.at[index, "Numerator_Frequency"]}"'
+                            f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}{index}-Numerator_Frequency\', \'{name}{index}-Denominator_Frequency\')">',
                             'Numerator_Damping_Ratio':
                             f'<input type="text" class="table-value text-primary" id="{name}{index}-Numerator_Damping_Ratio" disabled value="{value.at[index, "Numerator_Damping_Ratio"]}"'
                             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
                             'Denominator_Frequency':
-                            f'<input type="text" class="table-value frequency-col text-primary" id="{name}{index}-Denominator_Frequency" disabled value="{value.at[index, "Denominator_Frequency"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                            f'<input type="text" class="table-value den-frequency-col text-primary" id="{name}{index}-Denominator_Frequency" disabled value="{value.at[index, "Denominator_Frequency"]}"'
+                            f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}{index}-Denominator_Frequency\', \'{name}{index}-Numerator_Frequency\')">',
                             'Denominator_Damping_Ratio':
                             f'<input type="text" class="table-value text-primary" id="{name}{index}-Denominator_Damping_Ratio" disabled value="{value.at[index, "Denominator_Damping_Ratio"]}"'
                             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
@@ -389,8 +394,12 @@ def set_value(taskname, obj):
     dest = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), user.username, taskname)
     _task = Task.query.filter_by(name=taskname).first()
+    _task.status = "Working"
     data = request.json['data']
     target = request.json['target']
+    description = request.json['description'] if request.json['description'] else "Updated"
+    cfg = current_app.config
+    git_path = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username)
 
     bladed_data = {k.split('-')[0]: v.strip() for k, v in data.items() if '-bladed' in k}
     symbol_data = {k: v.strip() for k, v in data.items() if '-bladed' not in k}
@@ -412,10 +421,16 @@ def set_value(taskname, obj):
         db_symbol.close()
 
     if symbol_data and obj == 'xml':
+        new_name = request.json['newname'] if os.path.splitext(request.json['newname'])[-1] in ['.xml'] else \
+            request.json['newname'] + '.xml'
         xml_path = os.path.join(dest, _task.xml_filename)
+        _task.xml_filename = new_name
+        new_name_path = os.path.join(dest, new_name)
+        if xml_path != new_name_path:
+            shutil.copy(xml_path, new_name_path)
         xml = XML()
         try:
-            xml.open(xml_path)
+            xml.open(new_name_path)
         except FileNotFoundError:
             return None
         fine_data = {}
@@ -436,6 +451,23 @@ def set_value(taskname, obj):
         p_list = [p for p in symbol_data if 'P_' in p]
         t_list = [p for p in symbol_data if 'P_' not in p]
         xml.update(p_list, t_list, **fine_data)
+
+        readme_path = os.path.join(dest, 'readme.txt')
+        readme_path = os.path.join(dest, 'README.md')
+
+        # with open(readme_path, 'a+') as f:
+        #     f.write('=================\n')
+        #     f.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f'\n{new_name}\n' + description)
+        #     f.write('\n=================\n\n')
+        with open(readme_path, 'a+', encoding="utf-8") as f:
+            f.write("#### " + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' - {new_name}\n')
+            f.write("> " + description + '\n\n')
+
+        git_commit_push(git_path, description, wait_push=True)
+
+    if target == "git":
+        git_commit_push(git_path, description)
+        _task.status = "Clean"
 
     return initial_value(taskname, obj)
 
@@ -563,14 +595,14 @@ def search(taskname, obj, param):
                 # f'<input type="text" class="table-value" disabled value="{f_queried[name].at["Denominator_TC"]}"'
                 # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
                 'Numerator_Frequency':
-                f'<input type="text" class="table-value text-primary frequency-col" id="{name}-Numerator_Frequency" disabled value="{value.at["Numerator_Frequency"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                f'<input type="text" class="table-value text-primary num-frequency-col" id="{name}-Numerator_Frequency" disabled value="{value.at["Numerator_Frequency"]}"'
+                f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}-Numerator_Frequency\', \'{name}-Denominator_Frequency\')">',
                 'Numerator_Damping_Ratio':
                 f'<input type="text" class="table-value text-primary" id="{name}-Numerator_Damping_Ratio" disabled value="{value.at["Numerator_Damping_Ratio"]}"'
                 f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
                 'Denominator_Frequency':
-                f'<input type="text" class="table-value text-primary frequency-col" id="{name}-Denominator_Frequency" disabled value="{value.at["Denominator_Frequency"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                f'<input type="text" class="table-value text-primary den-frequency-col" id="{name}-Denominator_Frequency" disabled value="{value.at["Denominator_Frequency"]}"'
+                f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}-Denominator_Frequency\', \'{name}-Numerator_Frequency\')">',
                 'Denominator_Damping_Ratio':
                 f'<input type="text" class="table-value text-primary" id="{name}-Denominator_Damping_Ratio" disabled value="{value.at["Denominator_Damping_Ratio"]}"'
                 f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
@@ -663,14 +695,14 @@ def search(taskname, obj, param):
                             # f'<input type="text" class="table-value" disabled value="{value.at[index, "Denominator_TC"]}"'
                             # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
                             'Numerator_Frequency':
-                            f'<input type="text" class="table-value frequency-col text-primary" id="{name}{index}-Numerator_Frequency" disabled value="{value.at[index, "Numerator_Frequency"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                            f'<input type="text" class="table-value num-frequency-col text-primary" id="{name}{index}-Numerator_Frequency" disabled value="{value.at[index, "Numerator_Frequency"]}"'
+                            f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}{index}-Numerator_Frequency\', \'{name}{index}-Denominator_Frequency\')">',
                             'Numerator_Damping_Ratio':
                             f'<input type="text" class="table-value text-primary" id="{name}{index}-Numerator_Damping_Ratio" disabled value="{value.at[index, "Numerator_Damping_Ratio"]}"'
                             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
                             'Denominator_Frequency':
-                            f'<input type="text" class="table-value frequency-col text-primary" id="{name}{index}-Denominator_Frequency" disabled value="{value.at[index, "Denominator_Frequency"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                            f'<input type="text" class="table-value den-frequency-col text-primary" id="{name}{index}-Denominator_Frequency" disabled value="{value.at[index, "Denominator_Frequency"]}"'
+                            f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}{index}-Denominator_Frequency\', \'{name}{index}-Numerator_Frequency\')">',
                             'Denominator_Damping_Ratio':
                             f'<input type="text" class="table-value text-primary" id="{name}{index}-Denominator_Damping_Ratio" disabled value="{value.at[index, "Denominator_Damping_Ratio"]}"'
                             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
@@ -690,6 +722,8 @@ def search(taskname, obj, param):
 def download(taskname, obj):
     user = load_user(current_user.get_id())
     _task = Task.query.filter_by(name=taskname).first()
+    if _task is None:
+        abort(404)
 
     folder = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), user.username, taskname)
@@ -698,7 +732,19 @@ def download(taskname, obj):
     if obj == 'xml':
         return send_from_directory(directory=folder, filename=_task.xml_filename, as_attachment=True)
 
-    abort(404)
+
+@task.route('watch/<taskname>')
+@login_required
+def watch(taskname):
+    user = load_user(current_user.get_id())
+    _task = Task.query.filter_by(name=taskname).first()
+    if _task is None:
+        abort(404)
+
+    folder = os.path.join(current_app.config.get(
+        'UPLOADS_DEFAULT_DEST'), user.username, taskname)
+
+    return send_from_directory(directory=folder, filename=_task.xml_filename, as_attachment=False)
 
 
 @task.route('campbell/<taskname>', methods=['GET', 'POST'])

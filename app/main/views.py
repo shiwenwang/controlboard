@@ -5,7 +5,7 @@ from flask_uploads import configure_uploads, patch_request_class
 from app.models import load_user, Task
 from app.forms import NewTaskForm, EditTaskForm, DeleteTaskForm
 from app import usets, db
-from app.extend.git import git_init, git_commit_push, git_remove_push
+from app.extend.git import git_init, git_commit_push, git_remove_push, git_exists
 
 import os
 import shutil
@@ -45,6 +45,12 @@ def index():
                            delete_task_form=delete_task_form)
 
 
+@main.route('/compare')
+def compare():
+
+    return render_template('compare.html', title="compare")
+
+
 def modify_config(user, new_task_form):
     cfg = current_app.config
     for uset in usets:
@@ -74,17 +80,21 @@ def create_new_task(user, new_task_form):
     modify_config(user, new_task_form)
     taskname = new_task_form.taskname.data.strip()
     destination = uset_bladed.config.destination
+    isgitted = new_task_form.add_to_git.data
 
     cfg = current_app.config
     git_path = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username)
-    git_init(git_path, user.username)  # 初始化
+    if not git_exists(git_path):
+        git_init(git_path, user.username, isgitted, newfolder=taskname)  # 初始化
 
     saved_files = files_save(new_task_form)
-    
-    isgitted = new_task_form.add_to_git.data
-    if isgitted:
-        git_commit_push(git_path, "Created " + taskname)  # 添加并提交文件
 
+    if not isgitted:
+        gitignore_path = os.path.join(git_path, '.gitignore')
+        with open(gitignore_path, 'a+') as f:
+            f.write(f'\n{taskname}/')
+
+    git_commit_push(git_path, "D0")  # 添加并提交文件
     local_bladed_path = os.path.join(destination, new_task_form.bladed.data.filename)
 
     task = Task(name=taskname,
@@ -219,17 +229,18 @@ def delete_task(user, delete_task_form):
     cfg = current_app.config
     destination = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username, taskname)
     git_path = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username)
-    files_to_rm = []
-    for f in os.listdir(destination):
-        files_to_rm.append('/'.join([taskname, f]))
 
     if task is not None:
         db.session.delete(task)
         db.session.commit()
-        if task.isgitted:
-            git_remove_push(git_path, files_to_rm)
 
     if delete_task_form.delete_files.data:
+        files_to_rm = []
+        for f in os.listdir(destination):
+            if os.path.splitext(f)[-1] in ['.xlsx', '.xls', 'xml']:
+                files_to_rm.append('/'.join([taskname, f]))
+        if task.isgitted:
+            git_remove_push(git_path, files_to_rm)
         if os.path.isdir(destination):
             shutil.rmtree(destination)
 

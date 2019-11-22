@@ -31,7 +31,9 @@ class Bladed(object):
         pattern = re.compile(r'(%s)\s+(-?\d*\.*\d*E?-?\+?\d*)\n' % param)
         result = pattern.search(self.content)
 
-        return (param, '') if result is None else (result.groups()[0], str(float(result.groups()[1])))
+        number = float(result.groups()[1]) if '.' in result.groups()[1] else int(result.groups()[1])
+
+        return (param, '') if result is None else (result.groups()[0], str(number))
 
     def query_v47(self, param):
         pattern = re.compile(r'<(%s)>(\d*)<' % (param, ))

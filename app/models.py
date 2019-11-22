@@ -54,7 +54,7 @@ class Task(db.Model):
     def to_json(self, show_id):
         status_map = {"New": ["secondary", "等待开始"],
                       "Working": ["warning", "工作中"],
-                      "Done": ["success", "结束"]}
+                      "Clean": ["success", "结束"]}
         return {'id': show_id,
                 # 'name': f'<a id="task" href="{url_for("task.work", taskname=self.name)}" target="_blank">{self.name}</a>',
                 'name': f"<a href=\"javascript: openTask('{self.name}')\">{self.name}</a>",

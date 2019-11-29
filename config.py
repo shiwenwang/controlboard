@@ -19,6 +19,7 @@ class Config:
     UPLOADED_SYMBOL_DEST = UPLOADS_DEFAULT_DEST
     UPLOADED_XML_DEST = UPLOADS_DEFAULT_DEST
     UPLOADS_TEMPL_DEST = os.path.join(UPLOADS_DEFAULT_DEST, 'symbols')
+    COMPARE_XML_DEST = os.path.join(UPLOADS_DEFAULT_DEST, 'compare')
 
     @staticmethod
     def init_app(app):

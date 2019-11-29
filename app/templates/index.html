@@ -81,8 +81,7 @@
         <div class="align-self-center">
             <button class="btn btn-bd-primary col-auto" type="button" data-toggle="modal"
                 data-target="#NewTaskModal">新建任务</button>
-            <a class="btn btn-bd-primary" href="{{ url_for('main.compare') }}" target="blank">XML对比</a>
-            <!-- <button class="btn btn-bd-primary col-auto" type="button">XML对比</button> -->
+            <a class="btn btn-bd-primary" href="{{ url_for('main.compare') }}" target="_blank">XML对比</a>
         </div>
         <div class="p-2 flex-grow-1"></div>
         <div class="p-2">
@@ -152,6 +151,7 @@
         </div>
     </div>
 </div>
+
 <!-- Saving Modal -->
 <div class="modal fade" id="SavingModal" role="dialog" data-backdrop="static">
     <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
@@ -237,19 +237,20 @@
                 </div>
                 <div class="modal-footer" style="padding-right: 0px;">
                     <div class="container-fluid" style="padding-right: 10px;">
-                    <div class="d-flex justify-content-between">
-                        <div class="form-check p-2 align-self-center">
-                            <!-- <input class="form-check-input" type="checkbox" value="" id="add-to-git" checked> -->
-                            {{ new_task_form.add_to_git(class="form-check-input", type="checkbox", id="add-to-git", checked=true) }}
-                            <label class="form-check-label" for="add-to-git">
-                                提交至Git仓库
-                            </label>
+                        <div class="d-flex justify-content-between">
+                            <div class="form-check p-2 align-self-center">
+                                <!-- <input class="form-check-input" type="checkbox" value="" id="add-to-git" checked> -->
+                                {{ new_task_form.add_to_git(class="form-check-input", type="checkbox", id="add-to-git", checked=true) }}
+                                <label class="form-check-label" for="add-to-git">
+                                    提交至Git仓库
+                                </label>
+                            </div>
+                            <div class="p-2"></div>
+                            <div class="p-2">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                                {{ new_task_form.save_submit(class="btn btn-primary", type="submit", value="保存", onclick="loadingShow()") }}
+                            </div>
                         </div>
-                        <div class="p-2"></div>
-                        <div class="p-2">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                            {{ new_task_form.save_submit(class="btn btn-primary", type="submit", value="保存", onclick="loadingShow()") }}
-                        </div></div>
                     </div>
                 </div>
             </form>
@@ -360,7 +361,8 @@
         $("#EditTaskModal").modal('hide');
         $("#SavingModal").modal('show');
     }
-    $(document).ready(function () {
+    
+    $(document).ready(function () {        
         var validator;
         validator = $("#newtaskform").validate({
             rules: {
@@ -465,10 +467,10 @@
         $("#edit-xml-file-input").find(".file-caption")[0].classList.remove("icon-visible")
         $("#edit-bladed-file-input").find(".file-caption-name")[0].value = "";
         $("#edit-xml-file-input").find(".file-caption-name")[0].value = "";
-    });
+    });    
 
     function openTask(taskname) {
-        url = "{{ url_for('task.work') }}";
+        var url = "{{ url_for('task.work') }}";
         window.open(url + "/" + taskname)
 
         $.ajax({
@@ -581,7 +583,7 @@
                     align: 'center',
                     valign: 'middle',
                     // sortable: true,  
-                    class: "thread"
+                    class: "thead"
                 },
                 {
                     title: "任务名",

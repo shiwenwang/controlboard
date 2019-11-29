@@ -1410,7 +1410,7 @@
             //noinspection HtmlUnknownTarget,HtmlUnknownAttribute
             tBtnLink = '<a href="{href}" tabindex="500" title="{title}" class="{css}" {status}>{icon} {label}</a>';
             //noinspection HtmlUnknownAttribute
-            tBtnBrowse = '<div tabindex="500" class="{css}" {status}>{icon} 打开</div>';
+            tBtnBrowse = '<div tabindex="500" class="{css}" {status}>{icon} 浏览</div>';
             tModalMain = '<div id="' + $h.MODAL_ID + '" class="file-zoom-dialog modal fade" ' +
                 'tabindex="-1" aria-labelledby="' + $h.MODAL_ID + 'Label"></div>';
             tModal = '<div class="modal-dialog modal-lg{rtl}" role="document">\n' +
@@ -1631,27 +1631,27 @@
                     showDownload: true,
                     showZoom: true,
                     showDrag: true,
-                    removeIcon: '<i class="fas fa-trash"></i>',
+                    removeIcon: '<i class="fas fa-trash-alt"></i>',
                     removeClass: 'btn btn-sm btn-kv btn-default btn-outline-secondary',
                     removeErrorClass: 'btn btn-sm btn-kv btn-danger',
                     removeTitle: 'Remove file',
                     uploadIcon: '<i class="fas fa-upload"></i>',
                     uploadClass: 'btn btn-sm btn-kv btn-default btn-outline-secondary',
                     uploadTitle: 'Upload file',
-                    uploadRetryIcon: '<i class="fas fa-repeat"></i>',
+                    uploadRetryIcon: '<i class="fas fa-redo-alt"></i>',
                     uploadRetryTitle: 'Retry upload',
                     downloadIcon: '<i class="fas fa-download"></i>',
                     downloadClass: 'btn btn-sm btn-kv btn-default btn-outline-secondary',
                     downloadTitle: 'Download file',
-                    zoomIcon: '<i class="fas fa-zoom-in"></i>',
+                    zoomIcon: '<i class="fas fa-search-plus"></i>',
                     zoomClass: 'btn btn-sm btn-kv btn-default btn-outline-secondary',
                     zoomTitle: 'View Details',
                     dragIcon: '<i class="fas fa-move"></i>',
                     dragClass: 'text-info',
                     dragTitle: 'Move / Rearrange',
                     dragSettings: {},
-                    indicatorNew: '<i class="fas fa-plus-sign text-warning"></i>',
-                    indicatorSuccess: '<i class="fas fa-ok-sign text-success"></i>',
+                    indicatorNew: '<i class="fas fa-plus text-warning"></i>',
+                    indicatorSuccess: '<i class="fas fa-check-circle text-success"></i>',
                     indicatorError: '<i class="fas fa-exclamation-circle text-danger"></i>',
                     indicatorLoading: '<i class="fas fa-hourglass text-muted"></i>',
                     indicatorPaused: '<i class="fas fa-pause text-primary"></i>',
@@ -5436,12 +5436,12 @@
             return $container.html();
         },
         previewZoomButtonIcons: {
-            prev: '<i class="fas fa-triangle-left"></i>',
-            next: '<i class="fas fa-triangle-right"></i>',
-            toggleheader: '<i class="fas fa-resize-vertical"></i>',
-            fullscreen: '<i class="fas fa-fullscreen"></i>',
-            borderless: '<i class="fas fa-resize-full"></i>',
-            close: '<i class="fas fa-remove"></i>'
+            prev: '<i class="fas fa-chevron-left"></i>',
+            next: '<i class="fas fa-chevron-right"></i>',
+            toggleheader: '<i class="fas fa-arrows-alt-v"></i>',
+            fullscreen: '<i class="fas fa-expand-arrows-alt"></i>',
+            borderless: '<i class="fas fa-expand"></i>',
+            close: '<i class="fas fa-times"></i>'
         },
         previewZoomButtonClasses: {
             prev: 'btn btn-navigate',
@@ -5475,7 +5475,7 @@
         browseClass: 'btn btn-primary',
         removeIcon: '<i class="fas fa-trash-alt"></i>',
         removeClass: 'btn btn-default btn-secondary',
-        cancelIcon: '<i class="fas fa-ban-circle"></i>',
+        cancelIcon: '<i class="fas fa-ban"></i>',
         cancelClass: 'btn btn-default btn-secondary',
         pauseIcon: '<i class="fas fa-pause"></i>',
         pauseClass: 'btn btn-default btn-secondary',
@@ -5529,7 +5529,7 @@
         maxTotalFileCount: 0,
         validateInitialCount: false,
         msgValidationErrorClass: 'text-danger',
-        msgValidationErrorIcon: '<i class="fas fa-exclamation-sign"></i> ',
+        msgValidationErrorIcon: '<i class="fas fa-exclamation-circle"></i> ',
         msgErrorClass: 'file-error-message',
         progressThumbClass: 'progress-bar progress-bar-striped active',
         progressClass: 'progress-bar bg-success progress-bar-success progress-bar-striped active',

@@ -1,13 +1,15 @@
-from flask import (Blueprint, render_template, redirect,
-                   url_for, current_app, g, flash)
+from flask import (Blueprint, render_template, redirect, request,
+                   url_for, current_app, session, jsonify, abort)
 from flask_login import current_user, login_required
 from flask_uploads import configure_uploads, patch_request_class
 from app.models import load_user, Task
 from app.forms import NewTaskForm, EditTaskForm, DeleteTaskForm
 from app import usets, db
 from app.extend.git import git_init, git_commit_push, git_remove_push, git_exists
+from app.extend.symbol import XML
 
 import os
+import re
 import shutil
 
 from app.extend.bladed import Bladed
@@ -40,15 +42,64 @@ def index():
         return redirect(url_for('main.index'))
 
     return render_template('index.html', title='主页', user=user, tasks_amount=tasks_amount,
-                           new_task_form=new_task_form, 
+                           new_task_form=new_task_form,
                            edit_task_form=edit_task_form,
                            delete_task_form=delete_task_form)
 
 
+# @main.route('/xml-uploads', methods=['POST'])
+# def xml_uploads():
+#     pass
+#     if request.method == "POST":
+#         user = load_user(current_user.get_id())
+#         cfg = current_app.config
+#         dest = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username)
+#         if not os.path.isdir(dest):
+#             os.makedirs(dest)
+#         for file in os.listdir(dest):
+#             os.remove(os.path.join(dest, file))
+#         for file in request.files.getlist('xml-files'):
+#             file.save(os.path.join(dest, file.filename))
+
+    # return jsonify({})  
+
+
+@main.route('/compare/contrast', methods=['GET', 'POST'])
+def contrast():
+    if request.method == "POST":
+        file1_text = request.files.getlist("xml-files")[0].read().decode()
+        file2_text = request.files.getlist("xml-files")[1].read().decode()
+        xml = XML()
+        xml1_data = xml.parse_string(file1_text)
+        xml2_data = xml.parse_string(file2_text)
+        diff = find_diff(xml1_data, xml2_data)
+
+        data = {'xml1': xml1_data, 'xml2': xml2_data, 'diff': diff}
+        return jsonify(data)
+
+    return jsonify({})
+
+
 @main.route('/compare')
 def compare():
-
     return render_template('compare.html', title="compare")
+
+
+def find_diff(data1, data2):
+    import pandas as pd   
+    set1 = set(data1.keys())
+    set2 = set(data2.keys())
+    for name in set.union(set1.difference(set2), set2.difference(set1)):
+        if name not in data1.keys():
+            data1[name] = '-' if 'P_' in name else {}
+        if name not in data2.keys():
+            data2[name] = '-' if 'P_' in name else {}
+
+    diff = [k for k, v in data1.items() if (isinstance(v, str) and v != data2[k]) or
+            (isinstance(v, pd.DataFrame) and not all(v == data2[k]))]
+    diff.extend(list(set.union(set1.difference(set2), set2.difference(set1))))
+
+    return diff
 
 
 def modify_config(user, new_task_form):

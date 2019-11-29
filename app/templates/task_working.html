@@ -599,9 +599,9 @@
         $("#P_TowerExcHighSpeedMinTorque-symbol").val($("#HighSpeedMaxTorque").val());
     }
 
-    function equals(src, dst){
-        if (src.match(/(\d+)-/)[1] != "0"){
-            $("#"+dst).val($("#"+src).val());
+    function equals(src, dst) {
+        if (src.match(/(\d+)-/)[1] != "0") {
+            $("#" + dst).val($("#" + src).val());
         }
     }
 
@@ -751,7 +751,7 @@
                     field: 'name',
                     align: 'center',
                     valign: 'middle',
-                    class: "thread",
+                    class: "thead",
                     sortable: true
                 },
                 {
@@ -787,7 +787,7 @@
                     field: 'Name',
                     align: 'center',
                     valign: 'middle',
-                    class: "thread",
+                    class: "thead",
                     width: "20%"
                 },
                 {
@@ -795,7 +795,7 @@
                     field: 'Enabled',
                     align: 'center',
                     valign: 'middle',
-                    class: "thread",
+                    class: "thead",
                     width: "5%"
                 },
                 {
@@ -904,7 +904,7 @@
                     field: 'Name',
                     align: 'center',
                     valign: 'middle',
-                    class: "thread"
+                    class: "thead"
                 },
                 {
                     title: "Display</br>Name",
@@ -918,7 +918,7 @@
                     field: 'Enabled',
                     align: 'center',
                     valign: 'middle',
-                    class: "thread"
+                    class: "thead"
                 },
                 {
                     title: "Numerator</br>Type",

@@ -16,6 +16,7 @@ class XML:
         self._channels = None
         self._tables = None
         self._path = None
+        self.ele_compare_list = []
 
     @property
     def tree(self):
@@ -37,7 +38,8 @@ class XML:
     def tables(self):
         return self._tables
 
-    def verification(self, filename):
+    @staticmethod
+    def verification(filename):
         if os.path.isfile(filename) and os.path.splitext(filename)[1] == '.xml':
             return True
         else:
@@ -245,3 +247,50 @@ class XML:
 
         with open(dst, 'wb') as f:
             f.write(pretty_xml)
+
+    def parse_string(self, text):
+        xml_data = {}
+        self._channels, self._tables = tuple(ET.fromstring(text).getchildren())
+        for ele in self._channels:
+            xml_data.update(self.find(ele.find("Name").text))
+        for ele in self._tables:
+            data = self.find(ele.find("Name").text)[ele.find("Name").text].to_json(orient='records')
+            xml_data.update({ele.find("Name").text: data})
+
+        return xml_data
+
+    def compare(self, text1, text2):
+        # p_diff, t_diff, f_diff = [], [], []
+        diff_names = []
+        ch1, tb1 = tuple(ET.fromstring(text1).getchildren())
+        ch2, tb2 = tuple(ET.fromstring(text2).getchildren())
+
+        all_ele1 = ch1.getchildren() + tb1.getchildren()
+        all_ele2 = ch2.getchildren() + tb2.getchildren()
+        #
+        # append_map = {
+        #     "P_": 'p_diff',
+        #     "T_": 't_diff',
+        #     "F_": 'f_diff'
+        # }
+
+        for i, ele in enumerate(all_ele1):
+            self.ele_compare_list.clear()
+            self.compare_ele(ele, all_ele2[i])
+            if not all(self.ele_compare_list):
+                name = ele.find("Name").text
+                # eval(f'{append_map[name[:2]]}.append(name)')
+                diff_names.append(name)
+
+        self.ele_compare_list.clear()
+        return diff_names
+
+    def compare_ele(self, ele1, ele2):
+        child1 = ele1.getchildren()
+        child2 = ele2.getchildren()
+
+        if not child1:
+            self.ele_compare_list.append(ele1.text == ele2.text)
+
+        for i, child in enumerate(child1):
+            self.compare_ele(child, child2[i])

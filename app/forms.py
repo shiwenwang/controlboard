@@ -78,12 +78,12 @@ class RegistrationForm(FlaskForm):
         if not str(username.data).isdigit():
             raise ValidationError('用户名不合法，请使用OA号。')
         oa = username.data
-        if oa not in self.employees[0]:            
-            raise ValidationError(f"{oa}不允许注册。")
-        else:
-            access = self.employees[2][self.employees[0].index(username.data)]
-            if not access:
-                raise ValidationError(f"{oa}没有权限，请联系管理员。")
+        if oa not in self.employees[0] or not self.employees[2][self.employees[0].index(oa)]:            
+        #     raise ValidationError(f"{oa}可能是外部人员，不允许注册。")
+        # else:
+        #     access = self.employees[2][self.employees[0].index(oa)]
+        #     if not access:
+            raise ValidationError(f"{oa}没有权限，请联系管理员。")
         user = User.query.filter_by(username=username.data).first()
         if user is not None:
             raise ValidationError('此OA号已被注册。')

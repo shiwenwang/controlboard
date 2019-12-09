@@ -54,42 +54,42 @@ class SendEmail(FlaskForm):
             raise ValidationError()
 
         if self.email.data not in self.emails:
-            raise ValidationError('请输入注册使用的邮箱。')
+            raise ValidationError('请输入用户使用的邮箱。')
 
 
 class RegistrationForm(FlaskForm):
     username = StringField(validators=[DataRequired()])
-    email = StringField(validators=[DataRequired(), Email(message='邮箱不合法。')])
+    # email = StringField(validators=[DataRequired(), Email(message='邮箱不合法。')])
     password = PasswordField(validators=[DataRequired()])
     password2 = PasswordField(
         validators=[DataRequired(), EqualTo('password', message='两次密码输入不一致。')])
     register_submit = SubmitField()
-    employees = employees_query(['OA', '电子邮箱'])
+    employees = employees_query(['OA', 'Access'])
 
     def validate_username(self, username):
         if not str(username.data).isdigit():
             raise ValidationError('用户名不合法，请使用OA号。')
-        if username.data not in self.employees[0]:
+        if username.data not in self.employees[0] or not int(self.employees[1]):
             oa = username.data
-            raise ValidationError(f"{oa}不允许注册。")
+            raise ValidationError(f"{oa}不允许注册。请联系管理员。")
         user = User.query.filter_by(username=username.data).first()
         if user is not None:
             raise ValidationError('此OA号已被注册。')
 
-    def validate_email(self, email):
-        if self.email.errors:
-            raise ValidationError()
+    # def validate_email(self, email):
+    #     if self.email.errors:
+    #         raise ValidationError()
 
-        if self.email.data not in self.employees[1]:
-            raise ValidationError('请使用正确的公司邮箱。')
+    #     if self.email.data not in self.employees[1]:
+    #         raise ValidationError('请使用正确的公司邮箱。')
 
-        username_id = self.employees[0].index(self.username.data)
-        email_id = self.employees[1].index(email.data)
-        if username_id != email_id:
-            raise ValidationError('OA和邮箱不匹配。')
-        user = User.query.filter_by(email=email.data).first()
-        if user is not None:
-            raise ValidationError('该邮箱已被注册。')
+    #     username_id = self.employees[0].index(self.username.data)
+    #     email_id = self.employees[1].index(email.data)
+    #     if username_id != email_id:
+    #         raise ValidationError('OA和邮箱不匹配。')
+    #     user = User.query.filter_by(email=email.data).first()
+    #     if user is not None:
+    #         raise ValidationError('该邮箱已被注册。')
 
     def clear_errors(self):
         self.username.errors = ()

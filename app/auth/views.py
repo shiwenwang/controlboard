@@ -1,6 +1,7 @@
 from flask import Blueprint, flash, render_template, redirect, url_for
 from flask_login import current_user, login_user, logout_user, login_required
-from app.forms import LoginForm, RegistrationForm, ConfirmForm, ResetPassWordForm, employees_query
+from app.forms import (LoginForm, RegistrationForm, ConfirmForm, ResetPasswordFormCold,
+                       ResetPassWordForm, employees_query)
 from app.models import User, load_user
 from app import db
 import base64
@@ -29,7 +30,7 @@ def login():
         return redirect(url_for('main.index'))
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()        
+        user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             error_msg = '用户不存在。' if user is None else '密码错误。'
             flash(error_msg)
@@ -61,14 +62,15 @@ def reset():
             flash("密码修改成功！")
         else:
             flash("密码错误！")
-    return render_template('resetpw.html', form=form, next=next_state, title='修改密码')
+    return render_template('resetpw.html', form=form, next=next_state, title='修改密码', cold=False)
 
 
 @auth.route('/forgot',  methods=['GET', 'POST'])
 def forgot():
     form = ConfirmForm()
     if form.validate_on_submit():
-        real_name = User.query.filter_by(username=form.username.data).first().realname
+        real_name = User.query.filter_by(
+            username=form.username.data).first().realname
         secure_name = base64.encodebytes(real_name.encode())
         return redirect(url_for('auth.cold_reset', name=secure_name))
 
@@ -77,15 +79,13 @@ def forgot():
 
 @auth.route('/cold-reset/<name>', methods=['GET', 'POST'])
 def cold_reset(name):
-    form = ResetPassWordForm()
+    form = ResetPasswordFormCold()
     next_state = "返回"
     if form.validate_on_submit():
-        user = User.query.filter_by(realname=base64.decodebytes(name.encode()).decode()).first()
-        if user.check_password(form.old_password.data):
-            user.password = form.new_password.data
-            logout_user()
-            next_state = "登录"
-            flash("密码修改成功！")
-        else:
-            flash("密码错误！")
-    return render_template('resetpw.html', form=form, next=next_state, title='修改密码')
+        user = User.query.filter_by(
+            realname=base64.decodebytes(name.encode()).decode()).first()
+        user.password = form.new_password.data
+        logout_user()
+        next_state = "登录"
+        flash("密码修改成功！")
+    return render_template('resetpw.html', form=form, next=next_state, title='修改密码', cold=True)

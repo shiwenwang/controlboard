@@ -141,7 +141,7 @@ def work(taskname, obj):
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
     tasks_amount = len(Task.query.filter_by(user_id=user.id).all())
-    if _task is None:
+    if _task is None or obj not in ['symbol', 'xml']:
         abort(404)
 
     working_form = WorkingForm()

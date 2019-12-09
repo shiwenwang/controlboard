@@ -72,14 +72,18 @@ class RegistrationForm(FlaskForm):
     password2 = PasswordField(
         validators=[DataRequired(), EqualTo('password', message='两次密码输入不一致。')])
     register_submit = SubmitField()
-    employees = employees_query(['OA', '电子邮箱'])
+    employees = employees_query(['OA', '电子邮箱', 'Access'])
 
     def validate_username(self, username):
         if not str(username.data).isdigit():
             raise ValidationError('用户名不合法，请使用OA号。')
-        if username.data not in self.employees[0]:
-            oa = username.data
+        oa = username.data
+        if oa not in self.employees[0]:            
             raise ValidationError(f"{oa}不允许注册。")
+        else:
+            access = self.employees[2][self.employees[0].index(username.data)]
+            if not access:
+                raise ValidationError(f"{oa}没有权限，请联系管理员。")
         user = User.query.filter_by(username=username.data).first()
         if user is not None:
             raise ValidationError('此OA号已被注册。')
@@ -103,6 +107,13 @@ class RegistrationForm(FlaskForm):
         self.username.errors = ()
         self.email.errors = ()
         self.password2.errors = ()
+
+
+class ResetPasswordFormCold(FlaskForm):
+    new_password = PasswordField(validators=[DataRequired()])
+    new_password2 = PasswordField(
+        validators=[DataRequired(), EqualTo('new_password', message='两次密码输入不一致。')])
+    reset_submit = SubmitField()
 
 
 class ResetPassWordForm(FlaskForm):

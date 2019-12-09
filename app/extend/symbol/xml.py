@@ -243,7 +243,7 @@ class XML:
         tree_string = re.sub(r'>\s*<', '><', tree_string)
         with parseString(tree_string.encode()) as dom:
             pretty_xml = dom.toprettyxml(
-                indent="  ", newl="\n", encoding='utf-8')
+                indent="  ", newl="\r\n", encoding='utf-8')
 
         with open(dst, 'wb') as f:
             f.write(pretty_xml)

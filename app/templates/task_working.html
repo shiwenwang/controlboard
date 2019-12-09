@@ -20,12 +20,21 @@
         top: 56px;
     }
 
+    .table-striped>tbody>tr:nth-child(2n+1)>td,
+    .table-striped>tbody>tr:nth-child(2n+1)>th {
+        background-color: #F6F8FA
+    }
+
     /* svg path,svg rect{fill: #FF6700;} */
 </style>
 {% endblock styles %}
 {% block content %}
 <div class="container fixed-top col-sm-2">
-    <div class="alert mx-auto" id="alert" role="alert" style="width: 240px;">
+    <div class="alert mx-auto alert-dismissible fade" id="alert" role="alert" style="width: 240px;">
+        <strong id="alert-text"></strong>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
     </div>
 </div>
 
@@ -63,12 +72,7 @@
                     {% endif %}
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" target="blank" onclick="waiting()">线性化</a>
-                    <!-- href="{{ url_for('task.campbell', taskname=taskname) }}">线性化</a> -->
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" target="blank" onclick="waiting()">控制器编译</a>
-                    <!-- href="{{ url_for('task.compiling', taskname=taskname) }}">控制器编译</a> -->
+                    <a class="nav-link" target="blank" onclick="campbellTrigger()">Campbell</a>
                 </li>
                 <li class="nav-item" style="padding-left: 60px;border-color: #ffe484;">
                     <span class="algolia-autocomplete algolia-autocomplete-left"
@@ -111,8 +115,9 @@
         </div>
     </div>
 </header>
-<!-- tip Modal -->
-<div class="modal fade" id="tipmodel" tabindex="-1" role="dialog">
+
+<!-- unsave tips modal -->
+<div class="modal fade" id="unsave-modal" tabindex="-1" role="dialog" data-backdrop="static">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -121,8 +126,52 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
+            <div class="modal-body">                
+                <label for="">
+                    检测到页面有更改，是否保存？
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="showSearchResult('unsave')">忽略并继续</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="showSearchResult('save')">保存并继续</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- tip Modal -->
+<div class="modal fade" id="campbell-modal" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color:#7952b3;">Campbell</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
             <div class="modal-body">
-                <label for="">正在配置，暂未开放。</label>
+                <div class="form-group row">
+                    <label for="towerMode1" class="col-sm-5 col-form-label">
+                        当前塔架一阶频率：
+                    </label>
+                    <div class="col-sm-7">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="towerMode1">
+                            <div class="input-group-append">
+                                <span class="input-group-text" id="unit">rad/s</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label for="towerMode1">
+                    计算完毕后，塔架一阶频率将自动填入此处 <i class="fas fa-hand-point-up" style="color:#7952b3"></i> ，耐心等待。
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="campbell()"
+                data-toggle="modal" data-target="#SavingModal">开始计算</button>
             </div>
         </div>
     </div>
@@ -172,8 +221,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">放弃</button>
-                <button type="button" class="btn btn-info symbol-save-btn" data-dismiss="modal" data-toggle="modal"
-                    id="save-btn" data-target="#SavingModal" onclick="savePage('xml')">保存至工作区</button>
+                <button type="button" class="btn btn-info symbol-save-btn" data-dismiss="modal" id="save-btn"
+                    onclick="savePage('xml')">保存至工作区</button>
                 {% if task.isgitted %}
                 <button type="button" class="btn btn-primary symbol-save-btn" data-dismiss="modal" data-toggle="modal"
                     id="save-git-btn" data-target="#SavingModal" onclick="savePage('git')">保存并提交至Git</button>
@@ -275,12 +324,21 @@
                 <a class="btn btn-bd-primary" href="{{ url_for('task.download', taskname=task.name, obj=obj) }}">
                     <i class="fas fa-cloud-download-alt"></i> 下载
                 </a>
+                <!-- <button type="submit" class="btn btn-bd-primary" id="download" onclick="download()">
+                    <i class="fas fa-cloud-download-alt"></i> 下载
+                </button> -->
             </div>
             {% if obj == "xml" %}
             <div class="p-2 align-self-center">
                 <a class="btn btn-bd-primary" href="{{ url_for('task.watch', taskname=task.name) }}" target="blank">
                     <i class="fas fa-eye"></i> 查看
                 </a>
+            </div>
+            {% else %}
+            <div class="p-2 align-self-center">
+                <button type="submit" class="btn btn-bd-primary" id="save-submit">
+                    <i class="fas fa-cube"></i> 控制器编译
+                </button>
             </div>
             {% endif %}
         </div>
@@ -372,7 +430,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between" style="padding-bottom: 16px;">
-                                        <div class="p-6 align-self-center">
+                                        <div class="p-2 align-self-center" style="padding: 0px 0px!important">
                                             <div class="custom-control custom-switch">
                                                 <input type="checkbox" class="custom-control-input"
                                                     id="towerExc-switch">
@@ -380,67 +438,87 @@
                                                     id="towerExcSwitch-label">开关</label>
                                             </div>
                                         </div>
-                                        <div class="p-6 align-self-center">
-                                            <button class="btn btn-sm btn-primary" onclick="setTowerExc()">应用</button>
+                                        <div class="p-2 align-self-center" style="padding: 0px 0px!important;" fade>
+                                            <span class="badge badge-success" id="result-badge"
+                                                style="display: none;">通过</span>
+                                        </div>
+                                        <div class="p-2 align-self-center" style="padding: 0px 0px!important">
+                                            <button class="btn btn-sm btn-info" id="reset" data-toggle="tooltip"
+                                                title="恢复默认" onclick="reset()"><i class="fas fa-redo"></i></button>
+                                            <button class="btn btn-sm btn-primary" id="apply"
+                                                onclick="setTowerExc()">应用</button>
                                         </div>
                                     </div>
                                     <div class="d-flex">
                                         <div class="form-label-group">
-                                            <input type="text" style="color: blue; background-color: #ffe484;"
-                                                class="form-control" placeholder="塔架一阶(rad/s)" id="tower1st-radps">
-                                            <label style="color: #7952b3;">塔架一阶(rad/s)</label>
+                                            <input type="text" style="color: green; background-color: #ffe484;"
+                                                class="form-control" id="tower1st-radps">
+                                            <label style="color: #7952b3;font-size:5px;">塔架一阶(rad/s)</label>
                                         </div>
-                                        <div class="p-2"></div>
+                                        <div class="p-2" style="padding: 5px!important;"></div>
                                         <div class="form-label-group">
-                                            <input type="text" style="color: blue; background-color: #ffe484;"
-                                                class="form-control" placeholder="塔架一阶(Hz)" id="tower1st-hz">
+                                            <input type="text" style="color: green; background-color: #ffe484;"
+                                                class="form-control" id="tower1st-hz">
                                             <label style="color: #7952b3;">塔架一阶(Hz)</label>
                                         </div>
-                                    </div>
-                                    <div class="d-flex">
+                                        <div class="p-2" style="padding: 5px!important;"></div>
                                         <div class="form-label-group">
-                                            <input type="text" style="color: blue" class="form-control"
-                                                placeholder="PowerFactor1" value="0.84" id="PowerFactor1">
-                                            <label style="color: #7952b3;">PowerFactor1</label>
-                                        </div>
-                                        <div class="p-2"></div>
-                                        <div class="form-label-group">
-                                            <input type="text" style="color: blue" class="form-control"
-                                                placeholder="PowerFactor2" value="-0.025" id="PowerFactor2">
-                                            <label style="color: #7952b3;">PowerFactor2</label>
-                                        </div>
-                                        <div class="p-2"></div>
-                                        <div class="form-label-group">
-                                            <input type="text" style="color: blue" class="form-control"
-                                                placeholder="SpeedFactor" value="0.08" id="SpeedFactor">
-                                            <label style="color: #7952b3;">SpeedFactor</label>
+                                            <input type="text" style="color: green; background-color: #ffe484;"
+                                                class="form-control" id="tower1st-rpm">
+                                            <label style="color: #7952b3;">塔架一阶(rpm)</label>
                                         </div>
                                     </div>
                                     <div class="d-flex">
                                         <div class="form-label-group">
-                                            <input type="text" style="color: red" class="form-control"
-                                                placeholder="LowSpeed" id="LowSpeed">
-                                            <label style="color: #7952b3;">LowSpeed</label>
+                                            <input type="text" style="color: #FF6600" class="form-control" value="0.05"
+                                                id="SpeedFactor">
+                                            <label style="color: #7952b3;">转速系数</label>
                                         </div>
-                                        <div class="p-2"></div>
+                                        <div class="p-2" style="padding: 5px!important;"></div>
                                         <div class="form-label-group">
-                                            <input type="text" style="color: red" class="form-control"
-                                                placeholder="HighSpeed" id="HighSpeed">
-                                            <label style="color: #7952b3;">HighSpeed</label>
+                                            <input type="text" style="color: #FF6600" class="form-control" value="0.5"
+                                                id="SpeedOffset">
+                                            <label style="color: #7952b3;">转速偏移(rpm)</label>
+                                        </div>
+                                        <div class="p-2" style="padding: 5px!important;"></div>
+                                        <div class="form-label-group">
+                                            <input type="text" style="color: #FF6600" class="form-control" value="1.05"
+                                                id="LowTorqueFactor">
+                                            <label style="color: #7952b3;">扭矩系数low</label>
+                                        </div>
+                                        <div class="p-2" style="padding: 5px!important;"></div>
+                                        <div class="form-label-group">
+                                            <input type="text" style="color: #FF6600" class="form-control" value="0.09"
+                                                id="HighTorqueFactor">
+                                            <label style="color: #7952b3;">扭矩系数high</label>
                                         </div>
                                     </div>
                                     <div class="d-flex">
                                         <div class="form-label-group">
-                                            <input type="text" style="color: red" class="form-control"
-                                                placeholder="LowSpeedMaxTorque" id="LowSpeedMaxTorque">
-                                            <label style="color: #7952b3;">LowSpeedMaxTorque</label>
+                                            <input type="text" style="color: blue;" class="form-control"
+                                                placeholder="低转速" id="LowSpeed" disabled>
+                                            <label style="color: #7952b3;font-size:14px;">低转速</label>
                                         </div>
-                                        <div class="p-2"></div>
+                                        <div class="p-2" style="padding: 5px!important;"></div>
                                         <div class="form-label-group">
-                                            <input type="text" style="color: red" class="form-control"
-                                                placeholder="HighSpeedMaxTorque" id="HighSpeedMaxTorque">
-                                            <label style="color: #7952b3;">HighSpeedMaxTorque</label>
+                                            <input type="text" style="color: blue;" class="form-control"
+                                                placeholder="高转速" id="HighSpeed" disabled>
+                                            <label style="color: #7952b3;font-size:14px;">高转速</label>
                                         </div>
+                                        <div class="p-2" style="padding: 5px!important;"></div>
+                                        <div class="form-label-group">
+                                            <input type="text" style="color: blue;" class="form-control"
+                                                placeholder="LowSpeedMaxTorque" id="LowSpeedMaxTorque" disabled>
+                                            <label style="color: #7952b3;font-size:14px;">低转速扭矩</label>
+                                        </div>
+                                        <div class="p-2" style="padding: 5px!important;"></div>
+                                        <div class="form-label-group">
+                                            <input type="text" style="color: blue;" class="form-control"
+                                                placeholder="HighSpeedMaxTorque" id="HighSpeedMaxTorque" disabled>
+                                            <label style="color: #7952b3;font-size:14px;">高转速扭矩</label>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex">
                                     </div>
                                 </div>
                             </div>
@@ -467,9 +545,6 @@
 </div>
 
 <script>
-    function waiting() {
-        $("#tipmodel").modal();
-    }
     window.onscroll = function () {
         if (document.documentElement.scrollTop > 5) {
             $(".navbar")[0].style.boxShadow = "0px 6px 5px rgba(121,82,179,.25)";
@@ -544,10 +619,14 @@
             var kopt = Number($("#P_OptimalModeGain-bladed").val());
             if (isNaN(src) || src == "") {
                 $('#tower1st-hz').val("");
+                $('#tower1st-rpm').val("");
                 $("#LowSpeed").val("");
                 $("#HighSpeed").val("");
+                enableApplyBtn();
             } else {
-                $('#tower1st-hz').val((src / 2 / Math.PI).toFixed(4));
+                $('#tower1st-hz').val((src / 2 / Math.PI).toFixed(5));
+                $('#tower1st-rpm').val((src * 30 / Math.PI).toFixed(5));
+                // enableApplyBtn();
             }
             towerExcCalc(kopt, src);
         })
@@ -559,44 +638,193 @@
             var kopt = Number($("#P_OptimalModeGain-bladed").val());
             if (isNaN(src) || src == "") {
                 $('#tower1st-radps').val("");
+                $('#tower1st-rpm').val("");
                 $("#LowSpeed").val("");
                 $("#HighSpeed").val("");
+                enableApplyBtn();
+                $("#result-badge")[0].style.display = "none";
             } else {
-                $('#tower1st-radps').val((src * 2 * Math.PI).toFixed(4));
+                $('#tower1st-radps').val((src * 2 * Math.PI));
+                $('#tower1st-rpm').val(src * 60);
+                // enableApplyBtn();
             }
-            towerExcCalc(kopt, src * 2 * Math.PI);
+            towerExcCalc(kopt, $('#tower1st-radps').val());
         })
     })
 
-    function towerExcCalc(Kopt, tower1st) {
+    $(function () {
+        $('#tower1st-rpm').keyup(function () {
+            var src = $(this).val();
+            var kopt = Number($("#P_OptimalModeGain-bladed").val());
+            if (isNaN(src) || src == "") {
+                $('#tower1st-radps').val("");
+                $('#tower1st-hz').val("");
+                $("#LowSpeed").val("");
+                $("#HighSpeed").val("");
+                enableApplyBtn();
+                $("#result-badge")[0].style.display = "none";
+            } else {
+                $('#tower1st-radps').val((src * Math.PI / 30));
+                $('#tower1st-hz').val((src / 60));
+                // enableApplyBtn();
+            }
+            towerExcCalc(kopt, $('#tower1st-radps').val());
+        })
+    })
+
+    $(function () {
+        $('#SpeedFactor').keyup(function () {
+            var src = $('#tower1st-radps').val();
+            var kopt = Number($("#P_OptimalModeGain-bladed").val());
+            if (isNaN(src) || src == "") {
+                $('#tower1st-radps').val("");
+                $('#tower1st-hz').val("");
+                $("#LowSpeed").val("");
+                $("#HighSpeed").val("");
+                enableApplyBtn();
+                $("#result-badge")[0].style.display = "none";
+            } else {
+                // enableApplyBtn();
+            }
+            towerExcCalc(kopt, src);
+        })
+    })
+
+    $(function () {
+        $('#SpeedOffset').keyup(function () {
+            var src = $('#tower1st-radps').val();
+            var kopt = Number($("#P_OptimalModeGain-bladed").val());
+            if (isNaN(src) || src == "") {
+                $('#tower1st-radps').val("");
+                $('#tower1st-hz').val("");
+                $("#LowSpeed").val("");
+                $("#HighSpeed").val("");
+                enableApplyBtn();
+                $("#result-badge")[0].style.display = "none";
+            } else {
+                // enableApplyBtn();
+            }
+            towerExcCalc(kopt, src);
+        })
+    })
+
+    $(function () {
+        $('#LowTorqueFactor').keyup(function () {
+            var src = $('#tower1st-radps').val();
+            var kopt = Number($("#P_OptimalModeGain-bladed").val());
+            if (isNaN(src) || src == "") {
+                $('#tower1st-radps').val("");
+                $('#tower1st-hz').val("");
+                $("#LowSpeed").val("");
+                $("#HighSpeed").val("");
+                enableApplyBtn();
+                $("#result-badge")[0].style.display = "none";
+            } else {
+                // enableApplyBtn();
+            }
+            towerExcCalc(kopt, src);
+        })
+    })
+
+    $(function () {
+        $('#HighTorqueFactor').keyup(function () {
+            var src = $('#tower1st-radps').val();
+            var kopt = Number($("#P_OptimalModeGain-bladed").val());
+            if (isNaN(src) || src == "") {
+                $('#tower1st-radps').val("");
+                $('#tower1st-hz').val("");
+                $("#LowSpeed").val("");
+                $("#HighSpeed").val("");
+                enableApplyBtn();
+                $("#result-badge")[0].style.display = "none";
+            } else {
+                // enableApplyBtn();
+            }
+            towerExcCalc(kopt, src);
+        })
+    })
+
+    function enableApplyBtn() {
+        $("#apply")[0].classList.remove("btn-secondary");
+        $("#apply")[0].classList.add("btn-primary");
+        $("#apply")[0].disabled = false;
+    }
+
+    function disableApplyBtn() {
+        $("#apply")[0].classList.remove("btn-primary");
+        $("#apply")[0].classList.add("btn-secondary");
+        $("#apply")[0].disabled = true;
+    }
+
+    function reset() {
+        $("#SpeedFactor").val(0.05);
+        $("#SpeedOffset").val(0.5);
+        $("#LowTorqueFactor").val(1.05);
+        $("#HighTorqueFactor").val(0.09);
+        var kopt = Number($("#P_OptimalModeGain-bladed").val());
+        towerExcCalc(kopt, $('#tower1st-radps').val());
+    }
+
+    function towerExcCalc(Kopt, tower1st_) {
+        var tower1st = Number(tower1st_);
         if (isNaN(tower1st) || tower1st == "") {
             $("#LowSpeed").val("");
             $("#HighSpeed").val("");
             $("#LowSpeedMaxTorque").val("");
             $("#HighSpeedMaxTorque").val("");
+            $("#result-badge")[0].style.display = "none";
         } else {
             var speedFactor = Number($("#SpeedFactor").val()),
-                powerFactor1 = Number($("#PowerFactor1").val()),
-                powerFactor2 = Number($("#PowerFactor2").val()),
-                lowSpeed = tower1st * (1 - speedFactor),
-                highSpeed = tower1st * (1 + speedFactor),
-                koptPower1 = Kopt * Math.pow(lowSpeed, 3) / 1000,
-                koptPower2 = Kopt * Math.pow(highSpeed, 3) / 1000,
-                jumpPower1 = koptPower2 - (koptPower2 - koptPower1) * powerFactor1,
-                jumpPower2 = koptPower1 + (koptPower2 - koptPower1) * powerFactor2;
-            $("#LowSpeed").val(lowSpeed.toFixed(4));
-            $("#HighSpeed").val(highSpeed.toFixed(4));
-            $("#LowSpeedMaxTorque").val(Math.round(jumpPower1 / lowSpeed * 1000));
-            $("#HighSpeedMaxTorque").val(Math.round(jumpPower2 / highSpeed * 1000));
+                speedOffset = Number($("#SpeedOffset").val()),
+                lowTorqueFactor = Number($("#LowTorqueFactor").val()),
+                highTorqueFactor = Number($("#HighTorqueFactor").val()),
+                lowSpeed = Math.min(tower1st * (1 - speedFactor), tower1st - speedOffset * Math.PI / 30),
+                highSpeed = Math.max(tower1st * (1 + speedFactor), tower1st + speedOffset * Math.PI / 30),
+                lowTorque = lowTorqueFactor * Kopt * lowSpeed * lowSpeed,
+                highTorque = highTorqueFactor * Kopt * Math.pow(lowSpeed, 3) / highSpeed;
+            $("#LowSpeed").val(lowSpeed.toFixed(5));
+            $("#HighSpeed").val(highSpeed.toFixed(5));
+            $("#LowSpeedMaxTorque").val(Math.round(lowTorque));
+            $("#HighSpeedMaxTorque").val(Math.round(highTorque));
+            var tower1st_radps = $('#tower1st-radps').val();
+            if (tower1st_radps.length > 15) {
+                $('#tower1st-radps').val(Number(tower1st_radps).toFixed(5));
+            }
+            if ($('#tower1st-hz').val().length > 15) {
+                $('#tower1st-hz').val(Number(tower1st_radps).toFixed(5));
+            }
+            if ($('#tower1st-rpm').val().length > 15) {
+                $('#tower1st-rpm').val(Number(tower1st_radps).toFixed(5));
+            }
+
+            // 判断是否通过
+            var ratedSpeed = Number($("#P_RatedGeneratorSpeed-bladed").val());
+            if (highSpeed <= 0.92 * ratedSpeed && highSpeed < ratedSpeed - Math.PI / 30) {
+                $("#result-badge").removeClass("badge-danger");
+                $("#result-badge").addClass("badge-success");
+                $("#result-badge").html("通过");
+                $("#result-badge")[0].style.display = "block";
+                enableApplyBtn();
+            } else {
+                disableApplyBtn();
+                $("#result-badge").removeClass("badge-success");
+                $("#result-badge").addClass("badge-danger");
+                $("#result-badge").html("不通过");
+                $("#result-badge")[0].style.display = "block";
+            }
         }
     }
 
     function setTowerExc() {
         $("#P_TowerExcEnabled-symbol").val(String($("#towerExc-switch")[0].checked));
-        $("#P_TowerExcLowSpeed-symbol").val($("#LowSpeed").val());
-        $("#P_TowerExcHighSpeed-symbol").val($("#HighSpeed").val());
-        $("#P_TowerExcLowSpeedMaxTorque-symbol").val($("#LowSpeedMaxTorque").val());
-        $("#P_TowerExcHighSpeedMinTorque-symbol").val($("#HighSpeedMaxTorque").val());
+        if ("" != $("#LowSpeed").val())
+            $("#P_TowerExcLowSpeed-symbol").val($("#LowSpeed").val());
+        if ("" != $("#HighSpeed").val())
+            $("#P_TowerExcHighSpeed-symbol").val($("#HighSpeed").val());
+        if ("" != $("#LowSpeedMaxTorque").val())
+            $("#P_TowerExcLowSpeedMaxTorque-symbol").val($("#LowSpeedMaxTorque").val());
+        if ("" != $("#HighSpeedMaxTorque").val())
+            $("#P_TowerExcHighSpeedMinTorque-symbol").val($("#HighSpeedMaxTorque").val());
     }
 
     function equals(src, dst) {
@@ -671,7 +899,7 @@
                         prefix = data[i].slice(0, start);
                         mid = data[i].slice(start, end);
                         postfix = data[i].slice(end);
-                        htmlStr += '<a class="list-group-item list-group-item-action" onclick="showSearchResult(\'' + data[i] + '\')">' +
+                        htmlStr += '<a class="list-group-item list-group-item-action" onclick="showSearchResultTrigger(\'' + data[i] + '\')">' +
                             prefix +
                             '<label style="color: #7952b3; font-weight: Bold; cursor: pointer;">' + mid + '</label>' +
                             postfix + '</a>\n';
@@ -705,7 +933,41 @@
         }
     }
 
-    function showSearchResult(param) {
+    function showSearchResultTrigger(param) {
+        window.searchParam = param;
+        var dataChanged = getModifiedTableData();
+        if (JSON.stringify(dataChanged) != "{}") {
+            $("#unsave-modal").modal('show');
+            return;
+        }
+        showSearchResult('unsave');
+    }
+
+    function showSearchResult(flag) { 
+        var dataChanged = getModifiedTableData();   
+        if (flag == "save"){
+            $.ajax({
+                cache: false,
+                type: 'POST',
+                url: "/task/write/{{ task.name }}/{{ obj }}",
+                dataType: "json",
+                contentType: 'application/json; charset=UTF-8',
+                data: postData(dataChanged, '{{ obj }}'),
+                success: function (data) {
+                    if (JSON.stringify(dataChanged) != "{}") {
+                        var list = $(".alert")[0].classList;
+                        for (var i = 3; i < list.length; i++) {
+                            $('.alert').removeClass(list[i]);
+                        }
+                        $("#alert-text").html("已保存！");
+                        $('.alert').addClass('alert-success').show().delay(2000).fadeOut();
+                    }
+                    showSearchResult('saved');
+                }
+            })
+            return;
+        }
+        param = window.searchParam;
         $("#symbol-search-input").val(param);
         var tableData = {};
         $.ajax({
@@ -1028,11 +1290,9 @@
     $(document).ready(function () {
         getData();
         editModeSwitch();
-        $('.tips').tooltip('show');
-        $('.tips').tooltip('hide');
-        $(".symbol-save-btn").tooltip('show');
-        $(".symbol-save-btn").tooltip('hide');
         $(".alert")[0].classList.remove("col-md-4");
+        $(".alert").fadeOut();
+        $('[data-toggle="tooltip"]').tooltip();
     });
 
     function getInitialTableData() {
@@ -1078,50 +1338,76 @@
         }
     })
 
+    function download() {
+        var responseData = "";
+        $.ajax({
+            cache: false,
+            type: 'GET',
+            url: "/task/download/{{ task.name }}/{{ obj }}",
+            dataType: "json",
+            contentType: 'application/json; charset=UTF-8',
+            success: function (data) {
+                responseData = data;
+            }
+        })
+    }
+
+    function postData(dataChanged, target) {
+        if ("{{ obj }}" == "xml") {
+            var data = JSON.stringify({
+                'data': dataChanged,
+                'target': target,
+                'newname': $("#rename").val(),
+                'description': $("#description").val()
+            })
+        } else {
+            var data = JSON.stringify({
+                'data': dataChanged,
+                'target': target
+            })
+        }
+        return data;
+    }
+
     function savePage(target) {
         var dataChanged = getModifiedTableData();
-        if (target == "git") {
-            $("#modal-status").html("Saving, Committing & Pushing...");
-        } else {
-            $("#modal-status").html("Saving...");
-        }
-        function postData() {
-            if ("{{ obj }}" == "xml") {
-                var data = JSON.stringify({
-                    'data': dataChanged,
-                    'target': target,
-                    'newname': $("#rename").val(),
-                    'description': $("#description").val()
-                })
-            } else {
-                var data = JSON.stringify({
-                    'data': dataChanged,
-                    'target': target
-                })
+        if (target == "xml" && JSON.stringify(dataChanged) == "{}") {
+            var list = $(".alert")[0].classList;
+            for (var i = 3; i < list.length; i++) {
+                $('.alert').removeClass(list[i]);
             }
-            return data;
+            $("#alert-text").html('未修改!');
+            $('.alert').addClass('alert-warning').show().delay(2000).fadeOut();
+            return;
         }
+
+        var tips = (target == "git") ? "Saving, Committing & Pushing..." : "Saving...";
+        $("#modal-status").html(tips);
+        var tableData = {};
         $.ajax({
             cache: false,
             type: 'POST',
             url: "/task/write/{{ task.name }}/{{ obj }}",
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
-            data: postData(),
+            data: postData(dataChanged, target),
             success: function (data) { //成功的话，得到消息
                 tableData = data;
                 if (JSON.stringify(dataChanged) != "{}") {
                     var list = $(".alert")[0].classList;
-                    for (var i = 1; i < list.length; i++) {
+                    for (var i = 3; i < list.length; i++) {
                         $('.alert').removeClass(list[i]);
                     }
-                    $('.alert').html('保存成功!').addClass('alert-success').show().delay(1000).fadeOut();
+                    var alert_tips = (target == "git") ? "已保存，修改已提交" : "已保存！";
+                    $("#alert-text").html(alert_tips);
+                    $('.alert').addClass('alert-success').show().delay(2000).fadeOut();
                 } else {
                     var list = $(".alert")[0].classList;
-                    for (var i = 1; i < list.length; i++) {
+                    for (var i = 3; i < list.length; i++) {
                         $('.alert').removeClass(list[i]);
                     }
-                    $('.alert').html('提交成功，参数没有变动!').addClass('alert-warning').show().delay(1000).fadeOut();
+                    $("#alert-text").html('未修改，已提交!');
+                    $('.alert').addClass('alert-info').show().delay(2000).fadeOut();
                 }
             },
             complete: function () {
@@ -1133,12 +1419,66 @@
             error: function () {
                 if (JSON.stringify(dataChanged) != "{}") {
                     var list = $(".alert")[0].classList;
-                    for (var i = 1; i < list.length; i++) {
+                    for (var i = 3; i < list.length; i++) {
                         $('.alert').removeClass(list[i]);
                     }
-                    $('.alert').html('保存失败!').addClass('alert-danger').show().delay(2000).fadeOut();
+                    $("#alert-text").html('保存失败!');
+                    $('.alert').addClass('alert-danger').show().delay(2000).fadeOut();
                     $("#SavingModal").modal('hide');
                 }
+            }
+        });
+    }
+
+    function campbellTrigger(freqTowerMode1) {
+        $.ajax({
+            cache: false,
+            type: 'POST',
+            url: "/task/mode/{{ task.name }}",
+            dataType: "json",
+            contentType: 'application/json; charset=UTF-8',
+            data: JSON.stringify({
+                taskname: '{{ task.name }}'
+            }),
+            success: function (data) {
+                $("#towerMode1").val(data['freq']);
+                $("#campbell-modal").modal('show');
+            }
+        })
+    }
+
+    function campbell() {
+        $("#modal-status").html("正在提交计算...");
+        $.ajax({
+            cache: false,
+            type: 'POST',
+            url: "/task/campbell/{{ task.name }}",
+            dataType: "json",
+            contentType: 'application/json; charset=UTF-8',
+            success: function (data) { 
+                $("#SavingModal").modal('hide');
+                var list = $(".alert")[0].classList;
+                for (var i = 3; i < list.length; i++) {
+                    $('.alert').removeClass(list[i]);
+                }
+                if (data) {                    
+                    $("#alert-text").html('计算提交成功!');
+                    $('.alert').addClass('alert-success').show().delay(2000).fadeOut();
+                } else {
+                    $("#alert-text").html('计算提交失败!');
+                    $('.alert').addClass('alert-danger').show().delay(2000).fadeOut();
+                }
+            },
+            error: function () {
+                $("#SavingModal").modal('hide');
+                var list = $(".alert")[0].classList;
+                for (var i = 3; i < list.length; i++) {
+                    $('.alert').removeClass(list[i]);
+                }
+                $("#alert-text").html('计算提交失败!');
+                $('.alert').addClass('alert-danger').show().delay(2000).fadeOut();
+            },
+            complete: function () {
             }
         });
     }

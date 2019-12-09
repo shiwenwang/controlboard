@@ -22,6 +22,10 @@
         border-color: #7952b3;
         box-shadow: 0 0 0 3px rgba(121, 82, 179, .25)
     }
+    .table-striped > tbody > tr:nth-child(2n+1) > td,
+    .table-striped > tbody > tr:nth-child(2n+1) > th {
+        background-color: #F6F8FA
+     }
 </style>
 {% endblock styles %}
 
@@ -172,7 +176,7 @@
                         values="0 0; 0 20; 0 0" begin="0.4s" dur="0.6s" repeatCount="indefinite"></animateTransform>
                 </rect>
             </svg>
-            <p style="color: white;" Bold>正在上传......</p>
+            <p style="color: white;" Bold id="savingModalText">正在上传......</p>
         </div>
     </div>
 </div>
@@ -241,14 +245,15 @@
                             <div class="form-check p-2 align-self-center">
                                 <!-- <input class="form-check-input" type="checkbox" value="" id="add-to-git" checked> -->
                                 {{ new_task_form.add_to_git(class="form-check-input", type="checkbox", id="add-to-git", checked=true) }}
-                                <label class="form-check-label" for="add-to-git">
+                                <label class="form-check-label" for="add-to-git" id="check-for-add-to-git">
                                     提交至Git仓库
                                 </label>
                             </div>
                             <div class="p-2"></div>
                             <div class="p-2">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                                {{ new_task_form.save_submit(class="btn btn-primary", type="submit", value="保存", onclick="loadingShow()") }}
+                                {{ new_task_form.save_submit(class="btn btn-primary", type="submit", value="保存",
+                                onclick="loadingShow('creat')") }}
                             </div>
                         </div>
                     </div>
@@ -282,7 +287,8 @@
                     <div class="form-group">
                         <label for="edit-input-bladed" class="col-form-label">
                             <!-- <label style="color: red">*</label> -->
-                            机组模型:
+                            <i class="fas fa-info-circle tips" data-toggle="tooltip"
+                            title="重新上传Bladed模型将删除旧模型。" style="color:#FFC107;z-index:1071;"></i> 机组模型：
                         </label>
                         <div id="edit-bladed-file-input">
                             <div class="file-loading">
@@ -293,7 +299,8 @@
                     </div>
                     <div class="form-group">
                         <label for="edit-symbol-file-input" class="col-form-label">
-                            Symbol表:
+                            <i class="fas fa-info-circle tips" data-toggle="tooltip"
+                            title="重新选择Symbol将删除旧Symbol表。" style="color:#FFC107;z-index:1071;"></i> Symbol表：
                         </label>
                         <div id="edit-symbol-file-select">
                             <div style="display: block;" id="edit-symbol-file-select" class="file-select">
@@ -302,7 +309,10 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="edit-xml-file-input" class="col-form-label">XML文件:</label>
+                        <label for="edit-xml-file-input" class="col-form-label">
+                            <i class="fas fa-info-circle tips" data-toggle="tooltip"
+                            title="重新上传XML将删除所有XML历史文件。" style="color:#FFC107;z-index:1071;"></i> XML文件：
+                        </label>
                         <div id="edit-xml-file-input">
                             <div class="file-loading">
                                 {{ edit_task_form.xml(id="edit-input-xml")}}
@@ -313,7 +323,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    {{ edit_task_form.save_modify_submit(class="btn btn-danger", type="submit", value="确认修改", onclick="loadingShow()") }}
+                    {{ edit_task_form.save_modify_submit(class="btn btn-danger", type="submit", value="确认修改",
+                    onclick="loadingShow('update')") }}
                 </div>
             </form>
         </div>
@@ -356,7 +367,17 @@
 </div>
 
 <script type="text/javascript">
-    function loadingShow() {
+    function loadingShow(mode) {
+        if ($("#task-name").val() == "" || $("#input-bladed").val() == ""){
+            return;
+        }
+        var isGit = document.getElementById("check-for-add-to-git")
+        if (mode == 'creat' && isGit.checked){
+            $("#savingModalText").html("上传文件并提交至Git...");
+        }
+        if (mode == 'update' && isGit.checked){
+            $("#savingModalText").html("更新文件并提交至Git...");
+        }
         $("#NewTaskModal").modal('hide');
         $("#EditTaskModal").modal('hide');
         $("#SavingModal").modal('show');
@@ -558,7 +579,7 @@
     }
 
     function pageList(data) {
-        showData = tableData(data);
+        var showData = tableData(data);
         var list = [10];
         for (var i = 0; i < Math.ceil((showData.length - 10) / 10); i++) {
             list.push(list[list.length - 1] + 5);
@@ -662,7 +683,14 @@
             }
         });
     }
-    $(document).ready(getData());
+    $(document).ready(function () {
+        getData();
+        // $('[data-toggle="tooltip"]').tooltip({ container: 'modal-content' });
+    });
+    window.onload = function(){
+        $(".bootstrap-select")[0].style.width = "150px";
+        $(".bootstrap-select").children(".dropdown-toggle")[0].style.color = "#7952b3";
+    }
 </script>
 
 {% endblock content %}

@@ -1,5 +1,4 @@
-from flask import Flask, g
-from flask_bootstrap import Bootstrap
+from flask import Flask
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -8,7 +7,6 @@ from flask_uploads import UploadSet, configure_uploads, patch_request_class
 from config import config
 
 
-bootstrap = Bootstrap()
 mail = Mail()
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -23,7 +21,6 @@ def create_app(config_name):
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
 
-    bootstrap.init_app(app)
     mail.init_app(app)
     db.init_app(app)
     migrate = Migrate(app, db)

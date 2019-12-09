@@ -1,11 +1,11 @@
-from flask import (Blueprint, jsonify, render_template, request, abort,
+from flask import (Blueprint, jsonify, render_template, request, abort, g,
                    current_app, redirect, url_for, send_from_directory)
 from flask_login import current_user, login_required
 from sqlalchemy import and_, or_
 from app.forms import NewTaskForm, EditTaskForm, WorkingForm
 from app.models import User, Task, load_user
 from app.extend.symbol import SymbolDB, XML
-from app.extend.bladed import Bladed
+from app.extend.bladed import Bladed, Mode  
 from app.extend.git import git_commit_push
 from app import db
 
@@ -15,6 +15,7 @@ import json
 import shutil
 from collections import OrderedDict
 from datetime import datetime
+from multiprocessing import Process
 
 task = Blueprint('task', __name__, url_prefix='/task')
 
@@ -103,9 +104,9 @@ def enter():
     _task = Task.query.filter_by(name=taskname).first()
 
     if _task is not None:
-        if _task.status == 'New':
-            _task.status = 'Working'
-            db.session.commit()
+        if _task.status == 'New' and _task.isgitted:
+            _task.status = 'Clean'
+        db.session.commit()
         return jsonify({})
     else:
         abort(404)
@@ -423,11 +424,11 @@ def set_value(taskname, obj):
     if symbol_data and obj == 'xml':
         new_name = request.json['newname'] if os.path.splitext(request.json['newname'])[-1] in ['.xml'] else \
             request.json['newname'] + '.xml'
-        xml_path = os.path.join(dest, _task.xml_filename)
-        _task.xml_filename = new_name
         new_name_path = os.path.join(dest, new_name)
+        xml_path = os.path.join(dest, _task.xml_filename)
         if xml_path != new_name_path:
             shutil.copy(xml_path, new_name_path)
+            _task.xml_filename = new_name
         xml = XML()
         try:
             xml.open(new_name_path)
@@ -463,9 +464,10 @@ def set_value(taskname, obj):
             f.write("#### " + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' - {new_name}\n')
             f.write("> " + description + '\n\n')
 
-        git_commit_push(git_path, description, wait_push=True)
+        # git_commit_push(git_path, description, wait_push=True)
+        _task.status = "Dirty" if _task.isgitted else "Saved"
 
-    if target == "git":
+    if target == "git":  # 提交至Git并push
         git_commit_push(git_path, description)
         _task.status = "Clean"
 
@@ -747,14 +749,46 @@ def watch(taskname):
     return send_from_directory(directory=folder, filename=_task.xml_filename, as_attachment=False)
 
 
-@task.route('campbell/<taskname>', methods=['GET', 'POST'])
+@task.route('campbell/<taskname>', methods=['POST'])
 @login_required
 def campbell(taskname):
     user = load_user(current_user.get_id())
-    tasks_amount = len(Task.query.filter_by(user_id=user.id).all())
-    pass
+    file_folder = os.path.join(current_app.config.get(
+        'UPLOADS_DEFAULT_DEST'), user.username, taskname)
+    calc_folder = os.path.join(current_app.config.get(
+        'CALCULATION_DEST'), user.username, taskname)
+    if not os.path.isdir(calc_folder):
+        os.makedirs(calc_folder)
+    _task = Task.query.filter_by(name=taskname).first()
+    bladed_path = os.path.abspath(os.path.join(file_folder, _task.bladed_filename))
+    run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))
 
-    return render_template('campbell.html', title="线性化", user=user, tasks_amount=tasks_amount)
+    bladed = Bladed(bladed_path)
+    try:
+        # bladed.campbell(run_dir)
+        proc_campbell = Process(target=bladed.campbell, args=(run_dir,))
+        proc_campbell.start()
+        return jsonify(True)
+    except:
+        return jsonify(False)
+
+
+@task.route('mode/<taskname>', methods=['POST'])
+@login_required
+def mode(taskname):
+    user = load_user(current_user.get_id())
+    calc_folder = os.path.join(current_app.config.get(
+        'CALCULATION_DEST'), user.username, taskname)
+    _task = Task.query.filter_by(name=taskname).first()
+    run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))
+
+    if os.path.exists(os.path.join(run_dir, 'lin1.$CM')):
+        mode = Mode(run_dir)
+        tower_mode_1 = mode.get_freq('Tower mode 1')
+    else:
+        tower_mode_1 = _task.tower_mode_1
+
+    return jsonify({'freq': tower_mode_1})
 
 
 @task.route('compiling/<taskname>', methods=['GET', 'POST'])

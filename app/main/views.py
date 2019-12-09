@@ -47,23 +47,6 @@ def index():
                            delete_task_form=delete_task_form)
 
 
-# @main.route('/xml-uploads', methods=['POST'])
-# def xml_uploads():
-#     pass
-#     if request.method == "POST":
-#         user = load_user(current_user.get_id())
-#         cfg = current_app.config
-#         dest = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username)
-#         if not os.path.isdir(dest):
-#             os.makedirs(dest)
-#         for file in os.listdir(dest):
-#             os.remove(os.path.join(dest, file))
-#         for file in request.files.getlist('xml-files'):
-#             file.save(os.path.join(dest, file.filename))
-
-    # return jsonify({})  
-
-
 @main.route('/compare/contrast', methods=['GET', 'POST'])
 def contrast():
     if request.method == "POST":
@@ -108,8 +91,8 @@ def modify_config(user, new_task_form):
         dest_name = 'UPLOADED_%s_' % uset.name.upper() + 'DEST'
 
         if eval('new_task_form.' + uset.name + '.data'):
-            new_destination = os.path.join(
-                cfg.get('UPLOADS_DEFAULT_DEST'), user.username, new_task_form.taskname.data)
+            new_destination = os.path.abspath(os.path.join(
+                cfg.get('UPLOADS_DEFAULT_DEST'), user.username, new_task_form.taskname.data))
             cfg.update({dest_name: new_destination})
 
     configure_uploads(current_app, usets)
@@ -120,7 +103,7 @@ def reset_config():
     cfg = current_app.config
     for uset in usets:
         dest_name = 'UPLOADED_%s_' % uset.name.upper() + 'DEST'
-        cfg.update({dest_name: cfg.get('UPLOADS_DEFAULT_DEST')})
+        cfg.update({dest_name: os.path.abspath(cfg.get('UPLOADS_DEFAULT_DEST'))})
 
     configure_uploads(current_app, usets)
     patch_request_class(current_app)
@@ -134,7 +117,7 @@ def create_new_task(user, new_task_form):
     isgitted = new_task_form.add_to_git.data
 
     cfg = current_app.config
-    git_path = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username)
+    git_path = os.path.abspath(os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username))
     if not git_exists(git_path):
         git_init(git_path, user.username, isgitted, newfolder=taskname)  # 初始化
 
@@ -150,7 +133,7 @@ def create_new_task(user, new_task_form):
 
     task = Task(name=taskname,
                 status="New",
-                bladed_version=Bladed(local_bladed_path).version(),
+                bladed_version=Bladed(local_bladed_path).version,
                 user_id=user.id,
                 isgitted=int(isgitted),
                 bladed_filename=saved_files['bladed']['filename'],
@@ -166,9 +149,7 @@ def create_new_task(user, new_task_form):
     db.session.commit()
 
     if saved_files['symbol'] is not None:
-        cfg = current_app.config
-        local_symbol_path = os.path.join(
-            uset_symbol.config.destination, os.listdir(cfg.get('UPLOADS_TEMPL_DEST'))[new_task_form.symbol.data-1])
+        local_symbol_path = os.path.abspath(os.path.join(uset_symbol.config.destination, task.symbol_filename))
         db_symbol = SymbolDB()
         db_symbol.load_sym(local_symbol_path, db_name=task.name)
         db_symbol.create_db()
@@ -184,39 +165,47 @@ def update_task(user, edit_task_form):
 
     task_name = edit_task_form.taskname.data
     task = Task.query.filter_by(name=task_name).first()
+    new_file = False
     if task is not None:
         saved_files = files_save(edit_task_form, task)
 
         if saved_files['bladed'] is not None:
+            new_file = True
             local_bladed_path = os.path.join(destination, edit_task_form.bladed.data.filename)
-            task.bladed_version = Bladed(local_bladed_path).version()
+            task.bladed_version = Bladed(local_bladed_path).version
             task.bladed_filename = saved_files['bladed']['filename']
             task.bladed_url = saved_files['bladed']['url']
         if saved_files['xml'] is not None:
+            new_file = True
             task.xml_filename = saved_files['xml']['filename']
             task.xml_url = saved_files['xml']['url']
         if saved_files['symbol'] is not None and edit_task_form.symbol.data != task.symbol_index:
+            new_file = True
             task.symbol_index = saved_files['symbol']['index']
             task.symbol_filename = saved_files['symbol']['name']
             task.symbol_url = saved_files['symbol']['url']
 
-            cfg = current_app.config
-            local_symbol_path = os.path.join(
-                uset_symbol.config.destination,
-                os.listdir(cfg.get('UPLOADS_TEMPL_DEST'))[edit_task_form.symbol.data - 1])
-            local_db_symbol_path = os.path.join(os.path.split(local_symbol_path)[0], task_name + '.db')
+            symbols_dir = os.path.abspath(uset_symbol.config.destination)
+            symbol_full_path = findfile(symbols_dir, task.symbol_filename)
+            local_db_symbol_path = os.path.join(os.path.split(symbol_full_path)[0], task_name + '.db')
             if os.path.isfile(local_db_symbol_path):
                 os.remove(local_db_symbol_path)
             db_symbol = SymbolDB()
-            db_symbol.load_sym(local_symbol_path, db_name=task_name)
+            db_symbol.load_sym(symbol_full_path, db_name=task_name)
             db_symbol.create_db()
             db_symbol.close()
 
     db.session.commit()
     cfg = current_app.config
-    git_path = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username)
-    if task and task.isgitted:
-        git_commit_push(git_path, "Updated " + task.name)
+    git_path = os.path.abspath(os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username))
+    if new_file and task and task.isgitted:
+        commit_str = []
+        if edit_task_form.bladed.data:
+            commit_str.append("重新上传Bladed模型，并删除旧模型。")
+        if edit_task_form.xml.data:
+            commit_str.append("重新上传XML文件，并删除所有历史XML文件。")
+
+        git_commit_push(git_path, " ".join(commit_str) if commit_str else "一次滞后提交。")
     reset_config()
 
 
@@ -235,7 +224,7 @@ def files_save(form, task=None):
 
     if form.bladed.data:
         if task is not None:
-            delete_file(uset_bladed.config.destination, ['.$pj', '.$prj'])
+            delete_file(uset_bladed.config.destination, ['.$pj', '.prj'])
         bladed_filename = uset_bladed.save(
             form.bladed.data, name=form.bladed.data.filename)
         saved_files['bladed'] = {'filename': bladed_filename,
@@ -248,22 +237,23 @@ def files_save(form, task=None):
         saved_files['xml'] = {'filename': xml_filename,
                               'url': uset_xml.url(xml_filename)}
 
-    symbols_dir = current_app.config.get('UPLOADS_TEMPL_DEST')
     symbol_index = form.symbol.data
-
     if symbol_index > 0:
-        if task is not None and symbol_index != task.symbol_index:
-            delete_file(uset_symbol.config.destination, ['.xls', '.xlsx'])
+        filename = form.symbol.choices[symbol_index][1]
 
-        select_file_path = os.path.join(
-            symbols_dir, os.listdir(symbols_dir)[symbol_index - 1])
-        shutil.copy(select_file_path, uset_symbol.config.destination)
-                    #os.path.join(uset_symbol.config.destination,
-                                                   # form.taskname.data + os.path.splitext(select_file_path)[-1]))
+        if task is not None and filename != task.symbol_filename:
+            symbols_dir = os.path.abspath(current_app.config.get('UPLOADS_TEMPL_DEST'))
+            symbol_full_path = findfile(symbols_dir, filename)
 
-        saved_files['symbol'] = {'index': symbol_index,
-                                 'name': os.path.split(select_file_path)[1],
-                                 'url': uset_symbol.url(uset_symbol.name)}
+            target_dir = os.path.abspath(uset_symbol.config.destination)
+            if task.symbol_index > 0:
+                delete_file(target_dir, ['.xls', '.xlsx'])
+
+            shutil.copy(symbol_full_path, target_dir)
+
+            saved_files['symbol'] = {'index': symbol_index,
+                                     'name': filename,
+                                     'url': uset_symbol.url(uset_symbol.name)}
 
     return saved_files
 
@@ -278,8 +268,8 @@ def delete_task(user, delete_task_form):
     taskname = delete_task_form.taskname.data
     task = Task.query.filter_by(name=taskname).first()
     cfg = current_app.config
-    destination = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username, taskname)
-    git_path = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username)
+    destination = os.path.abspath(os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username, taskname))
+    git_path = os.path.abspath(os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username))
 
     if task is not None:
         db.session.delete(task)
@@ -295,3 +285,12 @@ def delete_task(user, delete_task_form):
         if os.path.isdir(destination):
             shutil.rmtree(destination)
 
+
+def findfile(start, name):
+    for relpath, dirs, files in os.walk(start):
+        if f'{name}.xlsx' in files:
+            full_path = os.path.join(start, relpath, f'{name}.xlsx')
+            return os.path.abspath(full_path)
+        if f'{name}.xls' in files:
+            full_path = os.path.join(start, relpath, f'{name}.xls')
+            return os.path.abspath(full_path)

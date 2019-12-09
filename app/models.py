@@ -47,19 +47,24 @@ class Task(db.Model):
     symbol_filename = db.Column(db.String(128))
     symbol_url = db.Column(db.String(256))
 
+    tower_mode_1 = db.Column(db.Float)
+
     @staticmethod
     def date_str(datestamp):
         return datestamp.strftime('%Y-%m-%d %H:%M:%S')
 
     def to_json(self, show_id):
-        status_map = {"New": ["secondary", "等待开始"],
-                      "Working": ["warning", "工作中"],
-                      "Clean": ["success", "结束"]}
+        status_map = {"New": ("secondary", "尚未修改"),
+                      "Saved": ("success", "文件已保存"),
+                      "Dirty": ("warning", "文件已保存，修改未提交"),
+                      "Clean": ("success", "文件已保存，修改已提交")}
         return {'id': show_id,
-                # 'name': f'<a id="task" href="{url_for("task.work", taskname=self.name)}" target="_blank">{self.name}</a>',
-                'name': f"<a href=\"javascript: openTask('{self.name}')\">{self.name}</a>",
+                'name': f'<a id="task" href="{url_for("task.work", taskname=self.name)}" target="_blank">{self.name}</a>',
+                # 'name': f"<a href=\"javascript: openTask('{self.name}')\">{self.name}</a>",
                 'date': self.date_str(self.date_stamp),
                 'status': f'<span class="badge badge-{status_map[self.status][0]}" data-toggle="tooltip" title="'
+                f'{status_map[self.status][1]}"><i class="fas fa-code-branch"></i> {self.status}</span>' if self.isgitted else
+                f'<span class="badge badge-{status_map[self.status][0]}" data-toggle="tooltip" title="'
                 f'{status_map[self.status][1]}">{self.status}</span>',
                 'bladed_version': self.bladed_version,
                 'creator': self.user.realname,

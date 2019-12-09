@@ -166,8 +166,14 @@ class Bladed(object):
             run_dir {[str]} -- [计算结果所在文件夹]
             env {[dict]} -- [命令行执行所需的环境变量，例如：计算所需的mclmcrrt72.dll的路径需指定到PATH中(dtlinmod)]
         """
+        bladed_dir_map = {
+            'BLADED_V3.82': 'C:\\Program Files (x86)\\GH Bladed 3.82',
+            'BLADED_V4.3': 'C:\\Program Files (x86)\\Bladed 4.3',
+            'BLADED_V4.6': 'C:\\Program Files (x86)\\DNV GL\\Bladed 4.6',
+            'BLADED_V4.7': 'C:\\Program Files (x86)\\DNV GL\\Bladed 4.7',
+        }
 
-        bladed_dir = os.environ.get(f'BLADED_V{self.version}')
+        bladed_dir = os.environ.get(f'BLADED_V{self.version}') or bladed_dir_map[f'BLADED_V{self.version}']
 
         bladed_m72_path = os.path.abspath(
             os.path.join(bladed_dir, 'Bladed_m72.exe'))

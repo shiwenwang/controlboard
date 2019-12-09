@@ -2,10 +2,12 @@ alembic==1.2.1
 autopep8==1.4.4
 blinker==1.4
 Bootstrap-Flask==1.1.0
+chardet==3.0.4
 Click==7.0
 dominate==2.4.0
 et-xmlfile==1.0.1
 Flask==1.1.1
+Flask-Cache==0.13.1
 Flask-Login==0.4.1
 Flask-Mail==0.9.1
 Flask-Migrate==2.5.2

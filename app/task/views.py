@@ -137,9 +137,9 @@ def search_by(filters, search_key):
 @task.route('work/<taskname>/<obj>', methods=['GET', 'POST'])
 @login_required
 def work(taskname, obj):
-    user = load_user(current_user.get_id())
-    tasks_amount = len(Task.query.filter_by(user_id=user.id).all())
     _task = Task.query.filter_by(name=taskname).first()
+    user = User.query.filter_by(id=_task.user_id)
+    tasks_amount = len(Task.query.filter_by(user_id=user.id).all())
     if _task is None:
         abort(404)
 
@@ -158,11 +158,11 @@ def work(taskname, obj):
 @task.route('read/<taskname>/<obj>', methods=['GET', 'POST'])
 @login_required
 def initial_value(taskname, obj):
-    user = load_user(current_user.get_id())
+    _task = Task.query.filter_by(name=taskname).first()
+    user = User.query.filter_by(id=_task.user_id)
     dest = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), user.username, taskname)
 
-    _task = Task.query.filter_by(name=taskname).first()
     bladed = Bladed(os.path.join(dest, _task.bladed_filename))
     only_in_bladed = ['P_DMGT']
 
@@ -391,10 +391,10 @@ def initial_value(taskname, obj):
 @task.route('write/<taskname>/<obj>', methods=['GET', 'POST'])
 @login_required
 def set_value(taskname, obj):
-    user = load_user(current_user.get_id())
+    _task = Task.query.filter_by(name=taskname).first()
+    user = User.query.filter_by(id=_task.user_id)
     dest = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), user.username, taskname)
-    _task = Task.query.filter_by(name=taskname).first()
     _task.status = "Working"
     data = request.json['data']
     target = request.json['target']
@@ -477,10 +477,10 @@ def set_value(taskname, obj):
 @task.route('search/<taskname>/<obj>', methods=['POST'])
 @login_required
 def search_list(taskname, obj):
-    user = load_user(current_user.get_id())
+    _task = Task.query.filter_by(name=taskname).first()
+    user = User.query.filter_by(id=_task.user_id)
     dest = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), user.username, taskname)
-    _task = Task.query.filter_by(name=taskname).first()
 
     key_word = request.json.strip()
     names = []
@@ -508,12 +508,11 @@ def search_list(taskname, obj):
 
 @task.route('search/<taskname>/<obj>/<param>', methods=['POST'])
 @login_required
-def search(taskname, obj, param):
-    user = load_user(current_user.get_id())
+def search(taskname, obj, param):    
+    _task = Task.query.filter_by(name=taskname).first()
+    user = User.query.filter_by(id=_task.user_id)
     dest = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), user.username, taskname)
-
-    _task = Task.query.filter_by(name=taskname).first()
 
     symbols_value = {'params': [], 'filters': [], 'schedules': []}
 
@@ -722,8 +721,8 @@ def search(taskname, obj, param):
 @task.route('download/<taskname>/<obj>')
 @login_required
 def download(taskname, obj):
-    user = load_user(current_user.get_id())
     _task = Task.query.filter_by(name=taskname).first()
+    user = User.query.filter_by(id=_task.user_id)
     if _task is None:
         abort(404)
 
@@ -738,8 +737,8 @@ def download(taskname, obj):
 @task.route('watch/<taskname>')
 @login_required
 def watch(taskname):
-    user = load_user(current_user.get_id())
     _task = Task.query.filter_by(name=taskname).first()
+    user = User.query.filter_by(id=_task.user_id)
     if _task is None:
         abort(404)
 
@@ -752,14 +751,14 @@ def watch(taskname):
 @task.route('campbell/<taskname>', methods=['POST'])
 @login_required
 def campbell(taskname):
-    user = load_user(current_user.get_id())
+    _task = Task.query.filter_by(name=taskname).first()
+    user = User.query.filter_by(id=_task.user_id)
     file_folder = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), user.username, taskname)
     calc_folder = os.path.join(current_app.config.get(
         'CALCULATION_DEST'), user.username, taskname)
     if not os.path.isdir(calc_folder):
         os.makedirs(calc_folder)
-    _task = Task.query.filter_by(name=taskname).first()
     bladed_path = os.path.abspath(os.path.join(file_folder, _task.bladed_filename))
     run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))
 
@@ -776,10 +775,10 @@ def campbell(taskname):
 @task.route('mode/<taskname>', methods=['POST'])
 @login_required
 def mode(taskname):
-    user = load_user(current_user.get_id())
+    _task = Task.query.filter_by(name=taskname).first()    
+    user = User.query.filter_by(id=_task.user_id)
     calc_folder = os.path.join(current_app.config.get(
         'CALCULATION_DEST'), user.username, taskname)
-    _task = Task.query.filter_by(name=taskname).first()
     run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))
 
     if os.path.exists(os.path.join(run_dir, 'lin1.$CM')):

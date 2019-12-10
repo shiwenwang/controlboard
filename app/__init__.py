@@ -10,7 +10,7 @@ from config import config
 mail = Mail()
 db = SQLAlchemy()
 login_manager = LoginManager()
-bladed = UploadSet('bladed', ('$PJ', '$PRJ', '$pj', '$prj'))
+bladed = UploadSet('bladed', ('$PJ', 'PRJ', '$pj', 'prj'))
 symbol = UploadSet('symbol', ('xls', 'xlsx'))
 xml = UploadSet('xml', ('xml', 'ini', 'txt'))
 usets = (bladed, symbol, xml)

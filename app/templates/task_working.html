@@ -869,6 +869,17 @@
         $(function () {
             $('#P_MaximumGeneratorTorque-symbol').val($('#P_DMGT-bladed').val() * 1.1);
             $('#P_SteadyShaftPowerLimit-symbol').val($('#P_RatedGeneratorSpeed-symbol').val() * Number($('#P_DMGT-bladed').val()));
+            $('#P_OptimalModeGain-symbol').val($('#P_OptimalModeGain-bladed').val());
+        })
+        $(function () {
+            $('#P_OptimalModeGain-bladed').keyup(function () {
+                var src = $(this).val();
+                if (isNaN(src) || src == "") {
+                    $('#P_OptimalModeGain-symbol').val("");
+                } else {
+                    $('#P_OptimalModeGain-symbol').val(src);
+                }
+            })
         })
         $(function () {
             $('#P_DMGT-bladed').keyup(function () {

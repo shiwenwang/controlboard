@@ -121,20 +121,52 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" style="color:#7952b3;">提示</h5>
+                <h5 class="modal-title" style="color:#7952b3;">
+                    <i class='far fa-question-circle'></i> 提示
+                </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">                
+            <div class="modal-body">
                 <label for="">
-                    检测到页面有更改，是否保存？
+                    当前页面尚未保存，是否继续？
                 </label>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
-                <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="showSearchResult('unsave')">忽略并继续</button>
-                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="showSearchResult('save')">保存并继续</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal"
+                    onclick="showSearchResult('unsave')">忽略并继续</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"
+                    onclick="showSearchResult('save')">保存并继续</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- unsave tips modal -->
+<div class="modal fade" id="unsave-modal-for-download" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color:#7952b3;">
+                    提示
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label for="">
+                    当前页面尚未保存，是否继续？
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal"
+                    onclick="download('unsave')">忽略并继续</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"
+                    onclick="saveDownload('save')">保存并继续</button>
             </div>
         </div>
     </div>
@@ -171,7 +203,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
                 <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="campbell()"
-                data-toggle="modal" data-target="#SavingModal">开始计算</button>
+                    data-toggle="modal" data-target="#SavingModal">开始计算</button>
             </div>
         </div>
     </div>
@@ -834,7 +866,31 @@
     }
 
     function editModeSwitch() {
-        tableValues = document.getElementsByClassName("table-value");
+        $(function () {
+            $('#P_MaximumGeneratorTorque-symbol').val($('#P_DMGT-bladed').val() * 1.1);
+            $('#P_SteadyShaftPowerLimit-symbol').val($('#P_RatedGeneratorSpeed-symbol').val() * Number($('#P_DMGT-bladed').val()));
+        })
+        $(function () {
+            $('#P_DMGT-bladed').keyup(function () {
+                var src = $(this).val();
+                if (isNaN(src) || src == "") {
+                    $('#P_MaximumGeneratorTorque-symbol').val("");
+                } else {
+                    $('#P_MaximumGeneratorTorque-symbol').val(src * 1.1);
+                }
+            })
+        })
+        $(function () {
+            $('#P_RatedGeneratorSpeed-symbol').keyup(function () {
+                var src = $(this).val();
+                if (isNaN(src) || src == "") {
+                    $('#P_SteadyShaftPowerLimit-symbol').val("");
+                } else {
+                    $('#P_SteadyShaftPowerLimit-symbol').val(src * Number($('#P_DMGT-bladed').val()));
+                }
+            })
+        })
+        var tableValues = document.getElementsByClassName("table-value");
         if ($("#edit-switch")[0].checked) {
             $("#edit-switch-label").html("编辑");
             $("#edit-switch-label")[0].classList.add('text-primary');
@@ -943,9 +999,9 @@
         showSearchResult('unsave');
     }
 
-    function showSearchResult(flag) { 
-        var dataChanged = getModifiedTableData();   
-        if (flag == "save"){
+    function showSearchResult(flag) {
+        var dataChanged = getModifiedTableData();
+        if (flag == "save") {
             $.ajax({
                 cache: false,
                 type: 'POST',
@@ -1338,19 +1394,77 @@
         }
     })
 
-    function download() {
-        var responseData = "";
-        $.ajax({
-            cache: false,
-            type: 'GET',
-            url: "/task/download/{{ task.name }}/{{ obj }}",
-            dataType: "json",
-            contentType: 'application/json; charset=UTF-8',
-            success: function (data) {
-                responseData = data;
-            }
-        })
-    }
+    // function downloadTrigger(params) {
+    //     var dataChanged = getModifiedTableData();
+    //     if (JSON.stringify(dataChanged) != "{}") {
+    //         $("#unsave-modal-for-download").modal('show');
+    //         return;
+    //     }
+    //     download();
+    // }
+
+    // function saveDownload(){
+    //     var tableData = {};
+    //     $.ajax({
+    //         cache: false,
+    //         type: 'POST',
+    //         url: "/task/write/{{ task.name }}/{{ obj }}",
+    //         dataType: "json",
+    //         contentType: 'application/json; charset=UTF-8',
+    //         data: postData(dataChanged, target),
+    //         success: function (data) { //成功的话，得到消息
+    //             tableData = data;
+    //             if (JSON.stringify(dataChanged) != "{}") {
+    //                 var list = $(".alert")[0].classList;
+    //                 for (var i = 3; i < list.length; i++) {
+    //                     $('.alert').removeClass(list[i]);
+    //                 }
+    //                 var alert_tips = (target == "git") ? "已保存，修改已提交" : "已保存！";
+    //                 $("#alert-text").html(alert_tips);
+    //                 $('.alert').addClass('alert-success').show().delay(2000).fadeOut();
+    //             } else {
+    //                 var list = $(".alert")[0].classList;
+    //                 for (var i = 3; i < list.length; i++) {
+    //                     $('.alert').removeClass(list[i]);
+    //                 }
+    //                 $("#alert-text").html('未修改，已提交!');
+    //                 $('.alert').addClass('alert-info').show().delay(2000).fadeOut();
+    //             }                
+    //             download();
+    //         },
+    //         complete: function () {
+    //             initTable(tableData);
+    //             window.pageInitialData = getInitialTableData();
+    //             $("#edit-switch")[0].checked = false;
+    //             $("#SavingModal").modal('hide');
+    //         },
+    //         error: function () {
+    //             if (JSON.stringify(dataChanged) != "{}") {
+    //                 var list = $(".alert")[0].classList;
+    //                 for (var i = 3; i < list.length; i++) {
+    //                     $('.alert').removeClass(list[i]);
+    //                 }
+    //                 $("#alert-text").html('保存失败!');
+    //                 $('.alert').addClass('alert-danger').show().delay(2000).fadeOut();
+    //                 $("#SavingModal").modal('hide');
+    //             }
+    //         }
+    //     });
+    // }
+
+    // function download() {        
+    //     var responseData = "";
+    //     $.ajax({
+    //         cache: false,
+    //         type: 'GET',
+    //         url: "/task/download/{{ task.name }}/{{ obj }}",
+    //         dataType: "json",
+    //         contentType: 'application/json; charset=UTF-8',
+    //         success: function (data) {
+    //             responseData = data;
+    //         }
+    //     })
+    // }
 
     function postData(dataChanged, target) {
         if ("{{ obj }}" == "xml") {
@@ -1455,13 +1569,13 @@
             url: "/task/campbell/{{ task.name }}",
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
-            success: function (data) { 
+            success: function (data) {
                 $("#SavingModal").modal('hide');
                 var list = $(".alert")[0].classList;
                 for (var i = 3; i < list.length; i++) {
                     $('.alert').removeClass(list[i]);
                 }
-                if (data) {                    
+                if (data) {
                     $("#alert-text").html('计算提交成功!');
                     $('.alert').addClass('alert-success').show().delay(2000).fadeOut();
                 } else {

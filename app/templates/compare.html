@@ -164,12 +164,13 @@
     }
 
     $(document).ready(function () {
+        window.files = [];
         $('[data-toggle="tooltip"]').tooltip();
         $("#input-files").fileinput({
             theme: "explorer",
+            uploadUrl: "fake-url",
             minFileCount: 2,
             maxFileCount: 2,
-            uploadAsync: false,
             showUpload: false,
             previewFileIcon: '<i class="fas fa-file"></i>',
             preferIconicPreview: true, // this will force thumbnails to display icons for following file extensions
@@ -183,16 +184,29 @@
             }
         }).on('change', function (event) {
             $("#input-files-feedback")[0].style.display = "none";
-        })
+        }).on('fileloaded', function(event, file, previewId, index, reader)  {
+            for (var i=0; i<$(".kv-file-upload").length;i++){
+                $(".kv-file-upload")[i].style.display = 'none';
+            }
+            for (var i=0; i<$(".kv-file-remove").length;i++){
+                $(".kv-file-remove")[i].style.display = 'none';
+            }
+            window.files.push(file);
+        }).on('filecleared', function(event) {
+            window.files = [];
+        });
     });
 
     function compare() {
-        if ($("#input-files")[0].files.length < 2) {
+        if (window.files.length < 2) {
             $("#input-files-feedback").html("需要至少两个文件！");
             $("#input-files-feedback")[0].style.display = "block";
             return;
         }
-        var formData = new FormData(document.getElementById("inputForm"));
+        // var formData = new FormData(document.getElementById("inputForm"));
+        var formData = new FormData();
+        formData.append('xml-files', window.files[0]);
+        formData.append('xml-files', window.files[1]);
         $("#XMLUploadModal").modal('hide');
         $.ajax({
             type: 'POST',
@@ -241,38 +255,38 @@
         $("#result").html(result_html)
     }
 
-    function preDiff() {        
+    function preDiff() {
         window.lastDiffIndex = window.currentDiffIndex--;
-        if (-1 != window.lastDiffIndex){
-            btnClear(window.showDiff[window.lastDiffIndex]); 
+        if (-1 != window.lastDiffIndex) {
+            btnClear(window.showDiff[window.lastDiffIndex]);
         }
-        if (window.currentDiffIndex < 0){
+        if (window.currentDiffIndex < 0) {
             window.currentDiffIndex = window.showDiff.length - 1;
         }
         btnFill(window.showDiff[window.currentDiffIndex]);
-                                   
+
         var id = "#" + window.showDiff[window.currentDiffIndex];
-        $('html, body').animate({scrollTop: $(id).offset().top - 200}, 30);        
+        $('html, body').animate({ scrollTop: $(id).offset().top - 200 }, 30);
     }
 
-    function nextDiff() {        
+    function nextDiff() {
         window.lastDiffIndex = window.currentDiffIndex++;
-        if (-1 != window.lastDiffIndex){
-            btnClear(window.showDiff[window.lastDiffIndex]); 
+        if (-1 != window.lastDiffIndex) {
+            btnClear(window.showDiff[window.lastDiffIndex]);
         }
-        if (window.currentDiffIndex == window.showDiff.length){
+        if (window.currentDiffIndex == window.showDiff.length) {
             window.currentDiffIndex = 0;
         }
         btnFill(window.showDiff[window.currentDiffIndex]);
-                                   
+
         var id = "#" + window.showDiff[window.currentDiffIndex];
-        $('html, body').animate({scrollTop: $(id).offset().top - 200}, 30);               
+        $('html, body').animate({ scrollTop: $(id).offset().top - 200 }, 30);
     }
 
-    function btnFill(name){
+    function btnFill(name) {
         var btn = document.getElementById(name);
         var classStr = btn.classList[1];
-        if (-1 != classStr.indexOf('-outline-')){
+        if (-1 != classStr.indexOf('-outline-')) {
             btn.classList.remove(classStr);
             btn.classList.add(classStr.replace('-outline-', '-'));
         }
@@ -281,16 +295,16 @@
     function btnClear(name) {
         var btn = document.getElementById(name);
         var classStr = btn.classList[1];
-        if (-1 == classStr.indexOf('-outline-')){
+        if (-1 == classStr.indexOf('-outline-')) {
             btn.classList.remove(classStr);
             btn.classList.add(classStr.replace('-', '-outline-'));
         }
     }
 
     function view_switch() {
-        if ("undefined" != typeof(window.data)){
+        if ("undefined" != typeof (window.data)) {
             dataInit();
-        }            
+        }
     }
 
     function getScrollbarWidth() {
@@ -314,8 +328,8 @@
     })
 
     function initTable(name) {
-        var filename1 = $("#input-files")[0].files[0].name;
-        var filename2 = $("#input-files")[0].files[1].name;
+        var filename1 = window.files[0].name;
+        var filename2 = window.files[1].name;
         switch (name.slice(0, 2)) {
             case "P_":
                 $("#p-table-div")[0].style.display = "block";

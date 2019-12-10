@@ -168,16 +168,15 @@
         }
     }
 
-    window.onload = function () {
-        $("#head-card")[0].style.boxShadow = "0px 6px 5px rgba(121,82,179,.25)";
-        for (var i=0; i<$(".details").length; i++){
-            $(".details")[i].hover(function(){
-                $(".details")[i].style.boxShadow = "0px 6px 5px rgba(121,82,179,.25)";
-            },function(){
-                $(".details")[i].style.boxShadow = "";
-            });
-        }
-    }
+    // window.onload = function () {
+    //     for (var i=0; i<$(".details").length; i++){
+    //         $(".details")[i].hover(function(){
+    //             $(".details")[i].style.boxShadow = "0px 6px 5px rgba(121,82,179,.25)";
+    //         },function(){
+    //             $(".details")[i].style.boxShadow = "";
+    //         });
+    //     }
+    // }
 
     $(document).ready(function () {
         window.files = [];

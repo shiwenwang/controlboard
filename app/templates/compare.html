@@ -272,7 +272,7 @@
 
     function showDiffDetials(){
         // var all_data = Object.keys(window.data.xml1).length > Object.keys(window.data.xml2).length ? window.data.xml1 : window.data.xml2;
-        for (var i=0; i<window.data.diff.length; i++){
+        for (var i=0; i<window.showDiff.length; i++){
             var html = 
                 '<div class="card details" style="margin-top:10px;">' + 
                     '<div class="card-header text-center" style="color:#7952b3;font-weight: bold; background-color: #CCFFFF;">' + 
@@ -350,7 +350,9 @@
     function view_switch() {
         if ("undefined" != typeof (window.data)) {
             dataInit();
-            showDiffDetials();
+            if ($("#diff-view-switch")[0].checked){
+                showDiffDetials();
+            }            
         }
     }
 

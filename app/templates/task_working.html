@@ -10,8 +10,8 @@
     }
 
     .list-group-item {
-        padding-top: 0px;
-        padding-bottom: 0px;
+        padding-top: 0;
+        padding-bottom: 0;
         border: none;
     }
 
@@ -422,7 +422,7 @@
                                         </div>
                                         <div class="p-1 align-self-center arrow" id="radpsto-rpm"
                                             style="cursor: pointer;">
-                                            <i class="fas fa-arrow-alt-circle-left""></i>
+                                            <i class="fas fa-arrow-alt-circle-left"></i>
                                         </div>
                                         <div class=" p-1 align-self-center arrow" id="rpm-toradps"
                                                 style="cursor: pointer;">
@@ -1361,8 +1361,7 @@
     $(document).ready(function () {
         getData();
         editModeSwitch();
-        $(".alert")[0].classList.remove("col-md-4");
-        $(".alert").fadeOut();
+        $(".alert")[0].classList.remove("col-md-4").fadeOut();
         $('[data-toggle="tooltip"]').tooltip();
     });
 

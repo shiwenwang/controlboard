@@ -145,32 +145,32 @@
 </div>
 
 <!-- unsave tips modal -->
-<div class="modal fade" id="unsave-modal-for-download" tabindex="-1" role="dialog" data-backdrop="static">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" style="color:#7952b3;">
-                    提示
-                </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <label for="">
-                    当前页面尚未保存，是否继续？
-                </label>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
-                <button type="button" class="btn btn-danger" data-dismiss="modal"
-                    onclick="download('unsave')">忽略并继续</button>
-                <button type="button" class="btn btn-primary" data-dismiss="modal"
-                    onclick="saveDownload('save')">保存并继续</button>
-            </div>
-        </div>
-    </div>
-</div>
+{#<div class="modal fade" id="unsave-modal-for-download" tabindex="-1" role="dialog" data-backdrop="static">#}
+{#    <div class="modal-dialog" role="document">#}
+{#        <div class="modal-content">#}
+{#            <div class="modal-header">#}
+{#                <h5 class="modal-title" style="color:#7952b3;">#}
+{#                    提示#}
+{#                </h5>#}
+{#                <button type="button" class="close" data-dismiss="modal" aria-label="Close">#}
+{#                    <span aria-hidden="true">&times;</span>#}
+{#                </button>#}
+{#            </div>#}
+{#            <div class="modal-body">#}
+{#                <label for="">#}
+{#                    当前页面尚未保存，是否继续？#}
+{#                </label>#}
+{#            </div>#}
+{#            <div class="modal-footer">#}
+{#                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>#}
+{#                <button type="button" class="btn btn-danger" data-dismiss="modal"#}
+{#                    onclick="download('unsave')">忽略并继续</button>#}
+{#                <button type="button" class="btn btn-primary" data-dismiss="modal"#}
+{#                    onclick="saveDownload('save')">保存并继续</button>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
 
 <!-- tip Modal -->
 <div class="modal fade" id="campbell-modal" tabindex="-1" role="dialog" data-backdrop="static">
@@ -465,7 +465,7 @@
                                         <div class="p-2 align-self-center" style="padding: 0px 0px!important">
                                             <div class="custom-control custom-switch">
                                                 <input type="checkbox" class="custom-control-input"
-                                                    id="towerExc-switch">
+                                                    id="towerExc-switch" onchange="towerExcSwitch()">
                                                 <label class="custom-control-label" for="towerExc-switch"
                                                     id="towerExcSwitch-label">开关</label>
                                             </div>
@@ -863,6 +863,10 @@
         if (src.match(/(\d+)-/)[1] != "0") {
             $("#" + dst).val($("#" + src).val());
         }
+    }
+
+    function towerExcSwitch() {
+        $("#P_TowerExcEnabled-symbol").val(String($("#towerExc-switch")[0].checked));
     }
 
     function editModeSwitch() {

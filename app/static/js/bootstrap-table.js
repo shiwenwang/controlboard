@@ -4683,7 +4683,7 @@
 	      }
 
 	      var paginationInfo = o.onlyInfoPagination ? o.formatDetailPagination(o.totalRows) : o.formatShowingRows(this.pageFrom, this.pageTo, o.totalRows, o.totalNotFiltered);
-	      html.push("<div class=\"".concat(this.constants.classes.pull, "-").concat(o.paginationDetailHAlign, " pagination-detail\">\n      <span class=\"pagination-info\">\n      <label style=\"font-size: 8px\">\n      ").concat(paginationInfo, "\n      </label>\n      </span>"));
+	      html.push("<div class=\"".concat(this.constants.classes.pull, "-").concat(o.paginationDetailHAlign, " pagination-detail\">\n      <span class=\"pagination-info\">\n      <label style=\"font-size: 10px\">\n      ").concat(paginationInfo, "\n      </label>\n      </span>"));
 
 	      if (!o.onlyInfoPagination) {
 	        html.push('<span class="page-list">');

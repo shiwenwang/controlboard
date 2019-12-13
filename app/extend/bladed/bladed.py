@@ -77,6 +77,25 @@ class Bladed(object):
         with open(self.path, 'w') as f:
             f.write(self.content)
 
+    def solo_run(self, run_dir, dll_path, xml_path, name=None, windf=None):
+        name = os.path.splitext(os.path.basename(self.path))[0] if name is None else name
+        if '0RMODE' not in self.content:
+            modal_dir = os.path.abspath(os.path.join(run_dir, 'modal'))
+            success = self.modal_analysis(modal_dir)
+            if not success:
+                os._exit(0)  # modal 计算失败，及时退出子进程
+        self.content = re.sub(r'<Filepath>.*</Filepath>', lambda m: f'<Filepath>{dll_path}</Filepath>', self.content)
+        self.content = re.sub(r'<AdditionalParameters>.*</AdditionalParameters>', lambda m:
+                              f'<AdditionalParameters>READ {xml_path}</AdditionalParameters>', self.content)
+
+        with open(self.path, 'w') as f:
+            f.write(self.content)
+        if windf is not None:
+            self.set(windf=windf, number_only=False)
+        proc = Process(target=self.run, args=(run_dir, name))
+        proc.start()
+        proc.join()
+
     def campbell(self, run_dir):        
         if self.version == '4.7':
             self.modify_v47()
@@ -125,7 +144,7 @@ class Bladed(object):
 
         self.set(CALCULATION='33', OPTIONS='212754')
         # self.run(run_dir)
-        proc = Process(target=self.run, args=(run_dir, ))
+        proc = Process(target=self.run, args=(run_dir, 'lin1'))
         proc.start()
         proc.join()
 
@@ -156,7 +175,7 @@ class Bladed(object):
         self.set(number_only=False, IPW=ipw, IPW1=ipw1, LPW1=lpw1)
         return True
 
-    def run(self, run_dir, **env):
+    def run(self, run_dir, run_name, **env):
         """
         [执行Bladed中的 "RUN NOW" ] 
 
@@ -177,11 +196,11 @@ class Bladed(object):
 
         bladed_m72_path = os.path.abspath(
             os.path.join(bladed_dir, 'Bladed_m72.exe'))
-        lin_path = os.path.abspath(os.path.join(run_dir, 'lin1'))
+        run_path = os.path.abspath(os.path.join(run_dir, run_name))
 
         # 生.in文件
         proc_batch = Popen(
-            [bladed_m72_path, '-Prj', self.path, '-RunDir', run_dir, '-ResultsPath', lin_path],
+            [bladed_m72_path, '-Prj', self.path, '-RunDir', run_dir, '-ResultsPath', run_path],
             stdout=PIPE, stderr=STDOUT)
         try:
             proc_batch.communicate(timeout=60)

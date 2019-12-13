@@ -62,19 +62,31 @@ class Task(db.Model):
                 'name': f'<a id="task" href="{url_for("task.work", taskname=self.name)}" target="_blank">{self.name}</a>',
                 # 'name': f"<a href=\"javascript: openTask('{self.name}')\">{self.name}</a>",
                 'date': self.date_str(self.date_stamp),
-                'status': f'<span class="badge badge-{status_map[self.status][0]}" data-toggle="tooltip" title="'
-                f'{status_map[self.status][1]}"><i class="fas fa-code-branch"></i> {self.status}</span>' if self.isgitted else
-                f'<span class="badge badge-{status_map[self.status][0]}" data-toggle="tooltip" title="'
-                f'{status_map[self.status][1]}">{self.status}</span>',
+                'status': f'<h6 style="margin-bottom:0;"><span class="badge badge-{status_map[self.status][0]}" data-toggle="tooltip" title="'
+                f'{status_map[self.status][1]}"><i class="fas fa-code-branch"></i> {self.status}</span></h6>' if self.isgitted else
+                f'<h6 style="margin-bottom:0;"><span class="badge badge-{status_map[self.status][0]}" data-toggle="tooltip" title="'
+                f'{status_map[self.status][1]}">{self.status}</span></h6>',
                 'bladed_version': self.bladed_version,
                 'creator': self.user.realname,
                 'operate': '''
-                <span id="edit-badge" class="badge badge-primary" data-events="editEvents" style="cursor: pointer">
-                <i class="fas fa-edit"></i></span>
-                <span id="delete-badge" class="badge badge-danger" data-events="deleteEvents" " data-toggle="modal"
-                data-target="#DeleteTaskModal" style="cursor: pointer">
-                <i class="fas fa-trash-alt"></i></span>
-                              '''
+                            <div class="d-sm-flex flex-row justify-content-center">
+                                <div class="p-1">
+                                    <h6 style="margin-bottom:0;">
+                                        <span id="edit-badge" class="badge badge-primary" data-events="editEvents" style="cursor: pointer">
+                                            <i class="fas fa-edit"></i>
+                                        </span>
+                                    </h6>
+                                </div>                                
+                                <div class="p-1">
+                                    <h6 style="margin-bottom:0;">
+                                        <span id="delete-badge" class="badge badge-danger" data-events="deleteEvents" " data-toggle="modal"
+                                            data-target="#DeleteTaskModal" style="cursor: pointer">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </span>
+                                    </h6>
+                                </div>
+                            </div>
+                            '''
                 }
 
 

@@ -26,6 +26,9 @@
     .table-striped > tbody > tr:nth-child(2n+1) > th {
         background-color: #F6F8FA
      }
+    .thead{
+         font-size: 13px;
+     }
 </style>
 {% endblock styles %}
 
@@ -196,8 +199,8 @@
                 </button>
             </div>
             <form method="POST" enctype="multipart/form-data" id="newtaskform">
-                {{ new_task_form.csrf_token }}
-                {{ new_task_form.hidden_tag() }}
+                <!-- {{ new_task_form.csrf_token }}
+                {{ new_task_form.hidden_tag() }} -->
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="task-name" class="col-form-label">
@@ -278,8 +281,8 @@
                 </button>
             </div>
             <form method="POST" enctype="multipart/form-data" id="edit-task-form">
-                {{ edit_task_form.csrf_token }}
-                {{ edit_task_form.hidden_tag() }}
+                <!-- {{ edit_task_form.csrf_token }}
+                {{ edit_task_form.hidden_tag() }} -->
                 <div class="modal-body">
                     <div class="form-group" id="task-name-in-edit-modal">
 
@@ -346,8 +349,8 @@
                 </button>
             </div>
             <form method="POST" id="delete-modal-form">
-                {{ delete_task_form.csrf_token }}
-                {{ delete_task_form.hidden_tag() }}
+                <!-- {{ delete_task_form.csrf_token }}
+                {{ delete_task_form.hidden_tag() }} -->
                 <div class="modal-body">
                     {{ delete_task_form.taskname(id="delete-taskname", type="text", style="display: none") }}
                     <p></p>

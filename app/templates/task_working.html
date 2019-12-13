@@ -24,6 +24,12 @@
     .table-striped>tbody>tr:nth-child(2n+1)>th {
         background-color: #F6F8FA
     }
+    .thead{
+        font-size: 13px;
+    }
+    .thead-sm{
+        font-size: 10px;
+    }
 
     /* svg path,svg rect{fill: #FF6700;} */
 </style>
@@ -1106,7 +1112,7 @@
                     title: "说明",
                     field: "description",
                     valign: 'middle',
-                    class: "thead"
+                    class: "thead-sm"
                 }
             ],
             data: data['params']
@@ -1361,7 +1367,8 @@
     $(document).ready(function () {
         getData();
         editModeSwitch();
-        $(".alert")[0].classList.remove("col-md-4").fadeOut();
+        $(".alert")[0].classList.remove("col-md-4");
+        $(".alert").fadeOut();
         $('[data-toggle="tooltip"]').tooltip();
     });
 

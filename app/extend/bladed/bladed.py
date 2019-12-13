@@ -2,6 +2,7 @@ import re
 import os
 from subprocess import Popen, TimeoutExpired, PIPE, STDOUT
 from multiprocessing import Process
+import logging
 
 
 class Bladed(object):
@@ -155,8 +156,12 @@ class Bladed(object):
         proc.join()
         # self.run(run_dir)
         out_path = os.path.abspath(os.path.join(run_dir, 'DTEIGEN.OUT'))
-        with open(out_path, 'r') as f:
-            out = f.read()
+        try:
+            with open(out_path, 'r') as f:
+                out = f.read()
+        except FileNotFoundError:
+            logging.warning(f'FileNotFoundError: {out_path}')
+            return False
         m_rmode = re.search(r'MSTART RMODE.*MEND', out, re.DOTALL)
         if m_rmode is None:
             return False
@@ -175,7 +180,7 @@ class Bladed(object):
         self.set(number_only=False, IPW=ipw, IPW1=ipw1, LPW1=lpw1)
         return True
 
-    def run(self, run_dir, run_name, **env):
+    def run(self, run_dir, run_name=None, **env):
         """
         [执行Bladed中的 "RUN NOW" ] 
 
@@ -198,10 +203,15 @@ class Bladed(object):
             os.path.join(bladed_dir, 'Bladed_m72.exe'))
         run_path = os.path.abspath(os.path.join(run_dir, run_name))
 
-        # 生.in文件
-        proc_batch = Popen(
-            [bladed_m72_path, '-Prj', self.path, '-RunDir', run_dir, '-ResultsPath', run_path],
+        # 生.in文件        
+        if run_name is None:
+            proc_batch = Popen(
+            [bladed_m72_path, '-Prj', self.path, '-RunDir', run_dir],
             stdout=PIPE, stderr=STDOUT)
+        else:
+            proc_batch = Popen(
+                [bladed_m72_path, '-Prj', self.path, '-RunDir', run_dir, '-ResultsPath', run_path],
+                stdout=PIPE, stderr=STDOUT)
         try:
             proc_batch.communicate(timeout=60)
         except TimeoutExpired:

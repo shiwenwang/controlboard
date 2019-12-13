@@ -1,5 +1,6 @@
 import os
 import re
+import logging
 
 
 class Mode():
@@ -13,8 +14,11 @@ class Mode():
 
     def get_mode(self, mode_name):
         cm_path = os.path.abspath(os.path.join(self._dir, 'lin1.$CM'))
-        with open(cm_path, 'r') as f:
-            data = f.read()
+        try:
+            with open(cm_path, 'r') as f:
+                data = f.read()
+        except :
+            logging.warning('读取“lin1.$CM”文件失败！')
         m = re.findall(r"OMEGA[\t ]*(\S+)\nFREQ[\t ]*(\S+)\nDAMP[\t ]*(\S+)\nLABEL[\t ]*?'%s" % mode_name, data)
         if not m:
             raise Exception(f'没找到"{mode_name}", 请检查模态名称是否正确。')

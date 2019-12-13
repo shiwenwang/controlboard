@@ -200,8 +200,7 @@ class Bladed(object):
         bladed_dir = os.environ.get(f'BLADED_V{self.version}') or bladed_dir_map[f'BLADED_V{self.version}']
 
         bladed_m72_path = os.path.abspath(
-            os.path.join(bladed_dir, 'Bladed_m72.exe'))
-        run_path = os.path.abspath(os.path.join(run_dir, run_name))
+            os.path.join(bladed_dir, 'Bladed_m72.exe'))        
 
         # 生.in文件        
         if run_name is None:
@@ -209,6 +208,7 @@ class Bladed(object):
             [bladed_m72_path, '-Prj', self.path, '-RunDir', run_dir],
             stdout=PIPE, stderr=STDOUT)
         else:
+            run_path = os.path.abspath(os.path.join(run_dir, run_name))
             proc_batch = Popen(
                 [bladed_m72_path, '-Prj', self.path, '-RunDir', run_dir, '-ResultsPath', run_path],
                 stdout=PIPE, stderr=STDOUT)

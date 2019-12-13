@@ -598,6 +598,9 @@
     function initTable(data) {
         var $table = $('#table');
         var $div = $('#div-table');
+        var table_data = tableData(data);
+        var page_list = pageList(data);
+        var page_size = $(window).height() > 800 ? 25 : 15;
         $table.bootstrapTable('destroy').bootstrapTable({
             height: $(window).height() - 120,
             columns: [
@@ -658,9 +661,9 @@
                     events: window.operateEvents,
                 }
             ],
-            pageSize: 25,
-            pageList: pageList(data),
-            data: tableData(data)
+            pageSize: page_size,
+            pageList: page_list,
+            data: table_data
         });
         $('.badge').tooltip('show');
         $('.badge').tooltip('hide');

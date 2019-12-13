@@ -782,9 +782,16 @@ def mode(taskname):
         'CALCULATION_DEST'), user.username, taskname)
     run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))
 
+    mode_map = {
+        '3.82': 'Tower side-side mode 1',
+        '4.3': 'Tower mode 1',
+        '4.6': 'Tower mode 1',
+        '4.7': 'Tower 1st side-side mode',
+    }
+
     if os.path.exists(os.path.join(run_dir, 'lin1.$CM')):
         mode = Mode(run_dir)
-        tower_mode_1 = mode.get_freq('Tower mode 1')
+        tower_mode_1 = mode.get_freq(mode_map[_task.bladed_version])
     else:
         tower_mode_1 = _task.tower_mode_1
 

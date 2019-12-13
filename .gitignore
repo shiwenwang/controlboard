@@ -5,4 +5,5 @@ venv/
 instance/
 temp/
 repository/
+.VSCodeCounter/
 *.map

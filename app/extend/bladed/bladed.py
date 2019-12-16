@@ -105,6 +105,7 @@ class Bladed(object):
             modal_dir = os.path.abspath(os.path.join(run_dir, 'modal'))
             success = self.modal_analysis(modal_dir)
             if not success:
+                logging.error(f'模态分析失败')
                 os._exit(0)  # modal 计算失败，及时退出子进程
 
         cut_in = self.query('CUTIN')[1]
@@ -151,33 +152,36 @@ class Bladed(object):
 
     def modal_analysis(self, run_dir):
         self.set(CALCULATION="2", OPTIONS="0")
-        proc = Process(target=self.run, args=(run_dir, ))
-        proc.start()
-        proc.join()
-        # self.run(run_dir)
+        # proc = Process(target=self.run, args=(run_dir, ))
+        # proc.start()
+        # proc.join()
+        self.run(run_dir)
         out_path = os.path.abspath(os.path.join(run_dir, 'DTEIGEN.OUT'))
         try:
             with open(out_path, 'r') as f:
                 out = f.read()
         except FileNotFoundError:
-            logging.warning(f'FileNotFoundError: {out_path}')
+            logging.error(f'FileNotFoundError: {out_path}')
             return False
         m_rmode = re.search(r'MSTART RMODE.*MEND', out, re.DOTALL)
         if m_rmode is None:
+            logging.error(f'{out_path} 中没有RMODE模块。')
             return False
         rmode = m_rmode.group()
         self.content = self.content.replace(
             '\n\t\t]]>', '\n0RMODE\n' + rmode + '\n\n\t\t]]>')
 
-        m_ipw = re.search(r'IPW[\t ]+(\S+)\n', out)
-        m_lpw1 = re.search(r'LPW1[\t ]+(\S+)\n', out)
-        m_ipw1 = re.search(r'IPW1[\t ]+(.+)MSTART RMODE', out, re.DOTALL)
-        if m_ipw is None or m_ipw1 is None:
-            return False
-        ipw, lpw1 = m_ipw.group(1), m_lpw1.group(1)
-        ipw1 = re.sub(r',\s*', ', ', m_ipw1.group(1)).strip()  # 调整到一行显示
+        if self.version != '4.7':
+            m_ipw = re.search(r'IPW[\t ]+(\S+)\n', out)
+            m_lpw1 = re.search(r'LPW1[\t ]+(\S+)\n', out)
+            m_ipw1 = re.search(r'IPW1[\t ]+(.+)MSTART RMODE', out, re.DOTALL)
+            if m_ipw is None or m_ipw1 is None:
+                logging.error(f'{out_path} 中没有IPW1，IPW或LPW1。')
+                return False
+            ipw, lpw1 = m_ipw.group(1), m_lpw1.group(1)
+            ipw1 = re.sub(r',\s*', ', ', m_ipw1.group(1)).strip()  # 调整到一行显示
 
-        self.set(number_only=False, IPW=ipw, IPW1=ipw1, LPW1=lpw1)
+            self.set(number_only=False, IPW=ipw, IPW1=ipw1, LPW1=lpw1)
         return True
 
     def run(self, run_dir, run_name=None, **env):

@@ -792,7 +792,7 @@ def mode_check(taskname):
 
     p_check = Process(target=check_lin1_cm, args=(run_dir, ))
     p_check.start()
-    p_check.join(1200)  # 最长运行20分钟
+    p_check.join(720)  # 最长运行12分钟
 
     result = {"completed": True} if os.path.exists(os.path.join(run_dir, 'lin1.$CM')) else \
              {"completed": False}

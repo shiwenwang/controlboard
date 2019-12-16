@@ -49,8 +49,7 @@ class XML:
         if self.verification(filename):
             self._tree = ET.parse(filename)
             root_child = [child for child in self.tree.getroot()]
-            self._channels = root_child[0]
-            self._tables = root_child[1]
+            self._channels, self._tables = tuple([ele for ele in root_child if ele.tag in ('Channels', 'Tables')])
             self._path = filename
 
     def query(self, key_word, name_only=False, strict=False):
@@ -250,7 +249,7 @@ class XML:
 
     def parse_string(self, text):
         xml_data = {}
-        self._channels, self._tables = tuple(ET.fromstring(text).getchildren())
+        self._channels, self._tables = tuple([ele for ele in ET.fromstring(text).getchildren() if ele.tag in ('Channels', 'Tables')])
         for ele in self._channels:
             xml_data.update(self.find(ele.find("Name").text))
         for ele in self._tables:

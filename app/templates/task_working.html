@@ -150,34 +150,6 @@
     </div>
 </div>
 
-<!-- unsave tips modal -->
-{#<div class="modal fade" id="unsave-modal-for-download" tabindex="-1" role="dialog" data-backdrop="static">#}
-{#    <div class="modal-dialog" role="document">#}
-{#        <div class="modal-content">#}
-{#            <div class="modal-header">#}
-{#                <h5 class="modal-title" style="color:#7952b3;">#}
-{#                    提示#}
-{#                </h5>#}
-{#                <button type="button" class="close" data-dismiss="modal" aria-label="Close">#}
-{#                    <span aria-hidden="true">&times;</span>#}
-{#                </button>#}
-{#            </div>#}
-{#            <div class="modal-body">#}
-{#                <label for="">#}
-{#                    当前页面尚未保存，是否继续？#}
-{#                </label>#}
-{#            </div>#}
-{#            <div class="modal-footer">#}
-{#                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>#}
-{#                <button type="button" class="btn btn-danger" data-dismiss="modal"#}
-{#                    onclick="download('unsave')">忽略并继续</button>#}
-{#                <button type="button" class="btn btn-primary" data-dismiss="modal"#}
-{#                    onclick="saveDownload('save')">保存并继续</button>#}
-{#            </div>#}
-{#        </div>#}
-{#    </div>#}
-{#</div>#}
-
 <!-- tip Modal -->
 <div class="modal fade" id="campbell-modal" tabindex="-1" role="dialog" data-backdrop="static">
     <div class="modal-dialog" role="document">
@@ -205,11 +177,17 @@
                 <label for="towerMode1">
                     计算完毕后，塔架一阶频率将自动填入此处 <i class="fas fa-hand-point-up" style="color:#7952b3"></i> ，耐心等待。
                 </label>
+                <div class="form-check" id="reCampbellForm" style="display: none;">
+                    <input class="form-check-input" type="checkbox" value="" id="reCampbell" onchange="reCampbellConfirm()">
+                    <label class="form-check-label text-info" for="reCampbell">
+                        该项目已有历史计算，重新计算请勾选此项。
+                    </label>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
                 <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="campbell()"
-                    data-toggle="modal" data-target="#SavingModal">开始计算</button>
+                    id="campbellCalcBtn" data-toggle="modal" data-target="#SavingModal">开始计算</button>
             </div>
         </div>
     </div>
@@ -1565,7 +1543,12 @@
         });
     }
 
-    function campbellTrigger(freqTowerMode1) {
+    function reCampbellConfirm() {
+        $("#campbellCalcBtn")[0].disabled = !$("#reCampbell")[0].checked;
+    }
+
+    function campbellTrigger(freqTowerMode1) {  
+        // 检查是否已经有计算结果并显示      
         $.ajax({
             cache: false,
             type: 'POST',
@@ -1576,8 +1559,16 @@
                 taskname: '{{ task.name }}'
             }),
             success: function (data) {
-                $("#towerMode1").val(data['freq']);
                 $("#campbell-modal").modal('show');
+                if (data.freq == null){
+                    $("#reCampbellForm")[0].style.display = "none";
+                    $("#campbellCalcBtn")[0].disabled = false;
+                }else{
+                    $("#towerMode1").val(data.freq);
+                    $("#reCampbellForm")[0].style.display = "block";
+                    $("#campbellCalcBtn")[0].disabled = true;
+                    $("#reCampbell")[0].checked = false;
+                }                
             }
         })
     }
@@ -1596,9 +1587,40 @@
                 for (var i = 3; i < list.length; i++) {
                     $('.alert').removeClass(list[i]);
                 }
-                if (data) {
+                if (data.calc) {
                     $("#alert-text").html('计算提交成功!');
                     $('.alert').addClass('alert-success').show().delay(2000).fadeOut();
+                    $.ajax({
+                        cache: false,
+                        type: 'POST',
+                        url: "/task/mode_check/{{ task.name }}",
+                        dataType: "json",
+                        contentType: 'application/json; charset=UTF-8',
+                        data: JSON.stringify({
+                            taskname: '{{ task.name }}'
+                        }),
+                        success: function (data) {                            
+                            var list = $(".alert")[0].classList;
+                            for (var i = 3; i < list.length; i++) {
+                                $('.alert').removeClass(list[i]);
+                            }
+                            if (data.completed){
+                                $("#alert-text").html('Campbell 计算完成!');
+                                $('.alert').addClass('alert-success').show();
+                            }else{
+                                $("#alert-text").html('Campbell 计算超时!');
+                                $('.alert').addClass('alert-danger').show();
+                            }
+                        },
+                        error: function(){
+                            var list = $(".alert")[0].classList;
+                            for (var i = 3; i < list.length; i++) {
+                                $('.alert').removeClass(list[i]);
+                            }
+                            $("#alert-text").html('计算失败!');
+                            $('.alert').addClass('alert-danger').show();
+                        }
+                    });
                 } else {
                     $("#alert-text").html('计算提交失败!');
                     $('.alert').addClass('alert-danger').show().delay(2000).fadeOut();
@@ -1615,7 +1637,7 @@
             },
             complete: function () {
             }
-        });
+        });                    
     }
 
 </script>

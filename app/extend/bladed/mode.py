@@ -15,10 +15,11 @@ class Mode():
     def get_mode(self, mode_name):
         cm_path = os.path.abspath(os.path.join(self._dir, 'lin1.$CM'))
         try:
-            with open(cm_path, 'r') as f:
-                data = f.read()
+            with open(cm_path, 'rb') as f:
+                data_bytes = f.read()
         except :
             logging.warning('读取“lin1.$CM”文件失败！')
+        data = data_bytes.decode('utf-8', 'ignore').replace('\r','')
         m = re.findall(r"OMEGA[\t ]*(\S+)\nFREQ[\t ]*(\S+)\nDAMP[\t ]*(\S+)\nLABEL[\t ]*?'%s" % mode_name, data)
         if not m:
             raise Exception(f'没找到"{mode_name}", 请检查模态名称是否正确。')

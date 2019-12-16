@@ -13,6 +13,7 @@ import os
 import re
 import json
 import shutil
+import time
 from collections import OrderedDict
 from datetime import datetime
 from multiprocessing import Process
@@ -768,9 +769,34 @@ def campbell(taskname):
         # bladed.campbell(run_dir)
         proc_campbell = Process(target=bladed.campbell, args=(run_dir,))
         proc_campbell.start()
-        return jsonify(True)
+        return jsonify({'calc': True})
     except:
-        return jsonify(False)
+        return jsonify({'calc': False})
+
+
+def check_lin1_cm(run_dir):
+    while not os.path.exists(os.path.join(run_dir, 'lin1.$CM')):
+        time.sleep(5)
+        continue
+
+
+@task.route('mode_check/<taskname>', methods=['POST'])
+@login_required
+def mode_check(taskname):
+    time.sleep(30)
+    _task = Task.query.filter_by(name=taskname).first()    
+    user = User.query.filter_by(id=_task.user_id).first()
+    calc_folder = os.path.join(current_app.config.get(
+        'CALCULATION_DEST'), user.username, taskname)
+    run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))
+
+    p_check = Process(target=check_lin1_cm, args=(run_dir, ))
+    p_check.start()
+    p_check.join(1200)  # 最长运行20分钟
+
+    result = {"completed": True} if os.path.exists(os.path.join(run_dir, 'lin1.$CM')) else \
+             {"completed": False}
+    return jsonify(result)
 
 
 @task.route('mode/<taskname>', methods=['POST'])

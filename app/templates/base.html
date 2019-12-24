@@ -1,22 +1,23 @@
 <!doctype html>
 <html lang="zh-cmn-Hans">
-  <head>
+
+<head>
     {% block head %}
     <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <link rel="shortcut icon" href="{{ url_for('static',filename='img/favicon.ico') }}">
 
     {% block styles %}
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap.min.css') }}">        
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/docsearch.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static',filename='css/fileinput.min.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/fileinput.min.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static',filename='css/all.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/fontawesome.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/docs.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static',filename='css/solid.min.css') }}">    
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/solid.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/fileinput.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap-table.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap-select.min.css') }}">
@@ -30,39 +31,46 @@
     <script src="{{ url_for('static',filename='js/fontawesome.min.js') }}"></script>
     <script src="{{ url_for('static',filename='js/solid.min.js') }}"></script>
     <script src="{{ url_for('static',filename='js/fileinput.js') }}"></script>
-    <script src="{{ url_for('static',filename='js/theme.min.js') }}"></script>    
+    <script src="{{ url_for('static',filename='js/theme.min.js') }}"></script>
     <script src="{{ url_for('static',filename='js/bootstrap-table.js') }}"></script>
-    <script src="{{ url_for('static',filename='js/bootstrap-select.js') }}"></script> 
-    
+    <script src="{{ url_for('static',filename='js/bootstrap-select.js') }}"></script>
+
     {% endblock %}
 
     <title>{{ title }} - Control Board</title>
     {% endblock head%}
 
     {% block nav %}
-    
+
     {% endblock nav %}
 
-  </head>
-  <body>
-      <div class="container fixed-top col-md-4">
+</head>
+
+<body>
+    <div class="container fixed-top col-md-4">
         {% block flash %}
-            
+
         {% endblock flash %}
-      </div>
+    </div>
 
-    
-    <!-- Your page content -->
-    {% block content %}{% endblock %}  
+    <script type="text/javascript">
+        var csrf_token = "{{ csrf_token() }}";
 
-    
-    {% block scripts %}
-    
-    {% endblock %}
-    
-    
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                }
+            }
+        });
+    </script>
+
+    <!-- Page content -->
+    {% block content %}{% endblock %}
+
     {% block footer %}{% endblock footer %}
 
-    
-  </body>    
+
+</body>
+
 </html>

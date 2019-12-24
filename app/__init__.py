@@ -1,13 +1,15 @@
 from flask import Flask
-from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_uploads import UploadSet, configure_uploads, patch_request_class
 from config import config
+from flask_wtf.csrf import CSRFProtect
+from logging.config import dictConfig
+import os, json, yaml, logging
 
 
-mail = Mail()
+csrf = CSRFProtect()
 db = SQLAlchemy()
 login_manager = LoginManager()
 bladed = UploadSet('bladed', ('$PJ', 'PRJ', '$pj', 'prj'))
@@ -20,8 +22,10 @@ def create_app(config_name):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
+    # dictConfig(json.load(open(os.path.join(app.instance_path, 'logging.json'), 'r')))
+    dictConfig(yaml.load(open(os.path.join(app.instance_path, 'logging.conf')), Loader=yaml.FullLoader))
 
-    mail.init_app(app)
+    csrf.init_app(app)
     db.init_app(app)
     migrate = Migrate(app, db)
     login_manager.init_app(app)

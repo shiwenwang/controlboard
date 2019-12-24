@@ -1,7 +1,28 @@
 from bladed import Bladed
 from mode import Mode
 from multiprocessing import Process
-import os
+import os, pytest
+
+
+class TestBladed:
+    def __init__(self, path):
+        self.ver, self.path = path
+        self.bladed = Bladed(self.path)
+
+    def test_version(self):
+        assert self.ver == self.bladed.version
+
+    def test_query(self):
+        assert ('RHO', '1.225') == self.bladed.query('RHO', number_only=True)
+        assert ('RHO', '1.225') == self.bladed.query('RHO', number_only=False)
+        assert ('PROJNAME', 'GW130P25BTG90_802KsBSinoma63.5A_V10_HNlingnan') == self.bladed.query('PROJNAME', number_only=False)
+        assert None == self.bladed.query('PROJNAME', number_only=True)
+        assert None == self.bladed.query('FOO', number_only=True)
+        assert None == self.bladed.query('FOO', number_only=False)
+
+    def test_set(self):
+        pass
+
 
 
 def info(title):

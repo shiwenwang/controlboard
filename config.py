@@ -3,23 +3,15 @@ from datetime import timedelta
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
-class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'a_key'
+class Config:    
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'DO_NOT_USE_ON_PRODUCTION_ENVIRONMENT'
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    MAIL_SERVER = 'smtp.googlemail.com'
-    MAIL_PORT = 587
-    MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    FLASKY_MAIL_SUBJECT_PREFIX = '[Flasky]'
-    FLASKY_MAIL_SENDER = 'Flasky Admin <flasky@example.com>'
-    FLASKY_ADMIN = os.environ.get('FLASKY_ADMIN')
-    UPLOADS_DEFAULT_DEST = os.path.abspath(os.path.join(basedir, '../repository'))
+    UPLOADS_DEFAULT_DEST = os.environ.get('CONTROLLER_REPOSITORY') or os.path.abspath(os.path.join(basedir, '../repository'))
     UPLOADED_BLADED_DEST = UPLOADS_DEFAULT_DEST
     UPLOADED_SYMBOL_DEST = UPLOADS_DEFAULT_DEST
     UPLOADED_XML_DEST = UPLOADS_DEFAULT_DEST
-    UPLOADS_TEMPL_DEST = os.path.join(UPLOADS_DEFAULT_DEST, 'symbols')
+    UPLOADS_TEMPL_DEST = os.environ.get('CONTROLLER_DLL') or os.path.join(UPLOADS_DEFAULT_DEST, 'symbols')
     CALCULATION_DEST = os.path.abspath(os.path.join(basedir, '../calculation'))
     SEND_FILE_MAX_AGE_DEFAULT = timedelta(seconds=1)
 
@@ -29,7 +21,7 @@ class Config:
 
 
 class DevelopmentConfig(Config):
-    DEBUG = True
+    DEBUG = True    
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'instance', 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False

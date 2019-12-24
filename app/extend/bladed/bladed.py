@@ -1,5 +1,12 @@
-import re
-import os
+'''
+@Descripttion: Bladed文件对象（包含参数读写、模态分析、Campbell图计算、仿真运行等方法）
+@version: 
+@Author: wangshiwen@36719
+@Date: 2019-09-26 09:30:42
+@LastEditors  : wangshiwen@36719
+@LastEditTime : 2019-12-24 10:38:21
+'''
+import os, re
 from subprocess import Popen, TimeoutExpired, PIPE, STDOUT
 from multiprocessing import Process
 import logging
@@ -97,6 +104,9 @@ class Bladed(object):
         proc.start()
         proc.join()
 
+    def batch_run(self):
+        pass
+
     def campbell(self, run_dir):        
         if self.version == '4.7':
             self.modify_v47()
@@ -105,7 +115,7 @@ class Bladed(object):
             modal_dir = os.path.abspath(os.path.join(run_dir, 'modal'))
             success = self.modal_analysis(modal_dir)
             if not success:
-                logging.error(f'模态分析失败')
+                logging.error('模态分析失败。')
                 os._exit(0)  # modal 计算失败，及时退出子进程
 
         cut_in = self.query('CUTIN')[1]
@@ -232,29 +242,3 @@ class Bladed(object):
             stdout=PIPE, stderr=STDOUT)
 
         proc_dtbladed.communicate()
-
-
-if __name__ == "__main__":
-    import os
-    here = os.path.abspath(os.path.dirname(__file__))
-    v38 = os.path.join(here, '../../../data/bladed/v382.$PJ')
-    v43 = os.path.join(here, '../../../data/bladed/v43.$PJ')
-    v46 = os.path.join(here, '../../../data/bladed/v46.$PJ')
-
-    bladed_v38 = Bladed(v38)
-    bladed_v43 = Bladed(v43)
-    bladed_v46 = Bladed(v46)
-
-    print(bladed_v38.version())
-    print(bladed_v43.version())
-    print(bladed_v46.version())
-
-    print(bladed_v43.query("RHO"))
-    print(bladed_v43.query("PITMIN"))
-    print(bladed_v43.query("OMMAX"))
-
-    bladed_v43.set(RHO=1.225, OMMIN=0.10101, OMMAX=9.9999)
-
-    print(bladed_v43.query("RHO"))
-    print(bladed_v43.query("OMMIN"))
-    print(bladed_v43.query("OMMAX"))

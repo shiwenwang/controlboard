@@ -200,7 +200,6 @@
             </div>
             <form method="POST" enctype="multipart/form-data" id="newtaskform">
                 {{ new_task_form.csrf_token }}
-                {{ new_task_form.hidden_tag() }}
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="task-name" class="col-form-label">
@@ -224,7 +223,7 @@
                     </div>
                     <div class="form-group">
                         <label for="symbol-file-input" class="col-form-label">
-                            Symbol表:
+                            控制器dll:
                         </label>
                         <div id="symbol-file-input">
                             <div style="display: block;" id="symbol-file-select" class="file-select">
@@ -282,7 +281,6 @@
             </div>
             <form method="POST" enctype="multipart/form-data" id="edit-task-form">
                 {{ edit_task_form.csrf_token }}
-                {{ edit_task_form.hidden_tag() }}
                 <div class="modal-body">
                     <div class="form-group" id="task-name-in-edit-modal">
 
@@ -303,7 +301,7 @@
                     <div class="form-group">
                         <label for="edit-symbol-file-input" class="col-form-label">
                             <i class="fas fa-info-circle tips" data-toggle="tooltip"
-                            title="重新选择Symbol将删除旧Symbol表。" style="color:#FFC107;z-index:1071;"></i> Symbol表：
+                            title="重新选择Symbol将删除旧控制器dll。" style="color:#FFC107;z-index:1071;"></i> 控制器dll：
                         </label>
                         <div id="edit-symbol-file-select">
                             <div style="display: block;" id="edit-symbol-file-select" class="file-select">
@@ -350,12 +348,10 @@
             </div>
             <form method="POST" id="delete-modal-form">
                 {{ delete_task_form.csrf_token }}
-                {{ delete_task_form.hidden_tag() }}
                 <div class="modal-body">
                     {{ delete_task_form.taskname(id="delete-taskname", type="text", style="display: none") }}
                     <p></p>
                     <span>
-                        <!-- <input type="checkbox" id="check-delete-files"> -->
                         {{ delete_task_form.delete_files(type="checkbox", id="check-delete-files") }}
                         <label for="check-delete-files">同时删除已上传文件（将删除Git记录）</label>
                     </span>

@@ -25,10 +25,12 @@
     .table-striped>tbody>tr:nth-child(2n+1)>th {
         background-color: #F6F8FA
     }
-    .thead{
+
+    .thead {
         font-size: 13px;
     }
-    .thead-sm{
+
+    .thead-sm {
         font-size: 10px;
     }
 
@@ -179,7 +181,8 @@
                     计算完毕后，塔架一阶频率将自动填入此处 <i class="fas fa-hand-point-up" style="color:#7952b3"></i> ，耐心等待。
                 </label>
                 <div class="form-check" id="reCampbellForm" style="display: none;">
-                    <input class="form-check-input" type="checkbox" value="" id="reCampbell" onchange="reCampbellConfirm()">
+                    <input class="form-check-input" type="checkbox" value="" id="reCampbell"
+                        onchange="reCampbellConfirm()">
                     <label class="form-check-label text-info" for="reCampbell">
                         该项目已有历史计算，重新计算请勾选此项。
                     </label>
@@ -381,59 +384,71 @@
                     <div class="p-4" style="padding-top: 24px; position: relative;" id="tool-block">
                         <div class="card">
                             <div class="card-header">
-                                单位换算
+                                参数变动
                             </div>
                             <div class="card-body">
-                                <form>
-                                    <div class="d-flex">
-                                        <div class="p-2 align-self-center">
-                                            <input type="text" class="form-control" id="deg" placeholder="deg">
-                                        </div>
-                                        <div class="p-1 align-self-center arrow" id="rad-to-deg"
-                                            style="cursor: pointer;">
-                                            <i class="fas fa-arrow-alt-circle-left"></i>
-                                        </div>
-                                        <div class="p-1 align-self-center arrow" id="deg-to-rad"
-                                            style="cursor: pointer;">
-                                            <i class="fas fa-arrow-alt-circle-right"></i>
-                                        </div>
-                                        <div class="p-2 align-self-center">
-                                            <input type="text" class="form-control" id="rad" placeholder="rad">
-                                        </div>
-                                    </div>
-                                    <div class="d-flex">
-                                        <div class="p-2 align-self-center">
-                                            <input type="text" class="form-control" id="rpm" placeholder="rpm">
-                                        </div>
-                                        <div class="p-1 align-self-center arrow" id="radpsto-rpm"
-                                            style="cursor: pointer;">
-                                            <i class="fas fa-arrow-alt-circle-left"></i>
-                                        </div>
-                                        <div class=" p-1 align-self-center arrow" id="rpm-toradps"
+                                <table id="changed-table" data-resizable="true" class="table table-sm"></table>
+                            </div>
+                        </div>
+                        <div style="padding-top: 24px;" id="unit-block">
+                            <div class="card">
+                                <div class="card-header">
+                                    单位换算
+                                </div>
+                                <div class="card-body">
+                                    <form>
+                                        <div class="d-flex">
+                                            <div class="p-2 align-self-center">
+                                                <input type="text" class="form-control" id="deg" placeholder="deg">
+                                            </div>
+                                            <div class="p-1 align-self-center arrow" id="rad-to-deg"
+                                                style="cursor: pointer;">
+                                                <i class="fas fa-arrow-alt-circle-left"></i>
+                                            </div>
+                                            <div class="p-1 align-self-center arrow" id="deg-to-rad"
                                                 style="cursor: pointer;">
                                                 <i class="fas fa-arrow-alt-circle-right"></i>
+                                            </div>
+                                            <div class="p-2 align-self-center">
+                                                <input type="text" class="form-control" id="rad" placeholder="rad">
+                                            </div>
                                         </div>
-                                        <div class="p-2 align-self-center">
-                                            <input type="text" class="form-control" id="radpsrpm" placeholder="rad/s">
+                                        <div class="d-flex">
+                                            <div class="p-2 align-self-center">
+                                                <input type="text" class="form-control" id="rpm" placeholder="rpm">
+                                            </div>
+                                            <div class="p-1 align-self-center arrow" id="radpsto-rpm"
+                                                style="cursor: pointer;">
+                                                <i class="fas fa-arrow-alt-circle-left"></i>
+                                            </div>
+                                            <div class=" p-1 align-self-center arrow" id="rpm-toradps"
+                                                style="cursor: pointer;">
+                                                <i class="fas fa-arrow-alt-circle-right"></i>
+                                            </div>
+                                            <div class="p-2 align-self-center">
+                                                <input type="text" class="form-control" id="radpsrpm"
+                                                    placeholder="rad/s">
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="d-flex">
-                                        <div class="p-2 align-self-center">
-                                            <input type="text" class="form-control" id="Hz" placeholder="Hz">
+                                        <div class="d-flex">
+                                            <div class="p-2 align-self-center">
+                                                <input type="text" class="form-control" id="Hz" placeholder="Hz">
+                                            </div>
+                                            <div class="p-1 align-self-center arrow" id="radpsto-Hz"
+                                                style="cursor: pointer;">
+                                                <i class="fas fa-arrow-alt-circle-left"></i>
+                                            </div>
+                                            <div class="p-1 align-self-center arrow" id="Hz-toradps"
+                                                style="cursor: pointer;">
+                                                <i class="fas fa-arrow-alt-circle-right"></i>
+                                            </div>
+                                            <div class="p-2 align-self-center">
+                                                <input type="text" class="form-control" id="radpshz"
+                                                    placeholder="rad/s">
+                                            </div>
                                         </div>
-                                        <div class="p-1 align-self-center arrow" id="radpsto-Hz"
-                                            style="cursor: pointer;">
-                                            <i class="fas fa-arrow-alt-circle-left"></i>
-                                        </div>
-                                        <div class="p-1 align-self-center arrow" id="Hz-toradps"
-                                            style="cursor: pointer;">
-                                            <i class="fas fa-arrow-alt-circle-right"></i>
-                                        </div>
-                                        <div class="p-2 align-self-center">
-                                            <input type="text" class="form-control" id="radpshz" placeholder="rad/s">
-                                        </div>
-                                    </div>
-                                </form>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                         <div style="padding-top: 24px;" id="towerExc-block">
@@ -449,8 +464,8 @@
                                     <div class="d-flex justify-content-between" style="padding-bottom: 16px;">
                                         <div class="p-2 align-self-center" style="padding: 0px 0px!important">
                                             <div class="custom-control custom-switch">
-                                                <input type="checkbox" class="custom-control-input"
-                                                    id="towerExc-switch" onchange="towerExcSwitch()">
+                                                <input type="checkbox" class="custom-control-input" id="towerExc-switch"
+                                                    onchange="towerExcSwitch()">
                                                 <label class="custom-control-label" for="towerExc-switch"
                                                     id="towerExcSwitch-label">开关</label>
                                             </div>
@@ -514,13 +529,15 @@
                                         <div class="form-label-group">
                                             <input type="text" style="color: blue;" class="form-control"
                                                 placeholder="低转速" id="LowSpeed" disabled>
-                                            <label style="color: #7952b3;font-size:14px;">低转速 <label id="LowSpeed-rpm" style="color: green;"></label></label>
+                                            <label style="color: #7952b3;font-size:14px;">低转速 <label id="LowSpeed-rpm"
+                                                    style="color: green;"></label></label>
                                         </div>
                                         <div class="p-2" style="padding: 5px!important;"></div>
                                         <div class="form-label-group">
                                             <input type="text" style="color: blue;" class="form-control"
                                                 placeholder="高转速" id="HighSpeed" disabled>
-                                            <label style="color: #7952b3;font-size:14px;">高转速 <label id="HighSpeed-rpm" style="color: green;"></label></label>
+                                            <label style="color: #7952b3;font-size:14px;">高转速 <label id="HighSpeed-rpm"
+                                                    style="color: green;"></label></label>
                                         </div>
                                         <div class="p-2" style="padding: 5px!important;"></div>
                                         <div class="form-label-group">
@@ -804,8 +821,8 @@
                 highTorque = highTorqueFactor * Kopt * Math.pow(lowSpeed, 3) / highSpeed;
             $("#LowSpeed").val(lowSpeed.toFixed(5));
             $("#HighSpeed").val(highSpeed.toFixed(5));
-            $("#LowSpeed-rpm").text((lowSpeed*30/Math.PI).toFixed(1) + "r");
-            $("#HighSpeed-rpm").text((highSpeed*30/Math.PI).toFixed(1) + "r");
+            $("#LowSpeed-rpm").text((lowSpeed * 30 / Math.PI).toFixed(1) + "r");
+            $("#HighSpeed-rpm").text((highSpeed * 30 / Math.PI).toFixed(1) + "r");
             $("#LowSpeedMaxTorque").val(Math.round(lowTorque));
             $("#HighSpeedMaxTorque").val(Math.round(highTorque));
             var tower1st_radps = $('#tower1st-radps').val();
@@ -861,8 +878,8 @@
 
     function editModeSwitch() {
         $(function () {
-            $('#P_MaximumGeneratorTorque-symbol').val($('#P_DMGT-bladed').val() * 1.1);
-            $('#P_SteadyShaftPowerLimit-symbol').val($('#P_RatedGeneratorSpeed-symbol').val() * Number($('#P_DMGT-bladed').val()));
+            $('#P_MaximumGeneratorTorque-symbol').val(Math.round(('#P_DMGT-bladed').val() * 1.1));
+            $('#P_SteadyShaftPowerLimit-symbol').val(($('#P_RatedGeneratorSpeed-symbol').val() * Number($('#P_DMGT-bladed').val())).toFixed(1));
             $('#P_OptimalModeGain-symbol').val($('#P_OptimalModeGain-bladed').val());
         })
         $(function () {
@@ -962,7 +979,7 @@
                         postfix = data[i].slice(end);
                         htmlStr += '<a class="list-group-item list-group-item-action" onclick="showSearchResultTrigger(\'' + data[i] + '\')">' +
                             prefix +
-                            '<label style="color: #7952b3; font-weight: Bold; cursor: pointer;">' + mid + '</label>' +
+                            '<label style="color: #7952b3; font-weight: Bold; cursor: pointer; margin: 2px 0px 3px;">' + mid + '</label>' +
                             postfix + '</a>\n';
                     }
                     var listBox = $("#algolia-autocomplete-listbox-0")[0];
@@ -1399,78 +1416,6 @@
         }
     })
 
-    // function downloadTrigger(params) {
-    //     var dataChanged = getModifiedTableData();
-    //     if (JSON.stringify(dataChanged) != "{}") {
-    //         $("#unsave-modal-for-download").modal('show');
-    //         return;
-    //     }
-    //     download();
-    // }
-
-    // function saveDownload(){
-    //     var tableData = {};
-    //     $.ajax({
-    //         cache: false,
-    //         type: 'POST',
-    //         url: "/task/write/{{ task.name }}/{{ obj }}",
-    //         dataType: "json",
-    //         contentType: 'application/json; charset=UTF-8',
-    //         data: postData(dataChanged, target),
-    //         success: function (data) { //成功的话，得到消息
-    //             tableData = data;
-    //             if (JSON.stringify(dataChanged) != "{}") {
-    //                 var list = $(".alert")[0].classList;
-    //                 for (var i = 3; i < list.length; i++) {
-    //                     $('.alert').removeClass(list[i]);
-    //                 }
-    //                 var alert_tips = (target == "git") ? "已保存，修改已提交" : "已保存！";
-    //                 $("#alert-text").html(alert_tips);
-    //                 $('.alert').addClass('alert-success').show().delay(2000).fadeOut();
-    //             } else {
-    //                 var list = $(".alert")[0].classList;
-    //                 for (var i = 3; i < list.length; i++) {
-    //                     $('.alert').removeClass(list[i]);
-    //                 }
-    //                 $("#alert-text").html('未修改，已提交!');
-    //                 $('.alert').addClass('alert-info').show().delay(2000).fadeOut();
-    //             }                
-    //             download();
-    //         },
-    //         complete: function () {
-    //             initTable(tableData);
-    //             window.pageInitialData = getInitialTableData();
-    //             $("#edit-switch")[0].checked = false;
-    //             $("#SavingModal").modal('hide');
-    //         },
-    //         error: function () {
-    //             if (JSON.stringify(dataChanged) != "{}") {
-    //                 var list = $(".alert")[0].classList;
-    //                 for (var i = 3; i < list.length; i++) {
-    //                     $('.alert').removeClass(list[i]);
-    //                 }
-    //                 $("#alert-text").html('保存失败!');
-    //                 $('.alert').addClass('alert-danger').show().delay(2000).fadeOut();
-    //                 $("#SavingModal").modal('hide');
-    //             }
-    //         }
-    //     });
-    // }
-
-    // function download() {        
-    //     var responseData = "";
-    //     $.ajax({
-    //         cache: false,
-    //         type: 'GET',
-    //         url: "/task/download/{{ task.name }}/{{ obj }}",
-    //         dataType: "json",
-    //         contentType: 'application/json; charset=UTF-8',
-    //         success: function (data) {
-    //             responseData = data;
-    //         }
-    //     })
-    // }
-
     function postData(dataChanged, target) {
         if ("{{ obj }}" == "xml") {
             var data = JSON.stringify({
@@ -1507,7 +1452,7 @@
             cache: false,
             type: 'POST',
             url: "/task/write/{{ task.name }}/{{ obj }}",
-            timeout : 30000,
+            timeout: 30000,
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
             data: postData(dataChanged, target),
@@ -1520,19 +1465,19 @@
                 var list = $(".alert")[0].classList;
                 for (var i = 3; i < list.length; i++) {
                     $('.alert').removeClass(list[i]);
-                }                           
+                }
                 switch (textStatus) {
                     case "timeout":
-                        $("#alert-text").html("响应超时，可能未保存");  
+                        $("#alert-text").html("响应超时，可能未保存");
                         $('.alert').addClass('alert-warning').show().delay(2000).fadeOut();
                         break;
                     case "success":
                         var msg = (JSON.stringify(dataChanged) == "{}") ? '未修改，已提交' : (target == "git") ? "已保存，修改已提交" : "已保存";
-                        $("#alert-text").html(msg);  
+                        $("#alert-text").html(msg);
                         $('.alert').addClass('alert-success').show().delay(2000).fadeOut();
                         break;
                     default:
-                        $("#alert-text").html("保存失败");  
+                        $("#alert-text").html("保存失败");
                         $('.alert').addClass('alert-danger').show().delay(2000).fadeOut();
                         break;
                 }
@@ -1548,7 +1493,7 @@
         $("#campbellCalcBtn")[0].disabled = !$("#reCampbell")[0].checked;
     }
 
-    function campbellTrigger(freqTowerMode1) {  
+    function campbellTrigger(freqTowerMode1) {
         // 检查是否已经有计算结果并显示      
         $.ajax({
             cache: false,
@@ -1561,15 +1506,15 @@
             }),
             success: function (data) {
                 $("#campbell-modal").modal('show');
-                if (data.freq == null){
+                if (data.freq == null) {
                     $("#reCampbellForm")[0].style.display = "none";
                     $("#campbellCalcBtn")[0].disabled = false;
-                }else{
+                } else {
                     $("#towerMode1").val(data.freq);
                     $("#reCampbellForm")[0].style.display = "block";
                     $("#campbellCalcBtn")[0].disabled = true;
                     $("#reCampbell")[0].checked = false;
-                }                
+                }
             }
         })
     }
@@ -1600,20 +1545,20 @@
                         data: JSON.stringify({
                             taskname: '{{ task.name }}'
                         }),
-                        success: function (data) {                            
+                        success: function (data) {
                             var list = $(".alert")[0].classList;
                             for (var i = 3; i < list.length; i++) {
                                 $('.alert').removeClass(list[i]);
                             }
-                            if (data.completed){
+                            if (data.completed) {
                                 $("#alert-text").html('Campbell 计算完成!');
                                 $('.alert').addClass('alert-success').show();
-                            }else{
+                            } else {
                                 $("#alert-text").html('Campbell 计算超时!');
                                 $('.alert').addClass('alert-danger').show();
                             }
                         },
-                        error: function(){
+                        error: function () {
                             var list = $(".alert")[0].classList;
                             for (var i = 3; i < list.length; i++) {
                                 $('.alert').removeClass(list[i]);
@@ -1638,7 +1583,7 @@
             },
             complete: function () {
             }
-        });                    
+        });
     }
 
 </script>

@@ -1,3 +1,11 @@
+<!--
+ * @Descripttion: 
+ * @version: 
+ * @Author: wangshiwen@36719
+ * @Date: 2019-11-21 16:32:33
+ * @LastEditors  : wangshiwen@36719
+ * @LastEditTime : 2019-12-27 13:38:28
+ -->
 {% extends 'base.html' %}
 
 {% block styles %}
@@ -296,7 +304,7 @@
                 '</div>';            
             $("#diff-detials").append(html);
             initTableDetails(window.showDiff[i]);
-        }        
+        }      
     }
 
     function preDiff() {
@@ -348,6 +356,14 @@
     function view_switch() {
         if ("undefined" != typeof (window.data)) {
             dataInit();                        
+        }
+        $("#diff-detials")[0].style.display = $("#diff-view-switch")[0].checked ? "block" : "none";
+        if ($("#diff-view-switch")[0].checked && !window.showDiff.length){
+            $("#result").html(
+                '<div class="text-center" style="font-weight: bold;">' + 
+                    'NO DIFFERENCE' + 
+                '</div>'
+            );
         }
     }
 

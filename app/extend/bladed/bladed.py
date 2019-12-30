@@ -4,7 +4,7 @@
 @Author: wangshiwen@36719
 @Date: 2019-09-26 09:30:42
 @LastEditors  : wangshiwen@36719
-@LastEditTime : 2019-12-24 10:38:21
+@LastEditTime : 2019-12-26 15:27:41
 '''
 import os, re
 from subprocess import Popen, TimeoutExpired, PIPE, STDOUT
@@ -29,7 +29,7 @@ class Bladed(object):
         if m is None:
             result = "unknow"
         else:
-            result = m.groups()[0]
+            result = m.group(1)
         return result
 
     def query(self, param, number_only=True):
@@ -41,11 +41,11 @@ class Bladed(object):
             mapping = {'GTMAX': 'torqueDemandMax'}
             return self.query_v47(mapping[param])
 
-        if number_only:
-            pattern = re.compile(
-                r'(%s)[\t ]+(-?\d*\.*\d*E?-?\+?\d*)\n' % param)
-        else:
-            pattern = re.compile(r'(%s)[\t ]+(.*)\n' % param)
+        # if number_only:
+        #     pattern = re.compile(
+        #         r'(%s)[\t ]+(-?\d*\.*\d*E?-?\+?\d*)\n' % param)
+        # else:
+        pattern = re.compile(r'^(%s)[\t ]+(.*)$' % param, re.M)
         result = pattern.search(self.content)
 
         if result is None:
@@ -61,15 +61,15 @@ class Bladed(object):
 
         return (param, '') if result is None else result.groups()
 
-    def set(self, number_only=True, write=True, **kwargs):
+    def set(self, write=True, **kwargs):
         for key, value in kwargs.items():
-            if number_only:
-                pattern = re.compile(
-                    r'((%s)[\t ]+)-?\d*\.*\d*E?-?\+?\d*\n' % key)
-            else:
-                pattern = re.compile(r'((%s)[\t ]+)(.*)\n' % key)
+            # if number_only:
+            #     pattern = re.compile(
+            #         r'((%s)[\t ]+)-?\d*\.*\d*E?-?\+?\d*\n' % key)
+            # else:
+            pattern = re.compile(r'^((%s)[\t ]+)(.*)$' % key, re.M)
             self.content = pattern.sub(
-                lambda m: m.groups()[0] + str(value) + '\n', self.content, 1)
+                lambda m: m.group(1) + str(value) + '\n', self.content, 1)
 
         if write:
             with open(self.path, 'w') as f:
@@ -99,7 +99,7 @@ class Bladed(object):
         with open(self.path, 'w') as f:
             f.write(self.content)
         if windf is not None:
-            self.set(windf=windf, number_only=False)
+            self.set(windf=windf)
         proc = Process(target=self.run, args=(run_dir, name))
         proc.start()
         proc.join()
@@ -191,7 +191,7 @@ class Bladed(object):
             ipw, lpw1 = m_ipw.group(1), m_lpw1.group(1)
             ipw1 = re.sub(r',\s*', ', ', m_ipw1.group(1)).strip()  # 调整到一行显示
 
-            self.set(number_only=False, IPW=ipw, IPW1=ipw1, LPW1=lpw1)
+            self.set(IPW=ipw, IPW1=ipw1, LPW1=lpw1)
         return True
 
     def run(self, run_dir, run_name=None, **env):

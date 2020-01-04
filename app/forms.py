@@ -125,22 +125,26 @@ class ResetPassWordForm(FlaskForm):
 
 
 class NewTaskForm(FlaskForm):
-    uset_bladed, uset_symbol, uset_xml = usets
+    uset_bladed = usets[0]    
     taskname = StringField(validators=[DataRequired()])
     bladed = FileField(validators=[FileAllowed(uset_bladed), FileRequired()])
-    xml = FileField(validators=[FileAllowed(uset_xml)])
-    symbol = SelectField(default=0, coerce=int)
     add_to_git = BooleanField()
-    save_submit = SubmitField()
-
+    create_submit = SubmitField()
+    turbine_platform = SelectField(coerce=str)
+    turbine_model = SelectField(coerce=str)
+    blade_model = SelectField(coerce=str)
+    tower_type = SelectField(coerce=str)
+    
 
 class EditTaskForm(FlaskForm):
-    uset_bladed, uset_symbol, uset_xml = usets
+    uset_bladed = usets[0]
     taskname = StringField(validators=[DataRequired()])
     bladed = FileField(validators=[FileAllowed(uset_bladed)])
-    xml = FileField(validators=[FileAllowed(uset_xml)])
-    symbol = SelectField(default=0, coerce=int)
-    save_modify_submit = SubmitField()
+    turbine_platform = SelectField(coerce=str)
+    turbine_model = SelectField(coerce=str)
+    blade_model = SelectField(coerce=str)
+    tower_type = SelectField(coerce=str)
+    modify_submit = SubmitField()
 
 
 class DeleteTaskForm(FlaskForm):

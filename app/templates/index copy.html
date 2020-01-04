@@ -92,9 +92,11 @@
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
-                <li class="nav-item">                   
+                <li class="nav-item">
+                    <!-- <a class="nav-link active" id="nav-symbol">Symbol对比</a>                     -->
                 </li>
                 <li class="nav-item">
+                    <!-- <a class="nav-link active" id="nav-symbol">XML对比</a>    -->
                 </li>
             </ul>
             <form class="form-inline my-3 my-lg-0">
@@ -125,6 +127,7 @@
 
 <!-- 工具栏 -->
 <div class="container-fluid">
+    <!-- <form class="bd-search d-flex border-bottom-0 align-items-center"> -->
     <div class='d-md-flex justify-content-between' id="tool-bar-row">
         <div class="align-self-center">
             <button class="btn btn-bd-primary col-auto" type="button" data-toggle="modal"
@@ -151,6 +154,7 @@
                 <label class="custom-control-label" for="view-switch">显示所有任务</label>
             </div>
         </div>
+        <!-- </form> -->
     </div>
 </div>
 
@@ -194,6 +198,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
             </div>
         </div>
     </div>
@@ -225,12 +230,12 @@
 </div>
 
 <!-- NewTaskModal -->
-<div class="modal fade" id="NewTaskModal" tabindex="-1" role="dialog" aria-labelledby="newTaskModalLabel"
+<div class="modal fade" id="NewTaskModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="newTaskModalLabel" style="font-weight: bold; color: #7952b3;">
+                <h5 class="modal-title" id="exampleModalLabel" style="font-weight: bold; color: #7952b3;">
                     <i class="fas fa-folder-plus"></i>
                     新建任务
                 </h5>
@@ -239,7 +244,7 @@
                 </button>
             </div>
             <form method="POST" enctype="multipart/form-data" id="newtaskform">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                {{ new_task_form.csrf_token }}
                 <div class="modal-body">
                     <div class="form-group" style="margin-bottom: 6px;">
                         <label for="task-name" class="col-form-label" style="padding-bottom: 0px;">
@@ -270,21 +275,21 @@
                             <div class="form-row">
                                 <div class="form-group col-sm-6">
                                     <label for="turbine_platform">机型平台：</label>
-                                    {{ new_task_form.turbine_platform(class="selectpicker", id="turbine_platform", data_style="btn-outline-0") }}
+                                    <select class="selectpicker" id="turbine_platform" data-style="btn-outline-0"></select>
                                 </div>
                                 <div class="form-group col-sm-6">
                                     <label for="turbine_model">机组型号：</label>
-                                    {{ new_task_form.turbine_model(class="selectpicker", id="turbine_model", data_style="btn-outline-0") }}
+                                    <select class="selectpicker" id="turbine_model" data-style="btn-outline-0"></select>                                    
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="form-group col-sm-6" style="margin-bottom: 0;">
                                     <label for="blade_model">叶片型号：</label>
-                                    {{ new_task_form.blade_model(class="selectpicker", id="blade_model", data_style="btn-outline-0") }}
+                                    <select class="selectpicker" id="blade_model" data-style="btn-outline-0"></select>                                    
                                 </div>
                                 <div class="form-group col-sm-6" style="margin-bottom: 0;">
                                     <label for="tower_type">塔架类型：</label>
-                                    {{ new_task_form.tower_type(class="selectpicker", id="tower_type", data_style="btn-outline-0") }}
+                                    <select class="selectpicker" id="tower_type" data-style="btn-outline-0"></select>                                    
                                 </div>
                             </div>
                             <div class="d-flex justify-content-between" style="height: 20px; cursor: pointer;" id="pulldowndiv"
@@ -311,7 +316,8 @@
                 <div class="modal-footer" style="padding-right: 0px;">
                     <div class="container-fluid" style="padding-right: 10px;">
                         <div class="d-flex justify-content-between">
-                            <div class="form-check p-2 align-self-center">                                
+                            <div class="form-check p-2 align-self-center">
+                                <!-- <input class="form-check-input" type="checkbox" value="" id="add-to-git" checked> -->
                                 {{ new_task_form.add_to_git(class="form-check-input", type="checkbox", id="add-to-git", checked=true) }}
                                 <label class="form-check-label" for="add-to-git" id="check-for-add-to-git">
                                     提交至Git仓库
@@ -332,12 +338,12 @@
 </div>
 
 <!-- EditTaskModal -->
-<div class="modal fade" id="EditTaskModal" tabindex="-1" role="dialog" aria-labelledby="EditTaskModal"
+<div class="modal fade" id="EditTaskModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editTaskModalLabel" style="font-weight: bold; color: #7952b3;">
+                <h5 class="modal-title" id="edit-task-modal-title" style="font-weight: bold; color: #7952b3;">
                     <i class="fas fa-edit"></i>
                     编辑任务
                 </h5>
@@ -346,7 +352,7 @@
                 </button>
             </div>
             <form method="POST" enctype="multipart/form-data" id="edit-task-form">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                {{ edit_task_form.csrf_token }}
                 <div class="modal-body">
                     <div class="form-group" id="task-name-in-edit-modal">
 
@@ -373,21 +379,21 @@
                             <div class="form-row">
                                 <div class="form-group col-sm-6">
                                     <label for="edit_turbine_platform">机型平台：</label>
-                                    {{ edit_task_form.turbine_platform(class="selectpicker", id="edit_turbine_platform", data_style="btn-outline-0") }}
+                                    <select class="selectpicker" id="edit_turbine_platform" data-style="btn-outline-0"></select>
                                 </div>
                                 <div class="form-group col-sm-6">
                                     <label for="edit_turbine_model">机组型号：</label>
-                                    {{ edit_task_form.turbine_model(class="selectpicker", id="edit_turbine_model", data_style="btn-outline-0") }}
+                                    <select class="selectpicker" id="edit_turbine_model" data-style="btn-outline-0"></select>                                    
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="form-group col-sm-6" style="margin-bottom: 0;">
                                     <label for="edit_blade_model">叶片型号：</label>
-                                    {{ edit_task_form.blade_model(class="selectpicker", id="edit_blade_model", data_style="btn-outline-0") }}
+                                    <select class="selectpicker" id="edit_blade_model" data-style="btn-outline-0"></select>                                    
                                 </div>
                                 <div class="form-group col-sm-6" style="margin-bottom: 0;">
                                     <label for="edit_tower_type">塔架类型：</label>
-                                    {{ edit_task_form.tower_type(class="selectpicker", id="edit_tower_type", data_style="btn-outline-0") }}
+                                    <select class="selectpicker" id="edit_tower_type" data-style="btn-outline-0"></select>                                    
                                 </div>
                             </div>
                             <div class="d-flex justify-content-between" style="height: 20px; cursor: pointer;" id="edit_pulldowndiv"
@@ -408,7 +414,7 @@
                                     
                                 </div>
                             </div>
-                        </div>
+                        </div> 
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -436,7 +442,7 @@
                 </button>
             </div>
             <form method="POST" id="delete-modal-form">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                {{ delete_task_form.csrf_token }}
                 <div class="modal-body">
                     {{ delete_task_form.taskname(id="delete-taskname", type="text", style="display: none") }}
                     <p></p>
@@ -528,21 +534,60 @@
         return values;
     }
 
-    $("#turbine_platform").on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {        
+    function init_select_choices(){
+        window.controllerTree = {{ controller_tree | tojson | safe }};
+        // 初始化select
+        $("#turbine_platform").empty();
+        for (property in controllerTree){
+            $("#turbine_platform").append('<option>' + property + '</option>')
+        } 
         $("#turbine_model").empty();
-        var turbine_platform_select = $("#turbine_platform option:selected").text();        
+        var turbine_platform_select = $("#turbine_platform option:selected").text();
         for (property in controllerTree[turbine_platform_select]){
-            $("#turbine_model").append('<option value=' + property + '>' + property + '</option>');
+            $("#turbine_model").append('<option>' + property + '</option>')
         }   
         $("#blade_model").empty();
         var turbine_model_select = $("#turbine_model option:selected").text();
         for (property in controllerTree[turbine_platform_select][turbine_model_select]){
-            $("#blade_model").append('<option value=' + property + '>' + property + '</option>');
+            $("#blade_model").append('<option>' + property + '</option>')
         }  
         $("#tower_type").empty();
         var blade_model_select = $("#blade_model option:selected").text();
         for (property in controllerTree[turbine_platform_select][turbine_model_select][blade_model_select]){
-            $("#tower_type").append('<option value=' + property + '>' + property + '</option>');
+            $("#tower_type").append('<option>' + property + '</option>')
+        }
+
+        $('.selectpicker').selectpicker('render');
+        $('.selectpicker').selectpicker('refresh');
+        showController();
+    }
+
+    function set_edit_selected_choices(){
+        
+        var turbine_platform_select = $("#turbine_platform option:selected").text();
+        var turbine_model_select = $("#turbine_model option:selected").text();
+        var blade_model_select = $("#blade_model option:selected").text();
+        var tower_type_select = $("#tower_type option:selected").text();
+        var controller = controllerTree[turbine_platform_select][turbine_model_select][blade_model_select][tower_type_select]
+        var controllerStr = controller[0] + '<br>' + controller[1];
+        $("#controllerInfo").html(controllerStr);
+    }
+
+    $("#turbine_platform").on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {        
+        $("#turbine_model").empty();
+        var turbine_platform_select = $("#turbine_platform option:selected").text();
+        for (property in controllerTree[turbine_platform_select]){
+            $("#turbine_model").append('<option>' + property + '</option>')
+        }   
+        $("#blade_model").empty();
+        var turbine_model_select = $("#turbine_model option:selected").text();
+        for (property in controllerTree[turbine_platform_select][turbine_model_select]){
+            $("#blade_model").append('<option>' + property + '</option>')
+        }  
+        $("#tower_type").empty();
+        var blade_model_select = $("#blade_model option:selected").text();
+        for (property in controllerTree[turbine_platform_select][turbine_model_select][blade_model_select]){
+            $("#tower_type").append('<option>' + property + '</option>')
         }
         $('.selectpicker').selectpicker('render');
         $('.selectpicker').selectpicker('refresh');
@@ -554,12 +599,12 @@
         var turbine_platform_select = $("#turbine_platform option:selected").text();
         var turbine_model_select = $("#turbine_model option:selected").text();
         for (property in controllerTree[turbine_platform_select][turbine_model_select]){
-            $("#blade_model").append('<option value=' + property + '>' + property + '</option>');
+            $("#blade_model").append('<option>' + property + '</option>')
         }   
         $("#tower_type").empty();
         var blade_model_select = $("#blade_model option:selected").text();
         for (property in controllerTree[turbine_platform_select][turbine_model_select][blade_model_select]){
-            $("#tower_type").append('<option value=' + property + '>' + property + '</option>');            
+            $("#tower_type").append('<option>' + property + '</option>')
         }
         $('.selectpicker').selectpicker('render');
         $('.selectpicker').selectpicker('refresh'); 
@@ -571,9 +616,8 @@
         var turbine_platform_select = $("#turbine_platform option:selected").text();
         var turbine_model_select = $("#turbine_model option:selected").text();
         var blade_model_select = $("#blade_model option:selected").text();
-        var tower_type_obj = controllerTree[turbine_platform_select][turbine_model_select][blade_model_select]        
-        for (property in tower_type_obj){
-            $("#tower_type").append('<option value=' + property + '>' + property + '</option>');
+        for (property in controllerTree[turbine_platform_select][turbine_model_select][blade_model_select]){
+            $("#tower_type").append('<option>' + property + '</option>')
         }
         $('.selectpicker').selectpicker('render');
         $('.selectpicker').selectpicker('refresh'); 
@@ -586,93 +630,6 @@
         showController();
     })
 
-    
-    function set_edit_selected_choices(tp, tm, bm, tt){
-        window.controllerTree = {{ controller_tree | tojson | safe }};
-        // 初始化select
-        $("#edit_turbine_platform").empty();
-        for (property in controllerTree){
-            $("#edit_turbine_platform").append('<option value=' + property + '>' + property + '</option>')
-        } 
-        $("#edit_turbine_model").empty();
-        for (property in controllerTree[tp]){
-            $("#edit_turbine_model").append('<option value=' + property + '>' + property + '</option>')
-        }   
-        $("#edit_blade_model").empty();
-        for (property in controllerTree[tp][tm]){
-            $("#edit_blade_model").append('<option value=' + property + '>' + property + '</option>');
-        }  
-        $("#edit_tower_type").empty();
-        for (property in controllerTree[tp][tm][bm]){
-            $("#edit_tower_type").append('<option value=' + property + '>' + property + '</option>');        
-        }
-         
-        var edit_controller = controllerTree[tp][tm][bm][tt]
-        var edit_controllerStr = edit_controller[0] + '<br>' + edit_controller[1];
-        $("#edit_controllerInfo").html(edit_controllerStr);        
-        
-        $('.selectpicker').selectpicker('render');
-        $('.selectpicker').selectpicker('refresh');
-    }
-    
-    $("#edit_turbine_platform").on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {        
-        $("#edit_turbine_model").empty();
-        var turbine_platform_select = $("#edit_turbine_platform option:selected").text();        
-        for (property in controllerTree[turbine_platform_select]){
-            $("#edit_turbine_model").append('<option value=' + property + '>' + property + '</option>');
-        }   
-        $("#edit_blade_model").empty();
-        var turbine_model_select = $("#edit_turbine_model option:selected").text();
-        for (property in controllerTree[turbine_platform_select][turbine_model_select]){
-            $("#edit_blade_model").append('<option value=' + property + '>' + property + '</option>');
-        }  
-        $("#edit_tower_type").empty();
-        var blade_model_select = $("#edit_blade_model option:selected").text();
-        for (property in controllerTree[turbine_platform_select][turbine_model_select][blade_model_select]){
-            $("#edit_tower_type").append('<option value=' + property + '>' + property + '</option>');
-        }
-        $('.selectpicker').selectpicker('render');
-        $('.selectpicker').selectpicker('refresh');
-        showEditController();     
-    })
-
-    $("#edit_turbine_model").on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {        
-        $("#edit_blade_model").empty();
-        var turbine_platform_select = $("#edit_turbine_platform option:selected").text();
-        var turbine_model_select = $("#edit_turbine_model option:selected").text();
-        for (property in controllerTree[turbine_platform_select][turbine_model_select]){
-            $("#edit_blade_model").append('<option value=' + property + '>' + property + '</option>');
-        }   
-        $("#edit_tower_type").empty();
-        var blade_model_select = $("#edit_blade_model option:selected").text();
-        for (property in controllerTree[turbine_platform_select][turbine_model_select][blade_model_select]){
-            $("#edit_tower_type").append('<option value=' + property + '>' + property + '</option>');            
-        }
-        $('.selectpicker').selectpicker('render');
-        $('.selectpicker').selectpicker('refresh'); 
-        showEditController();   
-    })
-
-    $("#edit_blade_model").on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {        
-        $("#edit_tower_type").empty();
-        var turbine_platform_select = $("#edit_turbine_platform option:selected").text();
-        var turbine_model_select = $("#edit_turbine_model option:selected").text();
-        var blade_model_select = $("#edit_blade_model option:selected").text();
-        var tower_type_obj = controllerTree[turbine_platform_select][turbine_model_select][blade_model_select]        
-        for (property in tower_type_obj){
-            $("#edit_tower_type").append('<option value=' + property + '>' + property + '</option>');
-        }
-        $('.selectpicker').selectpicker('render');
-        $('.selectpicker').selectpicker('refresh'); 
-        showEditController();  
-    })
-
-    $("#edit_tower_type").on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
-        $('.selectpicker').selectpicker('render');
-        $('.selectpicker').selectpicker('refresh');    
-        showEditController();
-    })
-
     function showController(){
         var turbine_platform_select = $("#turbine_platform option:selected").text();
         var turbine_model_select = $("#turbine_model option:selected").text();
@@ -682,21 +639,6 @@
         var controllerStr = controller[0] + '<br>' + controller[1];
         $("#controllerInfo").html(controllerStr);
     }
-
-    function showEditController(){
-        var turbine_platform_select = $("#edit_turbine_platform option:selected").text();
-        var turbine_model_select = $("#edit_turbine_model option:selected").text();
-        var blade_model_select = $("#edit_blade_model option:selected").text();
-        var tower_type_select = $("#edit_tower_type option:selected").text();
-        var controller = controllerTree[turbine_platform_select][turbine_model_select][blade_model_select][tower_type_select]
-        var controllerStr = controller[0] + '<br>' + controller[1];
-        $("#edit_controllerInfo").html(controllerStr);
-    }
-
-    $('#NewTaskModal').on('show.bs.modal', function () {
-        window.controllerTree = {{ controller_tree | tojson | safe }};
-        showController();
-    });
 
 
     $(document).ready(function () {
@@ -717,7 +659,7 @@
                     required: "任务名不能为空。"
                 },
                 bladed: {
-                    required: "需要上传Bladed模型。"
+                    required: "需要上传风机模型文件。"
                 }
             },
             errorPlacement: function (error, element) {      //错误信息的位置
@@ -787,15 +729,8 @@
         $("#input-bladed").fileinput({
             showPreview: false,
             showUpload: false,
-            // elErrorContainer: '#bladed-file-errors',
+            elErrorContainer: '#bladed-file-errors',
             allowedFileExtensions: ["$pj", "prj"],
-        }).on('fileloaded', function(event, numFiles, label) {
-            var bladedfileerrors = document.getElementById("bladed-file-errors");
-            bladedfileerrors.style.display = "none";
-        }).on('fileerror', function(event, data, msg) {
-            var bladedfileerrors = document.getElementById("bladed-file-errors");
-            bladedfileerrors.innerHTML = 'Invalid extension for file "' + data.file.name + '". Only "$pj, prj" files are supported.';
-            bladedfileerrors.style.display = "block";
         });
 
         $("#input-xml").fileinput({
@@ -806,9 +741,19 @@
         });
     });
 
+    $('#NewTaskModal').on('show.bs.modal', function () {
+        init_select_choices();
+    });
+
+    $('#EditTaskModal').on('show.bs.modal', function () {
+        
+    });
+
     $('#EditTaskModal').on('hidden.bs.modal', function () {
         $("#edit-bladed-file-input").find(".file-caption")[0].classList.remove("icon-visible")
+        $("#edit-xml-file-input").find(".file-caption")[0].classList.remove("icon-visible")
         $("#edit-bladed-file-input").find(".file-caption-name")[0].value = "";
+        $("#edit-xml-file-input").find(".file-caption-name")[0].value = "";
     });
 
     function openTask(taskname) {
@@ -835,49 +780,51 @@
         'click #edit-badge': function (e, value, row, index) {
             var pattern = /">(.+)</i;
             var taskName = pattern.exec(row.name)[1];
-            var info = {}
+            var files = {}
             var inputHtml = '<label for="edit-task-name" class="col-form-label"><label style="color: red">*</label>任务名:</label>{{ edit_task_form.taskname(class="form-control", type="text", id="edit-task-name", readonly=true) }}';
             $("#task-name-in-edit-modal").html(inputHtml);
+            // set_edit_selected_choices();
             $("#EditTaskModal").modal('show');
             $("#edit-task-name")[0].value = taskName;
 
             $.ajax({
                 type: 'POST',
-                url: "/task/info",
+                url: "/task/file",
                 dataType: "json",
                 contentType: 'application/json; charset=UTF-8',
                 data: JSON.stringify({
                     taskname: taskName
                 }),
                 success: function (data) { //成功的话，得到消息
-                    info = data;
-                    set_edit_selected_choices(info['turbine_platform'], info['turbine_model'], info['blade_model'], info['tower_type'])
-                    $("#edit_turbine_platform").selectpicker('val', info['turbine_platform']);
-                    $("#edit_turbine_model").selectpicker('val', info['turbine_model']);
-                    $("#edit_blade_model").selectpicker('val', info['blade_model']);
-                    $("#edit_tower_type").selectpicker('val', info['tower_type']);
+                    files = data;
                 },
                 complete: function () {
                     $("#edit-input-bladed").fileinput({
                         showPreview: false,
                         showUpload: false,
-                        // elErrorContainer: '#edit-bladed-file-errors',
+                        elErrorContainer: '#edit-bladed-file-errors',
                         allowedFileExtensions: ["$pj", "prj"],
                         // initialCaption: files.bladed.filename
-                    }).on('fileloaded', function(event, numFiles, label) {
-                        var bladedfileerrors = document.getElementById("edit-bladed-file-errors");
-                        bladedfileerrors.style.display = "none";
-                    }).on('fileerror', function(event, data, msg) {
-                        var bladedfileerrors = document.getElementById("edit-bladed-file-errors");
-                        bladedfileerrors.innerHTML = 'Invalid extension for file "' + data.file.name + '". Only "$pj, prj" files are supported.';
-                        bladedfileerrors.style.display = "block";
                     });
-                    // $("#edit-bladed-file-errors")[0].classList.value = "invalid-feedback";
-                    
-                    $("#edit-bladed-file-input").find(".file-caption-name")[0].value = info.bladed;
-                    if (info.bladed) {
+                    $("#edit-bladed-file-errors")[0].classList.value = "invalid-feedback";
+
+                    $("#edit-input-xml").fileinput({
+                        showPreview: false,
+                        showUpload: false,
+                        elErrorContainer: '#edit-xml-file-errors',
+                        allowedFileExtensions: ["xml"]
+                    });
+                    $("#edit-xml-file-errors")[0].classList.value = "invalid-feedback";
+                    $("#edit-select-symbol")[0].selectedIndex = files.symbol.index;
+                    $("#edit-bladed-file-input").find(".file-caption-name")[0].value = files.bladed.filename;
+                    $("#edit-xml-file-input").find(".file-caption-name")[0].value = files.xml.filename;
+                    if (files.bladed.filename) {
                         $("#edit-bladed-file-input").find(".file-caption")[0].classList.add("icon-visible");
                         $("#edit-bladed-file-input").find(".file-caption-icon").html('<i class="fas fa-file"></i>');
+                    }
+                    if (files.xml.filename) {
+                        $("#edit-xml-file-input").find(".file-caption")[0].classList.add("icon-visible");
+                        $("#edit-xml-file-input").find(".file-caption-icon").html('<i class="fas fa-file"></i>');
                     }
                 }
             });
@@ -1010,7 +957,6 @@
         getData();
         // $('[data-toggle="tooltip"]').tooltip({ container: 'modal-content' });
     });
-    
 </script>
 
 {% endblock content %}

@@ -878,7 +878,7 @@
 
     function editModeSwitch() {
         $(function () {
-            $('#P_MaximumGeneratorTorque-symbol').val(Math.round(('#P_DMGT-bladed').val() * 1.1));
+            $('#P_MaximumGeneratorTorque-symbol').val(Math.round($('#P_DMGT-bladed').val() * 1.1));
             $('#P_SteadyShaftPowerLimit-symbol').val(($('#P_RatedGeneratorSpeed-symbol').val() * Number($('#P_DMGT-bladed').val())).toFixed(1));
             $('#P_OptimalModeGain-symbol').val($('#P_OptimalModeGain-bladed').val());
         })
@@ -1584,6 +1584,9 @@
             complete: function () {
             }
         });
+    }
+
+    window.onload = function(){
     }
 
 </script>

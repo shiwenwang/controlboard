@@ -5,7 +5,7 @@ from sqlalchemy import and_, or_
 from app.forms import NewTaskForm, EditTaskForm, WorkingForm
 from app.models import User, Task, load_user
 from app.extend.symbol import SymbolDB, XML
-from app.extend.bladed import Bladed, Mode  
+from app.extend.bladed import Bladed, Mode
 from app.extend.git import git_commit_push
 from app import db
 
@@ -81,21 +81,23 @@ def table_data():
     return jsonify(data)
 
 
-@task.route('file', methods=['GET', 'POST'])
+@task.route('info', methods=['GET', 'POST'])
 @login_required
-def file_info():
-    files = {}
+def task_info():
+    info = {}
     form = EditTaskForm()
     task_name = form.taskname.data
     _task = Task.query.filter_by(name=task_name).first()
+    turbine_platform, turbine_model, blade_model, tower_type = tuple(
+        re.split(r'[\\/]', _task.controller_src)[-4:])
     if task is not None:
-        files['bladed'] = {
-            'filename': _task.bladed_filename, 'url': _task.bladed_url}
-        files['xml'] = {'filename': _task.xml_filename, 'url': _task.xml_url}
-        files['symbol'] = {
-            'index': _task.symbol_index, 'url': _task.symbol_url}
+        info['bladed'] = _task.bladed_filename
+        info['turbine_platform'] = turbine_platform
+        info['turbine_model'] = turbine_model
+        info['blade_model'] = blade_model
+        info['tower_type'] = tower_type
 
-    return jsonify(files)
+    return jsonify(info)
 
 
 @task.route('enter', methods=['POST'])
@@ -179,9 +181,10 @@ def initial_value(taskname, obj):
         if not os.path.exists(db_symbol_path):
             return jsonify(symbols_value)
         db_symbol.load_db(db_symbol_path)
-        db_symbol.connect()        
+        db_symbol.connect()
 
-        p_name = [p for p in symbols_name.keys() if 'P_' in p and p not in only_in_bladed]
+        p_name = [p for p in symbols_name.keys(
+        ) if 'P_' in p and p not in only_in_bladed]
         f_name = [p for p in symbols_name.keys() if 'F_' in p]
         t_name = [p for p in symbols_name.keys() if 'T_' in p]
         p_queried = db_symbol.multi_query(p_name)
@@ -203,7 +206,7 @@ def initial_value(taskname, obj):
                 f'<input type="text" class="table-value text-primary" id="{name}-symbol" disabled value="{p_queried[name].at["Initial_Value"]}"'
                 f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
                 'description': symbols_name[name]["description_zh"]
-                }
+            }
                 for name in symbols_name.keys() if 'P_' in name
             ]
             symbols_value['schedules'] = [{
@@ -404,7 +407,8 @@ def set_value(taskname, obj):
     cfg = current_app.config
     git_path = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username)
 
-    bladed_data = {k.split('-')[0]: v.strip() for k, v in data.items() if '-bladed' in k}
+    bladed_data = {k.split('-')[0]: v.strip()
+                   for k, v in data.items() if '-bladed' in k}
     symbol_data = {k: v.strip() for k, v in data.items() if '-bladed' not in k}
 
     if bladed_data:
@@ -412,7 +416,7 @@ def set_value(taskname, obj):
             symbols_name = OrderedDict(json.load(f))
 
         bladed = Bladed(os.path.join(dest, _task.bladed_filename))
-        bladed_args = {symbols_name[k]['bladed']: v for k, v in bladed_data.items()}
+        bladed_args = {symbols_name[k]['bladed']                       : v for k, v in bladed_data.items()}
         bladed.set(**bladed_args)
 
     if symbol_data and obj == 'symbol':
@@ -463,7 +467,8 @@ def set_value(taskname, obj):
         #     f.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f'\n{new_name}\n' + description)
         #     f.write('\n=================\n\n')
         with open(readme_path, 'a+', encoding="utf-8") as f:
-            f.write("#### " + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' - {new_name}\n')
+            f.write(
+                "#### " + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' - {new_name}\n')
             f.write("> " + description + '\n\n')
 
         # git_commit_push(git_path, description, wait_push=True)
@@ -510,7 +515,7 @@ def search_list(taskname, obj):
 
 @task.route('search/<taskname>/<obj>/<param>', methods=['POST'])
 @login_required
-def search(taskname, obj, param):    
+def search(taskname, obj, param):
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
     dest = os.path.join(current_app.config.get(
@@ -524,7 +529,8 @@ def search(taskname, obj, param):
         db_symbol.load_db(db_symbol_path)
         db_symbol.connect()
 
-        p_queried = {} if param[:2] in ['F_', 'T_'] else db_symbol.multi_query([param])
+        p_queried = {} if param[:2] in [
+            'F_', 'T_'] else db_symbol.multi_query([param])
         f_queried = {} if 'F_' not in param else db_symbol.multi_query([param])
         t_queried = {} if 'T_' not in param else db_symbol.multi_query([param])
         db_symbol.close()
@@ -540,7 +546,7 @@ def search(taskname, obj, param):
                 f'disabled value="{value.at["Initial_Value"]}"'
                 f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
                 'description': value.at["Description_en_GB"]
-                }
+            }
                 for name, value in p_queried.items()
             ]
             symbols_value['schedules'] = [{
@@ -761,7 +767,8 @@ def campbell(taskname):
         'CALCULATION_DEST'), user.username, taskname)
     if not os.path.isdir(calc_folder):
         os.makedirs(calc_folder)
-    bladed_path = os.path.abspath(os.path.join(file_folder, _task.bladed_filename))
+    bladed_path = os.path.abspath(
+        os.path.join(file_folder, _task.bladed_filename))
     run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))
 
     bladed = Bladed(bladed_path)
@@ -784,7 +791,7 @@ def check_lin1_cm(run_dir):
 @login_required
 def mode_check(taskname):
     time.sleep(30)
-    _task = Task.query.filter_by(name=taskname).first()    
+    _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
     calc_folder = os.path.join(current_app.config.get(
         'CALCULATION_DEST'), user.username, taskname)
@@ -802,7 +809,7 @@ def mode_check(taskname):
 @task.route('mode/<taskname>', methods=['POST'])
 @login_required
 def mode(taskname):
-    _task = Task.query.filter_by(name=taskname).first()    
+    _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
     calc_folder = os.path.join(current_app.config.get(
         'CALCULATION_DEST'), user.username, taskname)

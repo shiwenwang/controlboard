@@ -4,7 +4,7 @@
 @Author: wangshiwen@36719
 @Date: 2019-10-02 15:42:57
 @LastEditors  : wangshiwen@36719
-@LastEditTime : 2019-12-25 10:14:40
+@LastEditTime : 2020-01-02 14:43:03
 '''
 import os
 from datetime import timedelta
@@ -17,15 +17,11 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOADS_DEFAULT_DEST = os.getenv('CONTROLLER_REPOSITORY', os.path.abspath(os.path.join(basedir, '../repository')))
     UPLOADED_BLADED_DEST = UPLOADS_DEFAULT_DEST
-    UPLOADED_SYMBOL_DEST = UPLOADS_DEFAULT_DEST
-    UPLOADED_XML_DEST = UPLOADS_DEFAULT_DEST
-    UPLOADS_TEMPL_DEST = os.getenv('CONTROLLER_DLL', os.path.join(UPLOADS_DEFAULT_DEST, 'symbols'))
-    CALCULATION_DEST = os.path.abspath(os.path.join(basedir, '../calculation'))
+    # UPLOADED_SYMBOL_DEST = UPLOADS_DEFAULT_DEST
+    # UPLOADED_XML_DEST = UPLOADS_DEFAULT_DEST
+    UPLOADS_CONTROLLER_SRC = os.getenv('CONTROLLER_POSITION', os.path.join(UPLOADS_DEFAULT_DEST, '../controller'))
+    CALCULATION_DEST = os.getenv('CALCULATION_POSTION', os.path.abspath(os.path.join(basedir, '../calculation')))
     SEND_FILE_MAX_AGE_DEFAULT = timedelta(seconds=1)
-
-    @staticmethod
-    def init_app(app):
-        pass
 
 
 class DevelopmentConfig(Config):

@@ -3,8 +3,8 @@
 @version: 
 @Author: wangshiwen@36719
 @Date: 2019-10-02 14:35:27
-@LastEditors: wangshiwen@36719
-@LastEditTime: 2019-12-26 15:12:34
+@LastEditors  : wangshiwen@36719
+@LastEditTime : 2020-01-02 17:28:53
 '''
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -20,16 +20,16 @@ import os, json, yaml, logging
 csrf = CSRFProtect()
 db = SQLAlchemy()
 login_manager = LoginManager()
-bladed = UploadSet('bladed', ('$PJ', 'PRJ', '$pj', 'prj'))
-symbol = UploadSet('symbol', ('xls', 'xlsx'))
-xml = UploadSet('xml', ('xml', 'ini', 'txt'))
-usets = (bladed, symbol, xml)
+bladed = UploadSet('bladed', ('$pj', 'prj', '$PJ'))
+# dll = UploadSet('dll', ('dll', ))
+# xml = UploadSet('xml', ('xml', 'ini', 'txt'))
+usets = (bladed,)
 
 
 def create_app(config_name):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config[config_name])
-    config[config_name].init_app(app)
+    # config[config_name].init_app(app)
     # dictConfig(json.load(open(os.path.join(app.instance_path, 'logging.json'), 'r')))
     # dictConfig(yaml.load(open(os.path.join(app.instance_path, 'logging.conf')), Loader=yaml.FullLoader))
 
@@ -38,7 +38,7 @@ def create_app(config_name):
     migrate = Migrate(app, db)
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
-    configure_uploads(app, (bladed, symbol, xml))
+    configure_uploads(app, (bladed, ))
     patch_request_class(app)
 
     from app.auth import auth

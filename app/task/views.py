@@ -309,7 +309,7 @@ def initial_value(taskname, obj):
             xml.open(xml_path)
         except FileNotFoundError:
             return jsonify(symbols_value)
-        xml_values = {name: "" if name in only_in_bladed and name in xml.find(name).keys() else xml.find(name)[name] for name in symbols_name.keys()}
+        xml_values = {name: "" if name in only_in_bladed and name not in xml.find(name).keys() else xml.find(name)[name] for name in symbols_name.keys()}
 
         if task is not None:
             for name, value in xml_values.items():

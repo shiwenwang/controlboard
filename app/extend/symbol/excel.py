@@ -274,7 +274,7 @@ class SymbolDB:
         :return:
         """
         if not self.is_connect():
-            return []
+            return {}
 
         if sheet_name in ['Schedules', 'Filters']:
             # T表返回DataFrame格式, 存放于以变量名为键值的字典中

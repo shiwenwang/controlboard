@@ -4,7 +4,7 @@
 @Author: wangshiwen@36719
 @Date: 2019-12-06 17:29:24
 @LastEditors  : wangshiwen@36719
-@LastEditTime : 2020-01-05 19:11:55
+@LastEditTime : 2020-01-06 15:15:03
 '''
 import os
 import re
@@ -71,8 +71,25 @@ class Mode():
     
     def get_damp(self, mode_name, only_mean_value=True):
         mode = self.get_mode(mode_name)
-        damps = [float(d) for d in mode['DAMP']]
+        damps = [float(d) for d in mode['DAMP'] if self.is_number(d) if self.is_number(d)]
         if only_mean_value:
             damp_mean = sum(damps)/len(damps) if damps else 0
             return '{:f}'.format(damp_mean)
         return damps
+
+    @staticmethod
+    def is_number(s):
+        try:
+            float(s)
+            return True
+        except ValueError:
+            pass
+    
+        try:
+            import unicodedata
+            unicodedata.numeric(s)
+            return True
+        except (TypeError, ValueError):
+            pass
+    
+        return False

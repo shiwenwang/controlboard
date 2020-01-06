@@ -309,15 +309,8 @@ def initial_value(taskname, obj):
             xml.open(xml_path)
         except FileNotFoundError:
             return jsonify(symbols_value)
-        
-        # xml_values = {name: "" if name in only_in_bladed and not xml.find(name) else xml.find(name)[name] for name in symbols_name.keys()}
-        names = [p for p in symbols_name.keys()]
-        xml_values = {}
-        for name in names:
-            if name in only_in_bladed:
-                xml_values[name] = ""
-                continue
-            xml_values.update(xml.find(name))
+
+        xml_values = {name: "" if name in only_in_bladed else xml.find(name)[name] for name in symbols_name.keys() if xml.find(name)}
 
         if task is not None:
             for name, value in xml_values.items():
@@ -645,6 +638,17 @@ def search(taskname, obj, param):
             ]
 
     if obj == 'xml':
+        symbols_db_path = os.path.join(current_app.instance_path, 'symbols.db')
+
+        pattern = re.compile(r'\d+$')
+        symbols = SymbolDB()
+        symbols.load_db(symbols_db_path)
+        symbols.connect()
+        queried = symbols.multi_query([param])
+        symbols.close()
+        
+        queried = {pattern.sub("", k, 1): v for k, v in queried.items()}
+
         xml_path = os.path.join(dest, _task.xml_filename)
         xml = XML()
         try:
@@ -652,96 +656,96 @@ def search(taskname, obj, param):
         except FileNotFoundError:
             return jsonify(symbols_value)
 
-        xml_values = xml.find(param)
+        xml_values = xml.find(param)        
+        value = xml_values[param]
 
         if task is not None:
-            for name, value in xml_values.items():
-                if 'P_' in name:
-                    symbols_value['params'].append({
-                        'name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                        f'{name}">{name}</span>',
-                        'bladed_value': '-',
-                        'symbol_value':
-                        f'<input type="text" class="table-value text-primary" id="{name}-symbol" disabled value="{value}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        'description': ""
-                    })
-                if 'T_' in name:
-                    for index in value.index:
-                        symbols_value['schedules'].append({
-                            'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                            f'{name}">{name}</span>',
-                            'Enabled':
-                                f'<input type="text" class="table-value enable-col  text-danger" id="{name}{index}-Enabled" disabled value="{value.at[0, "Enabled"]}"'
-                                f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
-                            'Display_Name': '-',
-                            '0': '-' if '_0' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-0" disabled value="{value.at[index, "_0"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '1': '-' if '_1' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-1" disabled value="{value.at[index, "_1"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '2': '-' if '_2' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-2" disabled value="{value.at[index, "_2"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '3': '-' if '_3' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-3" disabled value="{value.at[index, "_3"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '4': '-' if '_4' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-4" disabled value="{value.at[index, "_4"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '5': '-' if '_5' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-5" disabled value="{value.at[index, "_5"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '6': '-' if '_6' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-6" disabled value="{value.at[index, "_6"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '7': '-' if '_7' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-7" disabled value="{value.at[index, "_7"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '8': '-' if '_8' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-8" disabled value="{value.at[index, "_8"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '9': '-' if '_9' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-9" disabled value="{value.at[index, "_9"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">'
-                        })
-                if 'F_' in name:
-                    for index in value.index:
-                        symbols_value['filters'].append({
-                            'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                            f'{name}">{name}</span>',
-                            'Enabled':
-                            f'<input type="text" class="table-value enable-col text-danger" id="{name}{index}-Enabled" disabled value="{value.at[index, "Enabled"]}"'
+            if 'P_' in param:
+                symbols_value['params'].append({
+                    'name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
+                    f'{queried[param].at["Description_en_GB"] if param in queried.keys() else param}">{param}</span>',
+                    'bladed_value': '-',
+                    'symbol_value':
+                    f'<input type="text" class="table-value text-primary" id="{param}-symbol" disabled value="{param}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    'description': ""
+                })
+            if 'T_' in param:
+                for index in value.index:
+                    symbols_value['schedules'].append({
+                        'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
+                        f'{queried[param].at["Description_en_GB"] if param in queried.keys() else param}">{param}</span>',
+                        'Enabled':
+                            f'<input type="text" class="table-value enable-col  text-danger" id="{param}{index}-Enabled" disabled value="{value.at[0, "Enabled"]}"'
                             f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
-                            'Display_Name': f'{index+1}',
-                            'Numerator_Type': value.at[index, "Numerator_Type"],
-                            'Denominator_Type': value.at[index, "Denominator_Type"],
-                            'Numerator_TC': value.at[index, "Numerator_TC"],
-                            # f'<input type="text" class="table-value" disabled value="{value.at[index, "Numerator_TC"]}"'
-                            # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            'Denominator_TC': value.at[index, "Denominator_TC"],
-                            # f'<input type="text" class="table-value" disabled value="{value.at[index, "Denominator_TC"]}"'
-                            # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            'Numerator_Frequency':
-                            f'<input type="text" class="table-value num-frequency-col text-primary" id="{name}{index}-Numerator_Frequency" disabled value="{value.at[index, "Numerator_Frequency"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}{index}-Numerator_Frequency\', \'{name}{index}-Denominator_Frequency\')">',
-                            'Numerator_Damping_Ratio':
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-Numerator_Damping_Ratio" disabled value="{value.at[index, "Numerator_Damping_Ratio"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            'Denominator_Frequency':
-                            f'<input type="text" class="table-value den-frequency-col text-primary" id="{name}{index}-Denominator_Frequency" disabled value="{value.at[index, "Denominator_Frequency"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}{index}-Denominator_Frequency\', \'{name}{index}-Numerator_Frequency\')">',
-                            'Denominator_Damping_Ratio':
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-Denominator_Damping_Ratio" disabled value="{value.at[index, "Denominator_Damping_Ratio"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            'W0':
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-W0" disabled value="{value.at[index, "W0"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            'Prewarping_Wc':
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-Prewarping_Wc" disabled value="{value.at[index, "Prewarping_Wc"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        })
+                        'Display_Name': '-',
+                        '0': '-' if '_0' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{param}{index}-0" disabled value="{value.at[index, "_0"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                        '1': '-' if '_1' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{param}{index}-1" disabled value="{value.at[index, "_1"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                        '2': '-' if '_2' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{param}{index}-2" disabled value="{value.at[index, "_2"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                        '3': '-' if '_3' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{param}{index}-3" disabled value="{value.at[index, "_3"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                        '4': '-' if '_4' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{param}{index}-4" disabled value="{value.at[index, "_4"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                        '5': '-' if '_5' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{param}{index}-5" disabled value="{value.at[index, "_5"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                        '6': '-' if '_6' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{param}{index}-6" disabled value="{value.at[index, "_6"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                        '7': '-' if '_7' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{param}{index}-7" disabled value="{value.at[index, "_7"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                        '8': '-' if '_8' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{param}{index}-8" disabled value="{value.at[index, "_8"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                        '9': '-' if '_9' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{param}{index}-9" disabled value="{value.at[index, "_9"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">'
+                    })
+            if 'F_' in param:
+                for index in value.index:
+                    symbols_value['filters'].append({
+                        'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
+                        f'{queried[param].at["Description_en_GB"] if param in queried.keys() else param}">{param}</span>',
+                        'Enabled':
+                        f'<input type="text" class="table-value enable-col text-danger" id="{param}{index}-Enabled" disabled value="{value.at[index, "Enabled"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
+                        'Display_Name': f'{index+1}',
+                        'Numerator_Type': value.at[index, "Numerator_Type"],
+                        'Denominator_Type': value.at[index, "Denominator_Type"],
+                        'Numerator_TC': value.at[index, "Numerator_TC"],
+                        # f'<input type="text" class="table-value" disabled value="{value.at[index, "Numerator_TC"]}"'
+                        # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                        'Denominator_TC': value.at[index, "Denominator_TC"],
+                        # f'<input type="text" class="table-value" disabled value="{value.at[index, "Denominator_TC"]}"'
+                        # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                        'Numerator_Frequency':
+                        f'<input type="text" class="table-value num-frequency-col text-primary" id="{param}{index}-Numerator_Frequency" disabled value="{value.at[index, "Numerator_Frequency"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{param}{index}-Numerator_Frequency\', \'{param}{index}-Denominator_Frequency\')">',
+                        'Numerator_Damping_Ratio':
+                        f'<input type="text" class="table-value text-primary" id="{param}{index}-Numerator_Damping_Ratio" disabled value="{value.at[index, "Numerator_Damping_Ratio"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                        'Denominator_Frequency':
+                        f'<input type="text" class="table-value den-frequency-col text-primary" id="{param}{index}-Denominator_Frequency" disabled value="{value.at[index, "Denominator_Frequency"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{param}{index}-Denominator_Frequency\', \'{param}{index}-Numerator_Frequency\')">',
+                        'Denominator_Damping_Ratio':
+                        f'<input type="text" class="table-value text-primary" id="{param}{index}-Denominator_Damping_Ratio" disabled value="{value.at[index, "Denominator_Damping_Ratio"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                        'W0':
+                        f'<input type="text" class="table-value text-primary" id="{param}{index}-W0" disabled value="{value.at[index, "W0"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                        'Prewarping_Wc':
+                        f'<input type="text" class="table-value text-primary" id="{param}{index}-Prewarping_Wc" disabled value="{value.at[index, "Prewarping_Wc"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    })
 
     return jsonify(symbols_value)
 

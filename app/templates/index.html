@@ -12,6 +12,7 @@
 
 {% block styles %}
 {{ super() }}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/my_select.css') }}">
 <style>
     .alert {
         position: fixed;
@@ -31,47 +32,7 @@
     .thead {
         font-size: 13px;
     }
-
-    .btn-outline-0 {
-        color: #007bff;
-        background-color: transparent;
-        border-color: #ced4da;
-    }
-
-    .btn-outline-0:hover {
-        color: #007bff;
-        border-color: #007bff;
-    }
-
-    .btn-outline-0:focus,
-    .btn-outline-0.focus {
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.5);
-    }
-
-    .btn-outline-0.disabled,
-    .btn-outline-0:disabled {
-        color: #007bff;
-        background-color: transparent;
-        border-color: #ced4da;
-    }
-
-    .btn-outline-0:not(:disabled):not(.disabled):active,
-    .btn-outline-0:not(:disabled):not(.disabled).active,
-    .show>.btn-outline-0.dropdown-toggle {
-        color: #007bff;
-        background-color: transparent;
-        border-color: #007bff;
-    }
-
-    .btn-outline-0:not(:disabled):not(.disabled):active:focus,
-    .btn-outline-0:not(:disabled):not(.disabled).active:focus,
-    .show>.btn-outline-0.dropdown-toggle:focus {
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.5);
-    }
-
-    .dropdown-menu {
-        box-shadow: rgb(136, 136, 136) 0px 3px 3px;
-    }
+    
 </style>
 {% endblock styles %}
 
@@ -219,7 +180,7 @@
                         values="0 0; 0 20; 0 0" begin="0.4s" dur="0.6s" repeatCount="indefinite"></animateTransform>
                 </rect>
             </svg>
-            <p style="color: white;" Bold id="savingModalText">正在上传......</p>
+            <p style="color: white;" Bold id="savingModalText">正在新建任务......</p>
         </div>
     </div>
 </div>
@@ -321,7 +282,7 @@
                             <div class="p-2">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
                                 {{ new_task_form.create_submit(class="btn btn-primary", type="submit", value="保存",
-                                onclick="loadingShow('creat')") }}
+                                onclick="loadingShow('create')") }}
                             </div>
                         </div>
                     </div>
@@ -454,8 +415,10 @@
     </div>
 </div>
 
-<script type="text/javascript">
+<script type="text/javascript">    
+    // 避免select第一次点击无效 
     $('select').selectpicker();    
+
     function loadingShow(mode) {
         if ($("#task-name").val() == "" || $("#input-bladed").val() == "") {
             return;

@@ -285,26 +285,39 @@ def initial_value(taskname, obj):
             ]
 
     if obj == 'xml':
+        symbols_db_path = os.path.join(current_app.instance_path, 'symbols.db')
+
+        pattern = re.compile(r'\d+$')
+        symbols = SymbolDB()
+        symbols.load_db(symbols_db_path)
+        symbols.connect()
+
+        p_name = [p for p in symbols_name.keys() if 'P_' in p and p not in only_in_bladed]
+        f_name = [p for p in symbols_name.keys() if 'F_' in p]
+        t_name = [p for p in symbols_name.keys() if 'T_' in p]
+        p_queried = symbols.multi_query(p_name)
+        f_queried = symbols.multi_query(f_name)
+        t_queried = symbols.multi_query(t_name)
+        symbols.close()
+
+        t_queried = {pattern.sub("", k, 1): v for k, v in t_queried.items()}
+        f_queried = {pattern.sub("", k, 1): v for k, v in f_queried.items()}
+
         xml_path = os.path.join(dest, _task.xml_filename)
         xml = XML()
         try:
             xml.open(xml_path)
         except FileNotFoundError:
             return jsonify(symbols_value)
-        names = [p for p in symbols_name.keys()]
-        xml_values = {}
-        for name in names:
-            if name in only_in_bladed:
-                xml_values[name] = ""
-                continue
-            xml_values.update(xml.find(name))
+        xml_values = {name: "" if name in only_in_bladed else xml.find(name)[name] for name in symbols_name.keys()}
 
         if task is not None:
             for name, value in xml_values.items():
                 if 'P_' in name:
                     symbols_value['params'].append({
-                        'name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                        f'{symbols_name[name]["description_zh"]}">{name}</span>',
+                        'name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'                        
+                        f'{p_queried[name].at["Description_en_GB"] if name not in only_in_bladed and name in p_queried.keys() else symbols_name[name]["description_zh"]}'
+                        f'">{name}</span>',
                         'bladed_value': '-' if not symbols_name[name]['bladed'] else
                         f'<input type="text" class="table-value text-primary" id="{name}-bladed" disabled value="{bladed.query(symbols_name[name]["bladed"])[1]}"'
                         f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
@@ -317,7 +330,7 @@ def initial_value(taskname, obj):
                     for index in value.index:
                         symbols_value['schedules'].append({
                             'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                            f'{symbols_name[name]["description_zh"]}">{name}</span>',
+                            f'{t_queried[name].at["Description_en_GB"]}">{name}</span>',
                             'Enabled':
                                 f'<input type="text" class="table-value enable-col  text-danger" id="{name}{index}-Enabled" disabled value="{value.at[0, "Enabled"]}"'
                                 f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
@@ -357,7 +370,7 @@ def initial_value(taskname, obj):
                     for index in value.index:
                         symbols_value['filters'].append({
                             'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                            f'{symbols_name[name]["description_zh"]}">{name}</span>',
+                            f'{f_queried[name].at["Description_en_GB"]}">{name}</span>',
                             'Enabled':
                             f'<input type="text" class="table-value enable-col text-danger" id="{name}{index}-Enabled" disabled value="{value.at[index, "Enabled"]}"'
                             f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
@@ -459,17 +472,16 @@ def set_value(taskname, obj):
         t_list = [p for p in symbol_data if 'P_' not in p]
         xml.update(p_list, t_list, **fine_data)
 
-        readme_path = os.path.join(dest, 'readme.txt')
-        readme_path = os.path.join(dest, 'README.md')
+        readme_text = os.path.join(dest, 'README.txt')
+        with open(readme_text, 'a') as f:
+            spec = ("")
+            f.write(spec)
 
-        # with open(readme_path, 'a+') as f:
-        #     f.write('=================\n')
-        #     f.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f'\n{new_name}\n' + description)
-        #     f.write('\n=================\n\n')
-        with open(readme_path, 'a+', encoding="utf-8") as f:
-            f.write(
-                "#### " + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' - {new_name}\n')
-            f.write("> " + description + '\n\n')
+        # readme_path = os.path.join(dest, 'README.md')
+        # with open(readme_path, 'a+', encoding="utf-8") as f:
+        #     f.write(
+        #         "#### " + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' - {new_name}\n')
+        #     f.write("> " + description + '\n\n')
 
         # git_commit_push(git_path, description, wait_push=True)
         _task.status = "Dirty" if _task.isgitted else "Saved"
@@ -781,9 +793,9 @@ def campbell(taskname):
         return jsonify({'calc': False})
 
 
-def check_lin1_cm(run_dir):
+def check_lin1_cm(run_dir, _task):
     while not os.path.exists(os.path.join(run_dir, 'lin1.$CM')):
-        time.sleep(5)
+        time.sleep(2)
         continue
 
 
@@ -797,9 +809,18 @@ def mode_check(taskname):
         'CALCULATION_DEST'), user.username, taskname)
     run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))
 
-    p_check = Process(target=check_lin1_cm, args=(run_dir, ))
+    p_check = Process(target=check_lin1_cm, args=(run_dir, _task))
     p_check.start()
-    p_check.join(720)  # 最长运行12分钟
+    p_check.join(600)  # 最长运行12分钟    
+    
+    mode = Mode(run_dir)
+    names = ','.join(mode.mode_names)
+    freqs = ','.join(mode.get_modes()['freqs'])
+    damps = ','.join(mode.get_modes()['damps'])
+    _task.mode_names = names
+    _task.mode_freqs = freqs
+    _task.mode_damps = damps
+    db.session.commit()
 
     result = {"completed": True} if os.path.exists(os.path.join(run_dir, 'lin1.$CM')) else \
              {"completed": False}
@@ -810,10 +831,6 @@ def mode_check(taskname):
 @login_required
 def mode(taskname):
     _task = Task.query.filter_by(name=taskname).first()
-    user = User.query.filter_by(id=_task.user_id).first()
-    calc_folder = os.path.join(current_app.config.get(
-        'CALCULATION_DEST'), user.username, taskname)
-    run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))
 
     mode_map = {
         '3.82': 'Tower side-side mode 1',
@@ -822,13 +839,29 @@ def mode(taskname):
         '4.7': 'Tower 1st side-side mode',
     }
 
-    if os.path.exists(os.path.join(run_dir, 'lin1.$CM')):
-        mode = Mode(run_dir)
-        tower_mode_1 = mode.get_freq(mode_map[_task.bladed_version])
-    else:
-        tower_mode_1 = _task.tower_mode_1
+    if _task.mode_names is None:
+        return jsonify({})
+    names, freqs, damps = _task.mode_names.split(','), _task.mode_freqs.split(','), _task.mode_damps.split(',')
 
-    return jsonify({'freq': tower_mode_1})
+    table_data = [{"name": name, "freq": freqs[i], "damp": damps[i]} for i, name in enumerate(names)]
+    modes_data = {name: freqs[i] for i, name in enumerate(names)}
+    data = {"table_data": table_data, "modes": modes_data, "tower_mode_1": mode_map[_task.bladed_version]}
+    # {"names": names, "freqs": freqs, "damps": damps}
+    # user = User.query.filter_by(id=_task.user_id).first()
+    # calc_folder = os.path.join(current_app.config.get(
+    #     'CALCULATION_DEST'), user.username, taskname)
+    # run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))    
+
+    # freqs = {}
+    # if os.path.exists(os.path.join(run_dir, 'lin1.$CM')):
+    #     mode = Mode(run_dir)
+    #     freqs = mode.get_freqs()
+    #     # tower_mode_1 = mode.get_freq(mode_map[_task.bladed_version])
+    # else:
+    #     freqs = {"tower_mode_1": _task.tower_mode_1}
+    #     # tower_mode_1 = _task.tower_mode_1
+
+    return jsonify(data)
 
 
 @task.route('compiling/<taskname>', methods=['GET', 'POST'])

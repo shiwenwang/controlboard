@@ -4,7 +4,7 @@
 @Author: wangshiwen@36719
 @Date: 2019-10-02 15:49:42
 @LastEditors  : wangshiwen@36719
-@LastEditTime : 2020-01-02 15:30:31
+@LastEditTime : 2020-01-05 16:31:27
 '''
 from app import db, login_manager
 from datetime import datetime
@@ -52,7 +52,10 @@ class Task(db.Model):
     dll_filename = db.Column(db.String(128))
     controller_src = db.Column(db.String(256))
 
-    tower_mode_1 = db.Column(db.Float)
+    # tower_mode_1 = db.Column(db.Float)
+    mode_names = db.Column(db.String(256))
+    mode_freqs = db.Column(db.String(256))
+    mode_damps = db.Column(db.String(256))
 
     @staticmethod
     def date_str(datestamp):

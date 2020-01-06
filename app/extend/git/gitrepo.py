@@ -107,13 +107,13 @@ def git_commit_push(git_path, commit_str, wait_push=False):
         repo.easy_push()
 
 
-def git_remove_push(git_path, filelist):
+def git_remove_push(git_path, filelist, commit_str):
     repo = GitRepo()
     repo.open(git_path)
     for file in filelist:
         repo.remove(file)
 
-    repo.commit_with_added('Deleted')
+    repo.commit_with_added(commit_str)
     repo.easy_push()
 
 

@@ -4,7 +4,7 @@
 @Author: wangshiwen@36719
 @Date: 2019-10-02 15:42:57
 @LastEditors  : wangshiwen@36719
-@LastEditTime : 2020-01-02 14:43:03
+@LastEditTime : 2020-01-08 17:07:01
 '''
 import os
 from datetime import timedelta
@@ -15,7 +15,7 @@ class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev')
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    UPLOADS_DEFAULT_DEST = os.getenv('CONTROLLER_REPOSITORY', os.path.abspath(os.path.join(basedir, '../repository')))
+    UPLOADS_DEFAULT_DEST = os.getenv('CONTROLLER_REPOSITORY', os.path.abspath(os.path.join(basedir, '../repository-dev')))
     UPLOADED_BLADED_DEST = UPLOADS_DEFAULT_DEST
     # UPLOADED_SYMBOL_DEST = UPLOADS_DEFAULT_DEST
     # UPLOADED_XML_DEST = UPLOADS_DEFAULT_DEST

@@ -474,7 +474,7 @@ def set_value(taskname, obj):
         xml.update(p_list, t_list, **fine_data)
 
         readme_text = os.path.join(dest, 'README.txt')
-        with open(readme_text, 'a') as f:
+        with open(readme_text, 'a', encoding='utf-8') as f:
             spec = ("")
             f.write(spec)
 

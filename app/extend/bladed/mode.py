@@ -4,7 +4,7 @@
 @Author: wangshiwen@36719
 @Date: 2019-12-06 17:29:24
 @LastEditors  : wangshiwen@36719
-@LastEditTime : 2020-01-06 15:15:03
+@LastEditTime : 2020-01-06 18:00:25
 '''
 import os
 import re
@@ -23,15 +23,17 @@ class Mode():
 
     def get_names(self):
         f_p = os.path.abspath(os.path.join(self._dir, 'lin1.%02'))
+        
         try:
             with open(f_p, 'r') as f:
                 content = f.read()
+
+            m = re.search(r'^AXITICK[\t ]+(.*)$', content, re.MULTILINE)        
+            names = [] if m is None else m.group(1).replace("' '", ',').replace("'", '').split(',')
+            names = [name for name in names if 'Blade' in name[:5] or 'Tower' in name[:5]] if names else names
         except :
-            logging.warning('读取 lin1.%02 文件失败！')
-        
-        m = re.search(r'^AXITICK[\t ]+(.*)$', content, re.MULTILINE)        
-        names = [] if m is None else m.group(1).replace("' '", ',').replace("'", '').split(',')
-        names = [name for name in names if 'Blade' in name[:5] or 'Tower' in name[:5]] if names else names
+            names = []
+            logging.warning('读取 lin1.%02 文件失败！')                
             
         return names
     

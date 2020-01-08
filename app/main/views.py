@@ -69,9 +69,9 @@ def create_new_task(user, new_task_form):
     root_destination = cfg.get('UPLOADS_DEFAULT_DEST')
     isgitted = new_task_form.add_to_git.data
 
-    git_path = os.path.abspath(os.path.join(root_destination, user.username))
+    # git_path = os.path.abspath(os.path.join(root_destination, user.username))
+    git_path = os.path.abspath(os.path.join(root_destination))
     if not git_exists(git_path):
-        shutil.rmtree(git_path)  # 如果文件夹存在将清空
         git_init(git_path, user.username, isgitted, newfolder=task_name)  # 初始化
 
     saved_files = files_save(new_task_form, user, task_name)
@@ -82,7 +82,9 @@ def create_new_task(user, new_task_form):
             f.write(f'\n{task_name}/')
 
     git_commit_push(git_path, f"Created task: {task_name}")  # 添加并提交文件
-    local_bladed_path = os.path.join(root_destination, user.username,
+    # local_bladed_path = os.path.join(root_destination, user.username,
+    #                                  task_name, new_task_form.bladed.data.filename)
+    local_bladed_path = os.path.join(root_destination, 
                                      task_name, new_task_form.bladed.data.filename)
 
     task = Task(name=task_name,
@@ -119,8 +121,10 @@ def update_task(user, edit_task_form):
 
         if saved_files['bladed'] is not None:
             file_updated = True
-            local_bladed_path = os.path.join(root_destination, user.username,
-                                             task_name, edit_task_form.bladed.data.filename)
+            # local_bladed_path = os.path.join(root_destination, user.username,
+            #                                  task_name, edit_task_form.bladed.data.filename)
+            local_bladed_path = os.path.join(root_destination, 
+                                             task_name, edit_task_form.bladed.data.filename)                                            
             task.bladed_version = Bladed(local_bladed_path).version
             task.bladed_filename = saved_files['bladed']
             commit_str.append("重新上传Bladed模型（覆盖旧文件）。")
@@ -132,7 +136,8 @@ def update_task(user, edit_task_form):
             commit_str.append("重新上传控制器文件（覆盖旧文件）。")
 
     db.session.commit()
-    git_path = os.path.abspath(os.path.join(root_destination, user.username))
+    # git_path = os.path.abspath(os.path.join(root_destination, user.username))
+    git_path = os.path.abspath(os.path.join(root_destination))
     if file_updated and task and task.isgitted:
         git_commit_push(git_path, ", ".join(commit_str)
                         if commit_str else "一次滞后提交。")
@@ -148,10 +153,13 @@ def delete_task(user, delete_task_form):
     task_name = delete_task_form.taskname.data
     task = Task.query.filter_by(name=task_name).first()
     cfg = current_app.config
-    destination = os.path.abspath(os.path.join(
-        cfg.get('UPLOADS_DEFAULT_DEST'), user.username, task_name))
-    git_path = os.path.abspath(os.path.join(
-        cfg.get('UPLOADS_DEFAULT_DEST'), user.username))
+    # destination = os.path.abspath(os.path.join(
+    #     cfg.get('UPLOADS_DEFAULT_DEST'), user.username, task_name))
+    destination = os.path.abspath(os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), task_name))
+    # git_path = os.path.abspath(os.path.join(
+    #     cfg.get('UPLOADS_DEFAULT_DEST'), user.username))
+
+    git_path = os.path.abspath(cfg.get('UPLOADS_DEFAULT_DEST'))
 
     if task is not None:
         db.session.delete(task)
@@ -222,8 +230,10 @@ def files_save(form, user, taskname, task=None):
     uset_bladed, = usets
     saved_files = {'bladed': None, 'ctrl': None}
 
-    target_dir = os.path.abspath(os.path.join(
-        uset_bladed.config.destination, user.username, taskname))
+    # target_dir = os.path.abspath(os.path.join(
+    #     uset_bladed.config.destination, user.username, taskname))
+    
+    target_dir = os.path.abspath(os.path.join(current_app.config.get("UPLOADS_DEFAULT_DEST"), taskname))
 
     if form.bladed.data:
         """上传Bladed文件
@@ -265,14 +275,14 @@ def files_save(form, user, taskname, task=None):
             if saved_files['ctrl']:
                 readme_txt = os.path.join(target_dir, 'README.txt')
                 if task is None:
-                    with open(readme_txt, 'w') as f:
+                    with open(readme_txt, 'w', encoding='utf-8') as f:
                         spec = (f"==== D0: ({date.today().isoformat()}) =====\n"
                                  "├─原始控制器:\n"
                                 f"    ├─{saved_files['ctrl']['dll']}\n"
                                 f"    └─{saved_files['ctrl']['xml']}\n\n")
                         f.write(spec)
                 else:
-                    with open(readme_txt, 'a') as f:
+                    with open(readme_txt, 'a', encoding='utf-8') as f:
                         spec = (f"==== 更新控制器: ({date.today().isoformat()}) =====\n"
                                  "├─新版控制器:\n"
                                 f"    ├─{saved_files['ctrl']['dll']}\n"

@@ -164,8 +164,10 @@ def work(taskname, obj):
 def initial_value(taskname, obj):
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
+    # dest = os.path.join(current_app.config.get(
+    #     'UPLOADS_DEFAULT_DEST'), user.username, taskname)
     dest = os.path.join(current_app.config.get(
-        'UPLOADS_DEFAULT_DEST'), user.username, taskname)
+        'UPLOADS_DEFAULT_DEST'), taskname)
 
     bladed = Bladed(os.path.join(dest, _task.bladed_filename))
     only_in_bladed = ['P_DMGT']
@@ -292,7 +294,8 @@ def initial_value(taskname, obj):
         symbols.load_db(symbols_db_path)
         symbols.connect()
 
-        p_name = [p for p in symbols_name.keys() if 'P_' in p and p not in only_in_bladed]
+        p_name = [p for p in symbols_name.keys(
+        ) if 'P_' in p and p not in only_in_bladed]
         f_name = [p for p in symbols_name.keys() if 'F_' in p]
         t_name = [p for p in symbols_name.keys() if 'T_' in p]
         p_queried = symbols.multi_query(p_name)
@@ -310,13 +313,14 @@ def initial_value(taskname, obj):
         except FileNotFoundError:
             return jsonify(symbols_value)
 
-        xml_values = {name: "" if name in only_in_bladed else xml.find(name)[name] for name in symbols_name.keys() if xml.find(name)}
+        xml_values = {name: "" if name in only_in_bladed else xml.find(
+            name)[name] for name in symbols_name.keys() if xml.find(name)}
 
         if task is not None:
             for name, value in xml_values.items():
                 if 'P_' in name:
                     symbols_value['params'].append({
-                        'name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'                        
+                        'name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
                         f'{p_queried[name].at["Description_en_GB"] if name not in only_in_bladed and name in p_queried.keys() else symbols_name[name]["description_zh"]}'
                         f'">{name}</span>',
                         'bladed_value': '-' if not symbols_name[name]['bladed'] else
@@ -412,14 +416,17 @@ def initial_value(taskname, obj):
 def set_value(taskname, obj):
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
+    # dest = os.path.join(current_app.config.get(
+    #     'UPLOADS_DEFAULT_DEST'), user.username, taskname)
     dest = os.path.join(current_app.config.get(
-        'UPLOADS_DEFAULT_DEST'), user.username, taskname)
+        'UPLOADS_DEFAULT_DEST'), taskname)
     _task.status = "Working"
     data = request.json['data']
     target = request.json['target']
     description = request.json['description'] if request.json['description'] else "Updated"
     cfg = current_app.config
-    git_path = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username)
+    # git_path = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username)
+    git_path = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'))
 
     bladed_data = {k.split('-')[0]: v.strip()
                    for k, v in data.items() if '-bladed' in k}
@@ -430,7 +437,8 @@ def set_value(taskname, obj):
             symbols_name = OrderedDict(json.load(f))
 
         bladed = Bladed(os.path.join(dest, _task.bladed_filename))
-        bladed_args = {symbols_name[k]['bladed']                       : v for k, v in bladed_data.items()}
+        bladed_args = {symbols_name[k]['bladed']
+            : v for k, v in bladed_data.items()}
         bladed.set(**bladed_args)
 
     if symbol_data and obj == 'symbol':
@@ -499,8 +507,10 @@ def set_value(taskname, obj):
 def search_list(taskname, obj):
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
+    # dest = os.path.join(current_app.config.get(
+    #     'UPLOADS_DEFAULT_DEST'), user.username, taskname)
     dest = os.path.join(current_app.config.get(
-        'UPLOADS_DEFAULT_DEST'), user.username, taskname)
+        'UPLOADS_DEFAULT_DEST'), taskname)
 
     key_word = request.json.strip()
     names = []
@@ -531,8 +541,10 @@ def search_list(taskname, obj):
 def search(taskname, obj, param):
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
+    # dest = os.path.join(current_app.config.get(
+    #     'UPLOADS_DEFAULT_DEST'), user.username, taskname)
     dest = os.path.join(current_app.config.get(
-        'UPLOADS_DEFAULT_DEST'), user.username, taskname)
+        'UPLOADS_DEFAULT_DEST'), taskname)
 
     symbols_value = {'params': [], 'filters': [], 'schedules': []}
 
@@ -646,7 +658,7 @@ def search(taskname, obj, param):
         symbols.connect()
         queried = symbols.multi_query([param])
         symbols.close()
-        
+
         queried = {pattern.sub("", k, 1): v for k, v in queried.items()}
 
         xml_path = os.path.join(dest, _task.xml_filename)
@@ -656,7 +668,7 @@ def search(taskname, obj, param):
         except FileNotFoundError:
             return jsonify(symbols_value)
 
-        xml_values = xml.find(param)        
+        xml_values = xml.find(param)
         value = xml_values[param]
 
         if task is not None:
@@ -758,8 +770,11 @@ def download(taskname, obj):
     if _task is None:
         abort(404)
 
+    # folder = os.path.join(current_app.config.get(
+    #     'UPLOADS_DEFAULT_DEST'), user.username, taskname)
+
     folder = os.path.join(current_app.config.get(
-        'UPLOADS_DEFAULT_DEST'), user.username, taskname)
+        'UPLOADS_DEFAULT_DEST'), taskname)        
     if obj == "symbol":
         return send_from_directory(directory=folder, filename=_task.symbol_filename, as_attachment=True)
     if obj == 'xml':
@@ -774,9 +789,11 @@ def watch(taskname):
     if _task is None:
         abort(404)
 
-    folder = os.path.join(current_app.config.get(
-        'UPLOADS_DEFAULT_DEST'), user.username, taskname)
+    # folder = os.path.join(current_app.config.get(
+    #     'UPLOADS_DEFAULT_DEST'), user.username, taskname)
 
+    folder = os.path.join(current_app.config.get(
+        'UPLOADS_DEFAULT_DEST'), taskname)
     return send_from_directory(directory=folder, filename=_task.xml_filename, as_attachment=False)
 
 
@@ -785,10 +802,14 @@ def watch(taskname):
 def campbell(taskname):
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
+    # file_folder = os.path.join(current_app.config.get(
+    #     'UPLOADS_DEFAULT_DEST'), user.username, taskname)
     file_folder = os.path.join(current_app.config.get(
-        'UPLOADS_DEFAULT_DEST'), user.username, taskname)
+        'UPLOADS_DEFAULT_DEST'), taskname)
+    # calc_folder = os.path.join(current_app.config.get(
+    #     'CALCULATION_DEST'), user.username, taskname)
     calc_folder = os.path.join(current_app.config.get(
-        'CALCULATION_DEST'), user.username, taskname)
+        'CALCULATION_DEST'), taskname)
     if not os.path.isdir(calc_folder):
         os.makedirs(calc_folder)
     bladed_path = os.path.abspath(
@@ -817,14 +838,16 @@ def mode_check(taskname):
     time.sleep(30)
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
+    # calc_folder = os.path.join(current_app.config.get(
+    #     'CALCULATION_DEST'), user.username, taskname)
     calc_folder = os.path.join(current_app.config.get(
-        'CALCULATION_DEST'), user.username, taskname)
+        'CALCULATION_DEST'), taskname)
     run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))
 
     p_check = Process(target=check_lin1_cm, args=(run_dir, _task))
     p_check.start()
-    p_check.join(600)  # 最长运行12分钟    
-    
+    p_check.join(600)  # 最长运行12分钟
+
     mode = Mode(run_dir)
     names = ','.join(mode.mode_names)
     freqs = ','.join(mode.get_modes()['freqs'])
@@ -853,16 +876,19 @@ def mode(taskname):
 
     if _task.mode_names is None:
         return jsonify({})
-    names, freqs, damps = _task.mode_names.split(','), _task.mode_freqs.split(','), _task.mode_damps.split(',')
+    names, freqs, damps = _task.mode_names.split(
+        ','), _task.mode_freqs.split(','), _task.mode_damps.split(',')
 
-    table_data = [{"name": name, "freq": freqs[i], "damp": damps[i]} for i, name in enumerate(names)]
+    table_data = [{"name": name, "freq": freqs[i], "damp": damps[i]}
+                  for i, name in enumerate(names)]
     modes_data = {name: freqs[i] for i, name in enumerate(names)}
-    data = {"table_data": table_data, "modes": modes_data, "tower_mode_1": mode_map[_task.bladed_version]}
+    data = {"table_data": table_data, "modes": modes_data,
+            "tower_mode_1": mode_map[_task.bladed_version]}
     # {"names": names, "freqs": freqs, "damps": damps}
     # user = User.query.filter_by(id=_task.user_id).first()
     # calc_folder = os.path.join(current_app.config.get(
     #     'CALCULATION_DEST'), user.username, taskname)
-    # run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))    
+    # run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))
 
     # freqs = {}
     # if os.path.exists(os.path.join(run_dir, 'lin1.$CM')):

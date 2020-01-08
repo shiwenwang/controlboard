@@ -199,6 +199,7 @@ def controller_folder_walk(folder, tree):
 
 def get_controller_tree():
     controller_root = current_app.config.get('UPLOADS_CONTROLLER_SRC')
+    logging.log(logging.DEBUG, controller_root)
     controller_tree = OrderedDict()
     controller_folder_walk(controller_root, controller_tree)
     return controller_tree

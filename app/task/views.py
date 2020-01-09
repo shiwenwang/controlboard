@@ -313,8 +313,8 @@ def initial_value(taskname, obj):
         except FileNotFoundError:
             return jsonify(symbols_value)
 
-        xml_values = {name: "" if name in only_in_bladed else xml.find(
-            name)[name] for name in symbols_name.keys() if xml.find(name)}
+        xml_values = {name: "" if name in only_in_bladed or not xml.find(name) else xml.find(
+            name)[name] for name in symbols_name.keys()}
 
         if task is not None:
             for name, value in xml_values.items():
@@ -678,7 +678,7 @@ def search(taskname, obj, param):
                     f'{queried[param].at["Description_en_GB"] if param in queried.keys() else param}">{param}</span>',
                     'bladed_value': '-',
                     'symbol_value':
-                    f'<input type="text" class="table-value text-primary" id="{param}-symbol" disabled value="{param}"'
+                    f'<input type="text" class="table-value text-primary" id="{param}-symbol" disabled value="{value}"'
                     f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
                     'description': ""
                 })

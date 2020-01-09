@@ -167,9 +167,10 @@ def delete_task(user, delete_task_form):
 
     if delete_task_form.delete_files.data:
         files_to_rm = []
-        for f in os.listdir(destination):
-            if os.path.splitext(f)[-1] in ['.dll', '.ini', '.xml', '.$pj', 'prj']:
-                files_to_rm.append('/'.join([task_name, f]))
+        if os.path.exists(destination):
+            for f in os.listdir(destination):
+                if os.path.splitext(f)[-1] in ['.dll', '.ini', '.xml', '.$pj', 'prj']:
+                    files_to_rm.append('/'.join([task_name, f]))
         if task.isgitted:
             git_remove_push(git_path, files_to_rm,
                             f"Deleted task: {task_name}")

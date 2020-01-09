@@ -86,12 +86,12 @@ class GitRepo(object):
 def git_init(git_path, username, isgitted, newfolder=None):
     repo = GitRepo()
     if not repo.git_exists(git_path):
-        repo.clone(os.getenv('REMOTE_GIT', 'http://bitbucket.goldwind.com.cn/scm/~36719/dev.git'), git_path)
+        repo.clone(os.getenv('REMOTE_GIT', 'http://bitbucket.goldwind.com.cn/scm/~36719/controller-files-dev.git'), git_path)
         # .gitignore
         gitignore_path = os.path.join(git_path, '.gitignore')
         if not os.path.exists(gitignore_path):
             with open(gitignore_path, 'w') as f:
-                f.write('/ *\n!*.dll\n!*xml\n!*.ini\n!*.$pj\n!*.prj\n!*.txt')
+                f.write('*\n!*/\n*/*\n!.gitignore\n!*.dll\n!*.xml\n!*.ini\n!*.$pj\n!*.prj\n!README.txt')
                 if not isgitted and newfolder is not None:
                     f.write(f'\n{newfolder}/')
         repo.commit_with_added('Initial Commit.')

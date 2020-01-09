@@ -17,6 +17,7 @@ import time
 from collections import OrderedDict
 from datetime import datetime
 from multiprocessing import Process
+from zipfile import ZipFile
 
 task = Blueprint('task', __name__, url_prefix='/task')
 
@@ -221,7 +222,7 @@ def initial_value(taskname, obj):
                         f'{p_queried[name].at["Description_en_GB"] if name not in only_in_bladed and name in p_queried.keys() else symbols_name[name]["description_zh"]}'
                         f'">{name}</span>',
                         'bladed_value': '-' if not symbols_name[name]['bladed'] else
-                        f'<input type="text" class="table-value text-primary" id="{name}-bladed" disabled value="{bladed.query(symbols_name[name]["bladed"])[1]}"'
+                        f'<input type="text" class="table-value-bladed text-primary" id="{name}-bladed" disabled value="{bladed.query(symbols_name[name]["bladed"])[1]}"'
                         f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
                         'symbol_value': '-' if name in only_in_bladed else
                         f'<input type="text" class="table-value text-primary" id="{name}-symbol" disabled value="{value}"'
@@ -671,11 +672,24 @@ def download(taskname, obj):
     #     'UPLOADS_DEFAULT_DEST'), user.username, taskname)
 
     folder = os.path.join(current_app.config.get(
-        'UPLOADS_DEFAULT_DEST'), taskname)        
+        'UPLOADS_DEFAULT_DEST'), taskname)
+
+    ctrl_zip = os.path.join(folder, f'{taskname}.zip')
+    dll_file = os.path.join(folder, _task.dll_filename)
+    xml_file = os.path.join(folder, _task.xml_filename)
+    readme_file = os.path.join(folder, 'README.txt')
+
+    zip_mode = 'w' if os.path.exists(ctrl_zip) else 'a'
+
+    with ZipFile(ctrl_zip, zip_mode) as ctrlzip:
+        ctrlzip.write(dll_file, arcname=os.path.basename(dll_file))
+        ctrlzip.write(xml_file, arcname=os.path.basename(xml_file))
+        ctrlzip.write(readme_file, arcname=os.path.basename(readme_file))
+            
     if obj == "symbol":
         return send_from_directory(directory=folder, filename=_task.symbol_filename, as_attachment=True)
     if obj == 'xml':
-        return send_from_directory(directory=folder, filename=_task.xml_filename, as_attachment=True)
+        return send_from_directory(directory=folder, filename=os.path.basename(ctrl_zip), as_attachment=True)
 
 
 @task.route('watch/<taskname>')

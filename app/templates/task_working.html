@@ -40,7 +40,6 @@
     }
 
     .card {
-        text-align: center;
         background: white;
         box-shadow: 0px 0px 0px grey;
         transition: box-shadow .3s ease-out;
@@ -101,7 +100,7 @@
                 <li class="nav-item">
                     <a class="nav-link" target="blank" onclick="campbellTrigger()">Campbell</a>
                 </li>
-                <li class="nav-item" style="padding-left: 60px;border-color: #ffe484;">
+                <li class="nav-item" style="border-color: #ffe484;">
                     <span class="algolia-autocomplete algolia-autocomplete-left"
                         style="position: relative; display: inline-block; direction: ltr;"><input type="search"
                             class="form-control ds-input" id="symbol-search-input" placeholder="Search..."
@@ -427,9 +426,12 @@
                                 </div>
                                 <div class="card-body">
                                     <form>
-                                        <div class="d-flex">
-                                            <div class="p-2 align-self-center">
-                                                <input type="text" class="form-control" id="deg" placeholder="deg">
+                                        <div class="d-flex">                                            
+                                            <div class="p-2 align-self-center flex-grow-1">
+                                                <div class="form-label-group" style="margin-bottom: 0px;">
+                                                    <input type="text" id="deg" class="form-control" placeholder="Deg">
+                                                    <label style="color: #7952b3;">Deg</label>
+                                                </div>
                                             </div>
                                             <div class="p-1 align-self-center arrow" id="rad-to-deg"
                                                 style="cursor: pointer;">
@@ -439,13 +441,19 @@
                                                 style="cursor: pointer;">
                                                 <i class="fas fa-arrow-alt-circle-right"></i>
                                             </div>
-                                            <div class="p-2 align-self-center">
-                                                <input type="text" class="form-control" id="rad" placeholder="rad">
+                                            <div class="p-2 align-self-center flex-grow-1">
+                                                <div class="form-label-group" style="margin-bottom: 0px;">
+                                                    <input type="text" id="rad" class="form-control" placeholder="Rad" >
+                                                    <label style="color: #7952b3;">Rad</label>
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="d-flex">
-                                            <div class="p-2 align-self-center">
-                                                <input type="text" class="form-control" id="rpm" placeholder="rpm">
+                                            <div class="p-2 align-self-center flex-grow-1">
+                                                <div class="form-label-group" style="margin-bottom: 0px;">
+                                                    <input type="text" id="rpm" class="form-control" placeholder="rpm" >
+                                                    <label style="color: #7952b3;">rpm</label>
+                                                </div>
                                             </div>
                                             <div class="p-1 align-self-center arrow" id="radpsto-rpm"
                                                 style="cursor: pointer;">
@@ -455,14 +463,19 @@
                                                 style="cursor: pointer;">
                                                 <i class="fas fa-arrow-alt-circle-right"></i>
                                             </div>
-                                            <div class="p-2 align-self-center">
-                                                <input type="text" class="form-control" id="radpsrpm"
-                                                    placeholder="rad/s">
+                                            <div class="p-2 align-self-center flex-grow-1">
+                                                <div class="form-label-group" style="margin-bottom: 0px;">
+                                                    <input type="text" id="radpsrpm" class="form-control" placeholder="rad/s" >
+                                                    <label style="color: #7952b3;">rad/s</label>
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="d-flex">
-                                            <div class="p-2 align-self-center">
-                                                <input type="text" class="form-control" id="Hz" placeholder="Hz">
+                                            <div class="p-2 align-self-center flex-grow-1">
+                                                <div class="form-label-group" style="margin-bottom: 0px;">
+                                                    <input type="text" id="Hz" class="form-control" placeholder="Hz" >
+                                                    <label style="color: #7952b3;">Hz</label>
+                                                </div>
                                             </div>
                                             <div class="p-1 align-self-center arrow" id="radpsto-Hz"
                                                 style="cursor: pointer;">
@@ -472,9 +485,11 @@
                                                 style="cursor: pointer;">
                                                 <i class="fas fa-arrow-alt-circle-right"></i>
                                             </div>
-                                            <div class="p-2 align-self-center">
-                                                <input type="text" class="form-control" id="radpshz"
-                                                    placeholder="rad/s">
+                                            <div class="p-2 align-self-center flex-grow-1">
+                                                <div class="form-label-group" style="margin-bottom: 0px;">
+                                                    <input type="text" id="rad/s" class="form-control" placeholder="rad/s" >
+                                                    <label style="color: #7952b3;">rad/s</label>
+                                                </div>
                                             </div>
                                         </div>
                                     </form>
@@ -513,19 +528,19 @@
                                     </div>
                                     <div class="d-flex">
                                         <div class="form-label-group">
-                                            <input type="text" style="color: green; background-color: #ffe484;"
+                                            <input type="text" style="color: green;"
                                                 class="form-control" id="tower1st-radps">
                                             <label style="color: #7952b3;font-size:5px;">塔架一阶(rad/s)</label>
                                         </div>
-                                        <div class="p-2" style="padding: 5px!important;"></div>
+                                        <div class="p-2" style="padding: 3px!important;"></div>
                                         <div class="form-label-group">
-                                            <input type="text" style="color: green; background-color: #ffe484;"
+                                            <input type="text" style="color: green;"
                                                 class="form-control" id="tower1st-hz">
                                             <label style="color: #7952b3;">塔架一阶(Hz)</label>
                                         </div>
-                                        <div class="p-2" style="padding: 5px!important;"></div>
+                                        <div class="p-2" style="padding: 3px!important;"></div>
                                         <div class="form-label-group">
-                                            <input type="text" style="color: green; background-color: #ffe484;"
+                                            <input type="text" style="color: green;"
                                                 class="form-control" id="tower1st-rpm">
                                             <label style="color: #7952b3;">塔架一阶(rpm)</label>
                                         </div>
@@ -536,19 +551,19 @@
                                                 id="SpeedFactor">
                                             <label style="color: #7952b3;">转速系数</label>
                                         </div>
-                                        <div class="p-2" style="padding: 5px!important;"></div>
+                                        <div class="p-2" style="padding: 3px!important;"></div>
                                         <div class="form-label-group">
                                             <input type="text" style="color: #FF6600" class="form-control" value="0.5"
                                                 id="SpeedOffset">
                                             <label style="color: #7952b3;">转速偏移(rpm)</label>
                                         </div>
-                                        <div class="p-2" style="padding: 5px!important;"></div>
+                                        <div class="p-2" style="padding: 3px!important;"></div>
                                         <div class="form-label-group">
                                             <input type="text" style="color: #FF6600" class="form-control" value="1.05"
                                                 id="LowTorqueFactor">
                                             <label style="color: #7952b3;">扭矩系数low</label>
                                         </div>
-                                        <div class="p-2" style="padding: 5px!important;"></div>
+                                        <div class="p-2" style="padding: 3px!important;"></div>
                                         <div class="form-label-group">
                                             <input type="text" style="color: #FF6600" class="form-control" value="0.09"
                                                 id="HighTorqueFactor">
@@ -558,28 +573,28 @@
                                     <div class="d-flex">
                                         <div class="form-label-group">
                                             <input type="text" style="color: blue;" class="form-control"
-                                                placeholder="低转速" id="LowSpeed" disabled>
-                                            <label style="color: #7952b3;font-size:14px;">低转速 <label id="LowSpeed-rpm"
+                                                id="LowSpeed" disabled>
+                                            <label style="color: #7952b3;">低转速<label id="LowSpeed-rpm"
                                                     style="color: green;"></label></label>
                                         </div>
-                                        <div class="p-2" style="padding: 5px!important;"></div>
+                                        <div class="p-2" style="padding: 3px!important;"></div>
                                         <div class="form-label-group">
                                             <input type="text" style="color: blue;" class="form-control"
-                                                placeholder="高转速" id="HighSpeed" disabled>
-                                            <label style="color: #7952b3;font-size:14px;">高转速 <label id="HighSpeed-rpm"
+                                                id="HighSpeed" disabled>
+                                            <label style="color: #7952b3;">高转速<label id="HighSpeed-rpm"
                                                     style="color: green;"></label></label>
                                         </div>
-                                        <div class="p-2" style="padding: 5px!important;"></div>
+                                        <div class="p-2" style="padding: 3px!important;"></div>
                                         <div class="form-label-group">
                                             <input type="text" style="color: blue;" class="form-control"
-                                                placeholder="LowSpeedMaxTorque" id="LowSpeedMaxTorque" disabled>
-                                            <label style="color: #7952b3;font-size:14px;">低转速扭矩</label>
+                                                id="LowSpeedMaxTorque" disabled>
+                                            <label style="color: #7952b3;">低转速扭矩</label>
                                         </div>
-                                        <div class="p-2" style="padding: 5px!important;"></div>
+                                        <div class="p-2" style="padding: 3px!important;"></div>
                                         <div class="form-label-group">
                                             <input type="text" style="color: blue;" class="form-control"
-                                                placeholder="HighSpeedMaxTorque" id="HighSpeedMaxTorque" disabled>
-                                            <label style="color: #7952b3;font-size:14px;">高转速扭矩</label>
+                                                id="HighSpeedMaxTorque" disabled>
+                                            <label style="color: #7952b3;">高转速扭矩</label>
                                         </div>
                                     </div>
                                     <div class="d-flex">
@@ -854,8 +869,8 @@
                 highTorque = highTorqueFactor * Kopt * Math.pow(lowSpeed, 3) / highSpeed;
             $("#LowSpeed").val(lowSpeed.toFixed(5));
             $("#HighSpeed").val(highSpeed.toFixed(5));
-            $("#LowSpeed-rpm").text((lowSpeed * 30 / Math.PI).toFixed(1) + "r");
-            $("#HighSpeed-rpm").text((highSpeed * 30 / Math.PI).toFixed(1) + "r");
+            $("#LowSpeed-rpm").text((lowSpeed * 30 / Math.PI).toFixed(1) + "rpm");
+            $("#HighSpeed-rpm").text((highSpeed * 30 / Math.PI).toFixed(1) + "rpm");
             $("#LowSpeedMaxTorque").val(Math.round(lowTorque));
             $("#HighSpeedMaxTorque").val(Math.round(highTorque));
             var tower1st_radps = $('#tower1st-radps').val();

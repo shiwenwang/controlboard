@@ -4,7 +4,7 @@
  * @Author: wangshiwen@36719
  * @Date: 2019-11-21 16:32:33
  * @LastEditors  : wangshiwen@36719
- * @LastEditTime : 2019-12-27 13:38:28
+ * @LastEditTime : 2020-01-10 09:09:14
  -->
 {% extends 'base.html' %}
 
@@ -30,6 +30,20 @@
     .thead{
          font-size: 12px;
      }
+
+     
+    .details{
+        text-align: center;
+        background: white;
+        box-shadow: 0px 0px 0px grey;
+        transition: box-shadow .3s ease-out;
+        /* box-shadow: .8px .9px 3px grey; */
+    }
+
+    .details:hover {
+        box-shadow: 1px 8px 20px grey;
+        transition: box-shadow .3s ease-in;
+    }
     
 </style>
 {% endblock styles %}

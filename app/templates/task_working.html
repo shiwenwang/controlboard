@@ -39,6 +39,19 @@
         max-height: 300px;
     }
 
+    .card {
+        text-align: center;
+        background: white;
+        box-shadow: 0px 0px 0px grey;
+        transition: box-shadow .3s ease-out;
+        box-shadow: .8px .9px 3px grey;
+    }
+
+    .card:hover {
+        box-shadow: 1px 8px 20px grey;
+        transition: box-shadow .3s ease-in;
+    }
+
     /* svg path,svg rect{fill: #FF6700;} */
 </style>
 {% endblock styles %}
@@ -170,8 +183,8 @@
             </div>
             <div class="modal-body">
                 <div class="form-group row">
-                    <select class="selectpicker col-7" id="modes-selectpicker" data-style="btn-outline-0" 
-                     style="padding-right: 0px;">                        
+                    <select class="selectpicker col-7" id="modes-selectpicker" data-style="btn-outline-0"
+                        style="padding-right: 0px;">
                     </select>
                     <div class="col-4" style="padding: 0px 0px;">
                         <div class="input-group" style="width: 150px;">
@@ -181,7 +194,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-1" style="padding-left: 0px; text-decoration:underline; font-size: 13px; align-self: center;">
+                    <div class="col-1"
+                        style="padding-left: 0px; text-decoration:underline; font-size: 13px; align-self: center;">
                         <a data-toggle="collapse" href="#collapseTable" id="more-modes">更多</a>
                     </div>
                 </div>
@@ -192,7 +206,7 @@
                         </table>
                     </div>
                 </div>
-                
+
                 <label id="noCalcLabel">
 
                 </label>
@@ -1579,9 +1593,9 @@
                     modesTableInit(data.table_data);
 
                     $("#noCalcLabel")[0].style.display = "none";
-                    for (property in data.modes){
+                    for (property in data.modes) {
                         $("#modes-selectpicker").append('<option>' + property + '</option>');
-                    }  
+                    }
                     $('.selectpicker').selectpicker('refresh');
                     $("#modes-selectpicker").selectpicker('val', data.tower_mode_1);
                     $("#reCampbellForm")[0].style.display = "block";

@@ -688,8 +688,8 @@ def download(taskname):
             
     # if obj == "symbol":
     #     return send_from_directory(directory=folder, filename=_task.symbol_filename, as_attachment=True)
-    if obj == 'xml':
-        return send_from_directory(directory=folder, filename=os.path.basename(ctrl_zip), as_attachment=True)
+    # if obj == 'xml':
+    return send_from_directory(directory=folder, filename=os.path.basename(ctrl_zip), as_attachment=True)
 
 
 @task.route('watch/<taskname>')

@@ -163,8 +163,6 @@ def work(taskname):
 def initial_value(taskname):
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
-    # dest = os.path.join(current_app.config.get(
-    #     'UPLOADS_DEFAULT_DEST'), user.username, taskname)
     dest = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), taskname)
 
@@ -202,8 +200,6 @@ def initial_value(taskname):
     except FileNotFoundError:
         return jsonify(symbols_value)
 
-    # xml_values = {name: "" if name in only_in_bladed or not xml.find(name) else xml.find(
-    #     name)[name] for name in symbols_name.keys()}
     xml_values = {}
     for name in symbols_name.keys():
         if name in only_in_bladed:
@@ -337,15 +333,6 @@ def set_value(taskname):
             : v for k, v in bladed_data.items()}
         bladed.set(**bladed_args)
 
-    # if symbol_data and obj == 'symbol':
-    #     db_symbol_path = os.path.join(dest, taskname + '.db')
-    #     db_symbol = SymbolDB()
-    #     db_symbol.load_db(db_symbol_path, excel_name=_task.symbol_filename)
-    #     db_symbol.connect()
-    #     db_symbol.update(target, **symbol_data)
-    #     db_symbol.close()
-
-    # if symbol_data and obj == 'xml':
     new_name = request.json['newname'] if os.path.splitext(request.json['newname'])[-1] in ['.xml'] else \
         request.json['newname'] + '.xml'
     new_name_path = os.path.join(dest, new_name)
@@ -381,13 +368,6 @@ def set_value(taskname):
     with open(readme_text, 'a', encoding='utf-8') as f:
         f.write(description)
 
-    # readme_path = os.path.join(dest, 'README.md')
-    # with open(readme_path, 'a+', encoding="utf-8") as f:
-    #     f.write(
-    #         "#### " + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' - {new_name}\n')
-    #     f.write("> " + description + '\n\n')
-
-    # git_commit_push(git_path, description, wait_push=True)
     _task.status = "Dirty" if _task.isgitted else "Saved"
 
     if isgitted:  # 提交至Git并push
@@ -397,28 +377,17 @@ def set_value(taskname):
     return initial_value(taskname)
 
 
-# @task.route('search/<taskname>/<obj>', methods=['POST'])
 @task.route('search/<taskname>', methods=['POST'])
 @login_required
 def search_list(taskname):
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
-    # dest = os.path.join(current_app.config.get(
-    #     'UPLOADS_DEFAULT_DEST'), user.username, taskname)
     dest = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), taskname)
 
     key_word = request.json.strip()
     names = []
 
-    # if key_word and obj == 'symbol':
-    #     db_symbol_path = os.path.join(dest, taskname + '.db')
-    #     db_symbol = SymbolDB()
-    #     db_symbol.load_db(db_symbol_path)
-    #     db_symbol.connect()
-    #     result = db_symbol.query(key_word.replace('_', '/_'))
-    #     names = [r[0] for r in result]
-    #     db_symbol.close()
     if key_word:
         xml_path = os.path.join(dest, _task.xml_filename)
         xml = XML()
@@ -432,121 +401,16 @@ def search_list(taskname):
     return jsonify(names)
 
 
-# @task.route('search/<taskname>/<obj>/<param>', methods=['POST'])
 @task.route('search/<taskname>/<param>', methods=['POST'])
 @login_required
 def search(taskname, param):
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
-    # dest = os.path.join(current_app.config.get(
-    #     'UPLOADS_DEFAULT_DEST'), user.username, taskname)
     dest = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), taskname)
 
     symbols_value = {'params': [], 'filters': [], 'schedules': []}
 
-    # if obj == "symbol":
-    #     db_symbol_path = os.path.join(dest, taskname + '.db')
-    #     db_symbol = SymbolDB()
-    #     db_symbol.load_db(db_symbol_path)
-    #     db_symbol.connect()
-
-    #     p_queried = {} if param[:2] in [
-    #         'F_', 'T_'] else db_symbol.multi_query([param])
-    #     f_queried = {} if 'F_' not in param else db_symbol.multi_query([param])
-    #     t_queried = {} if 'T_' not in param else db_symbol.multi_query([param])
-    #     db_symbol.close()
-
-    #     if task is not None:
-    #         pattern = re.compile(r'\d+$')
-    #         # 保证显示顺序
-    #         symbols_value['params'] = [{
-    #             'name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-    #             f'{value.at["Description_en_GB"]}">{name}</span>',
-    #             'bladed_value': '-',
-    #             'symbol_value': f'<input type="text" class="table-value text-primary" id="{name}-symbol" '
-    #             f'disabled value="{value.at["Initial_Value"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-    #             'description': value.at["Description_en_GB"]
-    #         }
-    #             for name, value in p_queried.items()
-    #         ]
-    #         symbols_value['schedules'] = [{
-    #             'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-    #             f'{t_queried[name].at["Description_en_GB"]}">{pattern.sub("", name, 1)}</span>',
-    #             'Enabled':
-    #             f'<input type="text" class="table-value enable-col  text-danger" id="{name}-Enabled" disabled value="{t_queried[name].at["Enabled"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
-    #             'Display_Name': t_queried[name].at['Display_Name'],
-    #             '0': '-' if t_queried[name].at['_0'] == 'None' else
-    #             f'<input type="text" class="table-value text-primary" id="{name}-0" disabled value="{t_queried[name].at["_0"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-    #             '1': '-' if t_queried[name].at['_1'] == 'None' else
-    #             f'<input type="text" class="table-value text-primary" id="{name}-1" disabled value="{t_queried[name].at["_1"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-    #             '2': '-' if t_queried[name].at['_2'] == 'None' else
-    #             f'<input type="text" class="table-value text-primary" id="{name}-2" disabled value="{t_queried[name].at["_2"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-    #             '3': '-' if t_queried[name].at['_3'] == 'None' else
-    #             f'<input type="text" class="table-value text-primary" id="{name}-3" disabled value="{t_queried[name].at["_3"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-    #             '4': '-' if t_queried[name].at['_4'] == 'None' else
-    #             f'<input type="text" class="table-value text-primary" id="{name}-4" disabled value="{t_queried[name].at["_4"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-    #             '5': '-' if t_queried[name].at['_5'] == 'None' else
-    #             f'<input type="text" class="table-value text-primary" id="{name}-5" disabled value="{t_queried[name].at["_5"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-    #             '6': '-' if t_queried[name].at['_6'] == 'None' else
-    #             f'<input type="text" class="table-value text-primary" id="{name}-6" disabled value="{t_queried[name].at["_6"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-    #             '7': '-' if t_queried[name].at['_7'] == 'None' else
-    #             f'<input type="text" class="table-value text-primary" id="{name}-7" disabled value="{t_queried[name].at["_7"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-    #             '8': '-' if t_queried[name].at['_8'] == 'None' else
-    #             f'<input type="text" class="table-value text-primary" id="{name}-8" disabled value="{t_queried[name].at["_8"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-    #             '9': '-' if t_queried[name].at['_9'] == 'None' else
-    #             f'<input type="text" class="table-value text-primary" id="{name}-9" disabled value="{t_queried[name].at["_9"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">'
-    #         } for name in t_queried.keys()
-    #         ]
-    #         symbols_value['filters'] = [{
-    #             'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-    #             f'{value.at["Description_en_GB"]}">{pattern.sub("", name, 1)}</span>',
-    #             'Enabled':
-    #             f'<input type="text" class="table-value enable-col  text-danger" id="{name}-Enabled" disabled value="{value.at["Enabled"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
-    #             'Display_Name': value.at["Display_Name"],
-    #             'Numerator_Type': value.at["Numerator_Type"],
-    #             'Denominator_Type': value.at["Denominator_Type"],
-    #             'Numerator_TC': value.at["Numerator_TC"],
-    #             # f'<input type="text" class="table-value" disabled value="{f_queried[name].at["Numerator_TC"]}"'
-    #             # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-    #             'Denominator_TC': value.at["Denominator_TC"],
-    #             # f'<input type="text" class="table-value" disabled value="{f_queried[name].at["Denominator_TC"]}"'
-    #             # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-    #             'Numerator_Frequency':
-    #             f'<input type="text" class="table-value text-primary num-frequency-col" id="{name}-Numerator_Frequency" disabled value="{value.at["Numerator_Frequency"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}-Numerator_Frequency\', \'{name}-Denominator_Frequency\')">',
-    #             'Numerator_Damping_Ratio':
-    #             f'<input type="text" class="table-value text-primary" id="{name}-Numerator_Damping_Ratio" disabled value="{value.at["Numerator_Damping_Ratio"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-    #             'Denominator_Frequency':
-    #             f'<input type="text" class="table-value text-primary den-frequency-col" id="{name}-Denominator_Frequency" disabled value="{value.at["Denominator_Frequency"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}-Denominator_Frequency\', \'{name}-Numerator_Frequency\')">',
-    #             'Denominator_Damping_Ratio':
-    #             f'<input type="text" class="table-value text-primary" id="{name}-Denominator_Damping_Ratio" disabled value="{value.at["Denominator_Damping_Ratio"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-    #             'W0':
-    #             f'<input type="text" class="table-value text-primary" id="{name}-W0" disabled value="{value.at["W0"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-    #             'Prewarping_Wc':
-    #             f'<input type="text" class="table-value text-primary" id="{name}-Prewarping_Wc" disabled value="{value.at["Prewarping_Wc"]}"'
-    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">'
-    #         } for name, value in f_queried.items()
-    #         ]
-
-    # if obj == 'xml':
     symbols_db_path = os.path.join(current_app.instance_path, 'symbols.db')
 
     pattern = re.compile(r'\d+$')
@@ -659,7 +523,6 @@ def search(taskname, param):
     return jsonify(symbols_value)
 
 
-# @task.route('download/<taskname>/<obj>')
 @task.route('download/<taskname>')
 @login_required
 def download(taskname):
@@ -667,9 +530,6 @@ def download(taskname):
     user = User.query.filter_by(id=_task.user_id).first()
     if _task is None:
         abort(404)
-
-    # folder = os.path.join(current_app.config.get(
-    #     'UPLOADS_DEFAULT_DEST'), user.username, taskname)
 
     folder = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), taskname)
@@ -686,9 +546,6 @@ def download(taskname):
         ctrlzip.write(xml_file, arcname=os.path.basename(xml_file))
         ctrlzip.write(readme_file, arcname=os.path.basename(readme_file))
             
-    # if obj == "symbol":
-    #     return send_from_directory(directory=folder, filename=_task.symbol_filename, as_attachment=True)
-    # if obj == 'xml':
     return send_from_directory(directory=folder, filename=os.path.basename(ctrl_zip), as_attachment=True)
 
 
@@ -700,9 +557,6 @@ def watch(taskname):
     if _task is None:
         abort(404)
 
-    # folder = os.path.join(current_app.config.get(
-    #     'UPLOADS_DEFAULT_DEST'), user.username, taskname)
-
     folder = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), taskname)
     return send_from_directory(directory=folder, filename=_task.xml_filename, as_attachment=False)
@@ -713,12 +567,8 @@ def watch(taskname):
 def campbell(taskname):
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
-    # file_folder = os.path.join(current_app.config.get(
-    #     'UPLOADS_DEFAULT_DEST'), user.username, taskname)
     file_folder = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), taskname)
-    # calc_folder = os.path.join(current_app.config.get(
-    #     'CALCULATION_DEST'), user.username, taskname)
     calc_folder = os.path.join(current_app.config.get(
         'CALCULATION_DEST'), taskname)
     if not os.path.isdir(calc_folder):
@@ -749,8 +599,6 @@ def mode_check(taskname):
     time.sleep(30)
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
-    # calc_folder = os.path.join(current_app.config.get(
-    #     'CALCULATION_DEST'), user.username, taskname)
     calc_folder = os.path.join(current_app.config.get(
         'CALCULATION_DEST'), taskname)
     run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))
@@ -795,29 +643,5 @@ def mode(taskname):
     modes_data = {name: freqs[i] for i, name in enumerate(names)}
     data = {"table_data": table_data, "modes": modes_data,
             "tower_mode_1": mode_map[_task.bladed_version]}
-    # {"names": names, "freqs": freqs, "damps": damps}
-    # user = User.query.filter_by(id=_task.user_id).first()
-    # calc_folder = os.path.join(current_app.config.get(
-    #     'CALCULATION_DEST'), user.username, taskname)
-    # run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))
-
-    # freqs = {}
-    # if os.path.exists(os.path.join(run_dir, 'lin1.$CM')):
-    #     mode = Mode(run_dir)
-    #     freqs = mode.get_freqs()
-    #     # tower_mode_1 = mode.get_freq(mode_map[_task.bladed_version])
-    # else:
-    #     freqs = {"tower_mode_1": _task.tower_mode_1}
-    #     # tower_mode_1 = _task.tower_mode_1
 
     return jsonify(data)
-
-
-@task.route('compiling/<taskname>', methods=['GET', 'POST'])
-@login_required
-def compiling(taskname):
-    user = load_user(current_user.get_id())
-    tasks_amount = len(Task.query.filter_by(user_id=user.id).all())
-    pass
-
-    return render_template('compile.html', title='控制器编译', user=user, tasks_amount=tasks_amount)

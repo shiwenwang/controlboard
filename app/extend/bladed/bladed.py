@@ -4,7 +4,7 @@
 @Author: wangshiwen@36719
 @Date: 2019-09-26 09:30:42
 @LastEditors  : wangshiwen@36719
-@LastEditTime : 2019-12-30 16:27:54
+@LastEditTime : 2020-01-13 17:23:22
 '''
 import os, re
 from subprocess import Popen, TimeoutExpired, PIPE, STDOUT
@@ -172,6 +172,10 @@ class Bladed(object):
                 out = f.read()
         except FileNotFoundError:
             logging.error(f'FileNotFoundError: {out_path}')
+            terminal_path = os.path.abspath(os.path.join(run_dir, 'dteigen.$TE'))
+            with open(terminal_path, 'r') as f:
+                lines = f.readlines()                
+                logging.error(lines[1])
             return False
         m_rmode = re.search(r'MSTART RMODE.*MEND', out, re.DOTALL)
         if m_rmode is None:

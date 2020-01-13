@@ -9,3 +9,4 @@ repository/
 .VSCodeCounter/
 *.map
 web.config
+.flaskenv

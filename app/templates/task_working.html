@@ -859,11 +859,13 @@
             if (tower1st_radps.length > 15) {
                 $('#tower1st-radps').val(Number(tower1st_radps).toFixed(5));
             }
-            if ($('#tower1st-hz').val().length > 15) {
-                $('#tower1st-hz').val(Number(tower1st_radps).toFixed(5));
+            var tower1st_hz = $('#tower1st-hz').val();
+            if (tower1st_hz.length > 15) {
+                $('#tower1st-hz').val(Number(tower1st_hz).toFixed(5));
             }
-            if ($('#tower1st-rpm').val().length > 15) {
-                $('#tower1st-rpm').val(Number(tower1st_radps).toFixed(5));
+            var tower1st_rpm = $('#tower1st-rpm').val();
+            if (tower1st_rpm.length > 15) {
+                $('#tower1st-rpm').val(Number(tower1st_rpm).toFixed(5));
             }
 
             // 判断是否通过

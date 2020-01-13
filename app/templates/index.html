@@ -775,8 +775,8 @@
     });
 
     function openTask(taskname) {
-        var url = "{{ url_for('task.work') }}";
-        window.open(url + "/" + taskname)
+        var url = "{{ url_for('task.work', taskname=taskname) }}";
+        // window.open(url + "/" + taskname)
 
         $.ajax({
             type: 'POST',

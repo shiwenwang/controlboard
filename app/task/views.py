@@ -136,16 +136,14 @@ def search_by(filters, search_key):
     return ', '.join(filter_statements)
 
 
-@task.route('work')
-@task.route('work/<taskname>/', methods=['GET', 'POST'], defaults={'obj': 'xml'})
-@task.route('work/<taskname>/<obj>', methods=['GET', 'POST'])
+@task.route('work/<taskname>', methods=['GET', 'POST'])
 @login_required
-def work(taskname, obj):
+def work(taskname):
     # user = load_user(current_user.get_id())
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
     tasks_amount = len(Task.query.filter_by(user_id=user.id).all())
-    if _task is None or obj not in ['symbol', 'xml']:
+    if _task is None:
         abort(404)
 
     working_form = WorkingForm()
@@ -156,13 +154,13 @@ def work(taskname, obj):
         pass
         return redirect(url_for('task.work', taskname=taskname))
 
-    return render_template('task_working.html', user=user, tasks_amount=tasks_amount, obj=obj,
+    return render_template('task_working.html', user=user, tasks_amount=tasks_amount,
                            task=_task, title=taskname, working_form=working_form)
 
 
-@task.route('read/<taskname>/<obj>', methods=['GET', 'POST'])
+@task.route('read/<taskname>', methods=['GET', 'POST'])
 @login_required
-def initial_value(taskname, obj):
+def initial_value(taskname):
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
     # dest = os.path.join(current_app.config.get(
@@ -178,140 +176,140 @@ def initial_value(taskname, obj):
 
     symbols_value = {'params': [], 'filters': [], 'schedules': []}
 
-    if obj == 'xml':
-        symbols_db_path = os.path.join(current_app.instance_path, 'symbols.db')
+    symbols_db_path = os.path.join(current_app.instance_path, 'symbols.db')
 
-        pattern = re.compile(r'\d+$')
-        symbols = SymbolDB()
-        symbols.load_db(symbols_db_path)
-        symbols.connect()
+    pattern = re.compile(r'\d+$')
+    symbols = SymbolDB()
+    symbols.load_db(symbols_db_path)
+    symbols.connect()
 
-        p_name = [p for p in symbols_name.keys(
-        ) if 'P_' in p and p not in only_in_bladed]
-        f_name = [p for p in symbols_name.keys() if 'F_' in p]
-        t_name = [p for p in symbols_name.keys() if 'T_' in p]
-        p_queried = symbols.multi_query(p_name)
-        f_queried = symbols.multi_query(f_name)
-        t_queried = symbols.multi_query(t_name)
-        symbols.close()
+    p_name = [p for p in symbols_name.keys(
+    ) if 'P_' in p and p not in only_in_bladed]
+    f_name = [p for p in symbols_name.keys() if 'F_' in p]
+    t_name = [p for p in symbols_name.keys() if 'T_' in p]
+    p_queried = symbols.multi_query(p_name)
+    f_queried = symbols.multi_query(f_name)
+    t_queried = symbols.multi_query(t_name)
+    symbols.close()
 
-        t_queried = {pattern.sub("", k, 1): v for k, v in t_queried.items()}
-        f_queried = {pattern.sub("", k, 1): v for k, v in f_queried.items()}
+    t_queried = {pattern.sub("", k, 1): v for k, v in t_queried.items()}
+    f_queried = {pattern.sub("", k, 1): v for k, v in f_queried.items()}
 
-        xml_path = os.path.join(dest, _task.xml_filename)
-        xml = XML()
-        try:
-            xml.open(xml_path)
-        except FileNotFoundError:
-            return jsonify(symbols_value)
+    xml_path = os.path.join(dest, _task.xml_filename)
+    xml = XML()
+    try:
+        xml.open(xml_path)
+    except FileNotFoundError:
+        return jsonify(symbols_value)
 
-        # xml_values = {name: "" if name in only_in_bladed or not xml.find(name) else xml.find(
-        #     name)[name] for name in symbols_name.keys()}
-        xml_values = {}
-        for name in symbols_name.keys():
-            if name in only_in_bladed:
-                xml_values[name] = ""
-                continue
-            xml_values.update(xml.find(name))
+    # xml_values = {name: "" if name in only_in_bladed or not xml.find(name) else xml.find(
+    #     name)[name] for name in symbols_name.keys()}
+    xml_values = {}
+    for name in symbols_name.keys():
+        if name in only_in_bladed:
+            xml_values[name] = ""
+            continue
+        xml_values.update(xml.find(name))
 
-        if task is not None:
-            for name, value in xml_values.items():
-                if 'P_' in name:
-                    symbols_value['params'].append({
-                        'name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                        f'{p_queried[name].at["Description_en_GB"] if name not in only_in_bladed and name in p_queried.keys() else symbols_name[name]["description_zh"]}'
-                        f'">{name}</span>',
-                        'bladed_value': '-' if not symbols_name[name]['bladed'] else
-                        f'<input type="text" class="table-value-bladed text-primary" id="{name}-bladed" disabled value="{bladed.query(symbols_name[name]["bladed"])[1]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        'symbol_value': '-' if name in only_in_bladed else
-                        f'<input type="text" class="table-value text-primary" id="{name}-symbol" disabled value="{value}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        'description': symbols_name[name]["description_zh"]
+    if task is not None:
+        for name, value in xml_values.items():
+            if 'P_' in name:
+                symbols_value['params'].append({
+                    'name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
+                    f'{p_queried[name].at["Description_en_GB"] if name not in only_in_bladed and name in p_queried.keys() else symbols_name[name]["description_zh"]}'
+                    f'">{name}</span>',
+                    'bladed_value': '-' if not symbols_name[name]['bladed'] else
+                    f'<input type="text" class="table-value-bladed text-primary" id="{name}-bladed" disabled value="{bladed.query(symbols_name[name]["bladed"])[1]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    'symbol_value': '-' if name in only_in_bladed else
+                    f'<input type="text" class="table-value text-primary" id="{name}-symbol" disabled value="{value}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;" onchange="checkChanged()">',
+                    'description': symbols_name[name]["description_zh"]
+                })
+            if 'T_' in name:
+                for index in value.index:
+                    symbols_value['schedules'].append({
+                        'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
+                        f'{t_queried[name].at["Description_en_GB"]}">{name}</span>',
+                        'Enabled':
+                            f'<input type="text" class="table-value enable-col  text-danger" id="{name}{index}-Enabled" disabled value="{value.at[0, "Enabled"]}"'
+                            f'style="background-color:transparent;border:0;text-align:center;width:50px;" onchange="checkChanged()">',
+                        'Display_Name': '-',
+                        '0': '-' if '_0' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{name}{index}-0" disabled value="{value.at[index, "_0"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onchange="checkChanged()">',
+                        '1': '-' if '_1' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{name}{index}-1" disabled value="{value.at[index, "_1"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onchange="checkChanged()">',
+                        '2': '-' if '_2' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{name}{index}-2" disabled value="{value.at[index, "_2"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onchange="checkChanged()">',
+                        '3': '-' if '_3' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{name}{index}-3" disabled value="{value.at[index, "_3"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onchange="checkChanged()">',
+                        '4': '-' if '_4' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{name}{index}-4" disabled value="{value.at[index, "_4"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onchange="checkChanged()">',
+                        '5': '-' if '_5' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{name}{index}-5" disabled value="{value.at[index, "_5"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onchange="checkChanged()">',
+                        '6': '-' if '_6' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{name}{index}-6" disabled value="{value.at[index, "_6"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onchange="checkChanged()">',
+                        '7': '-' if '_7' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{name}{index}-7" disabled value="{value.at[index, "_7"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onchange="checkChanged()">',
+                        '8': '-' if '_8' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{name}{index}-8" disabled value="{value.at[index, "_8"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onchange="checkChanged()">',
+                        '9': '-' if '_9' not in value.columns else
+                        f'<input type="text" class="table-value text-primary" id="{name}{index}-9" disabled value="{value.at[index, "_9"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onchange="checkChanged()">'
                     })
-                if 'T_' in name:
-                    for index in value.index:
-                        symbols_value['schedules'].append({
-                            'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                            f'{t_queried[name].at["Description_en_GB"]}">{name}</span>',
-                            'Enabled':
-                                f'<input type="text" class="table-value enable-col  text-danger" id="{name}{index}-Enabled" disabled value="{value.at[0, "Enabled"]}"'
-                                f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
-                            'Display_Name': '-',
-                            '0': '-' if '_0' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-0" disabled value="{value.at[index, "_0"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '1': '-' if '_1' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-1" disabled value="{value.at[index, "_1"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '2': '-' if '_2' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-2" disabled value="{value.at[index, "_2"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '3': '-' if '_3' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-3" disabled value="{value.at[index, "_3"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '4': '-' if '_4' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-4" disabled value="{value.at[index, "_4"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '5': '-' if '_5' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-5" disabled value="{value.at[index, "_5"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '6': '-' if '_6' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-6" disabled value="{value.at[index, "_6"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '7': '-' if '_7' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-7" disabled value="{value.at[index, "_7"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '8': '-' if '_8' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-8" disabled value="{value.at[index, "_8"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            '9': '-' if '_9' not in value.columns else
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-9" disabled value="{value.at[index, "_9"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">'
-                        })
-                if 'F_' in name:
-                    for index in value.index:
-                        symbols_value['filters'].append({
-                            'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                            f'{f_queried[name].at["Description_en_GB"]}">{name}</span>',
-                            'Enabled':
-                            f'<input type="text" class="table-value enable-col text-danger" id="{name}{index}-Enabled" disabled value="{value.at[index, "Enabled"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
-                            'Display_Name': f'{index+1}',
-                            'Numerator_Type': value.at[index, "Numerator_Type"],
-                            'Denominator_Type': value.at[index, "Denominator_Type"],
-                            'Numerator_TC': value.at[index, "Numerator_TC"],
-                            # f'<input type="text" class="table-value" disabled value="{value.at[index, "Numerator_TC"]}"'
-                            # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            'Denominator_TC': value.at[index, "Denominator_TC"],
-                            # f'<input type="text" class="table-value" disabled value="{value.at[index, "Denominator_TC"]}"'
-                            # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            'Numerator_Frequency':
-                            f'<input type="text" class="table-value num-frequency-col text-primary" id="{name}{index}-Numerator_Frequency" disabled value="{value.at[index, "Numerator_Frequency"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}{index}-Numerator_Frequency\', \'{name}{index}-Denominator_Frequency\')">',
-                            'Numerator_Damping_Ratio':
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-Numerator_Damping_Ratio" disabled value="{value.at[index, "Numerator_Damping_Ratio"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            'Denominator_Frequency':
-                            f'<input type="text" class="table-value den-frequency-col text-primary" id="{name}{index}-Denominator_Frequency" disabled value="{value.at[index, "Denominator_Frequency"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}{index}-Denominator_Frequency\', \'{name}{index}-Numerator_Frequency\')">',
-                            'Denominator_Damping_Ratio':
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-Denominator_Damping_Ratio" disabled value="{value.at[index, "Denominator_Damping_Ratio"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            'W0':
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-W0" disabled value="{value.at[index, "W0"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                            'Prewarping_Wc':
-                            f'<input type="text" class="table-value text-primary" id="{name}{index}-Prewarping_Wc" disabled value="{value.at[index, "Prewarping_Wc"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        })
+            if 'F_' in name:
+                for index in value.index:
+                    symbols_value['filters'].append({
+                        'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
+                        f'{f_queried[name].at["Description_en_GB"]}">{name}</span>',
+                        'Enabled':
+                        f'<input type="text" class="table-value enable-col text-danger" id="{name}{index}-Enabled" disabled value="{value.at[index, "Enabled"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:50px;" onchange="checkChanged()">',
+                        'Display_Name': f'{index+1}',
+                        'Numerator_Type': value.at[index, "Numerator_Type"],
+                        'Denominator_Type': value.at[index, "Denominator_Type"],
+                        'Numerator_TC': value.at[index, "Numerator_TC"],
+                        # f'<input type="text" class="table-value" disabled value="{value.at[index, "Numerator_TC"]}"'
+                        # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                        'Denominator_TC': value.at[index, "Denominator_TC"],
+                        # f'<input type="text" class="table-value" disabled value="{value.at[index, "Denominator_TC"]}"'
+                        # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                        'Numerator_Frequency':
+                        f'<input type="text" class="table-value num-frequency-col text-primary" id="{name}{index}-Numerator_Frequency" disabled value="{value.at[index, "Numerator_Frequency"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}{index}-Numerator_Frequency\', \'{name}{index}-Denominator_Frequency\')" onchange="checkChanged()">',
+                        'Numerator_Damping_Ratio':
+                        f'<input type="text" class="table-value text-primary" id="{name}{index}-Numerator_Damping_Ratio" disabled value="{value.at[index, "Numerator_Damping_Ratio"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onchange="checkChanged()">',
+                        'Denominator_Frequency':
+                        f'<input type="text" class="table-value den-frequency-col text-primary" id="{name}{index}-Denominator_Frequency" disabled value="{value.at[index, "Denominator_Frequency"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}{index}-Denominator_Frequency\', \'{name}{index}-Numerator_Frequency\')" onchange="checkChanged()">',
+                        'Denominator_Damping_Ratio':
+                        f'<input type="text" class="table-value text-primary" id="{name}{index}-Denominator_Damping_Ratio" disabled value="{value.at[index, "Denominator_Damping_Ratio"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onchange="checkChanged()">',
+                        'W0':
+                        f'<input type="text" class="table-value text-primary" id="{name}{index}-W0" disabled value="{value.at[index, "W0"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onchange="checkChanged()">',
+                        'Prewarping_Wc':
+                        f'<input type="text" class="table-value text-primary" id="{name}{index}-Prewarping_Wc" disabled value="{value.at[index, "Prewarping_Wc"]}"'
+                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onchange="checkChanged()">',
+                    })
 
     return jsonify(symbols_value)
 
 
-@task.route('write/<taskname>/<obj>', methods=['GET', 'POST'])
+# @task.route('write/<taskname>/<obj>', methods=['GET', 'POST'])
+@task.route('write/<taskname>', methods=['GET', 'POST'])
 @login_required
-def set_value(taskname, obj):
+def set_value(taskname):
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
     # dest = os.path.join(current_app.config.get(
@@ -320,15 +318,15 @@ def set_value(taskname, obj):
         'UPLOADS_DEFAULT_DEST'), taskname)
     _task.status = "Working"
     data = request.json['data']
-    target = request.json['target']
+    isgitted = request.json['isgitted']
     description = request.json['description'] if request.json['description'] else "Updated"
     cfg = current_app.config
     # git_path = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'), user.username)
     git_path = os.path.join(cfg.get('UPLOADS_DEFAULT_DEST'))
 
-    bladed_data = {k.split('-')[0]: v.strip()
+    bladed_data = {k.split('-')[0]: v['new'].strip()
                    for k, v in data.items() if '-bladed' in k}
-    symbol_data = {k: v.strip() for k, v in data.items() if '-bladed' not in k}
+    symbol_data = {k: v['new'].strip() for k, v in data.items() if '-bladed' not in k}
 
     if bladed_data:
         with current_app.open_instance_resource('name_mapping.json') as f:
@@ -339,70 +337,70 @@ def set_value(taskname, obj):
             : v for k, v in bladed_data.items()}
         bladed.set(**bladed_args)
 
-    if symbol_data and obj == 'symbol':
-        db_symbol_path = os.path.join(dest, taskname + '.db')
-        db_symbol = SymbolDB()
-        db_symbol.load_db(db_symbol_path, excel_name=_task.symbol_filename)
-        db_symbol.connect()
-        db_symbol.update(target, **symbol_data)
-        db_symbol.close()
+    # if symbol_data and obj == 'symbol':
+    #     db_symbol_path = os.path.join(dest, taskname + '.db')
+    #     db_symbol = SymbolDB()
+    #     db_symbol.load_db(db_symbol_path, excel_name=_task.symbol_filename)
+    #     db_symbol.connect()
+    #     db_symbol.update(target, **symbol_data)
+    #     db_symbol.close()
 
-    if symbol_data and obj == 'xml':
-        new_name = request.json['newname'] if os.path.splitext(request.json['newname'])[-1] in ['.xml'] else \
-            request.json['newname'] + '.xml'
-        new_name_path = os.path.join(dest, new_name)
-        xml_path = os.path.join(dest, _task.xml_filename)
-        if xml_path != new_name_path:
-            shutil.copy(xml_path, new_name_path)
-            _task.xml_filename = new_name
-        xml = XML()
-        try:
-            xml.open(new_name_path)
-        except FileNotFoundError:
-            return None
-        fine_data = {}
-        pattern = re.compile(r'^(\S+?)(\d*)-(\S+)$')
-        for name, data in symbol_data.items():
-            m = pattern.search(name)
-            true_name, row, col = m.groups()
-            col = f'_{col}' if col.isdigit() else col.replace('_', '')
+    # if symbol_data and obj == 'xml':
+    new_name = request.json['newname'] if os.path.splitext(request.json['newname'])[-1] in ['.xml'] else \
+        request.json['newname'] + '.xml'
+    new_name_path = os.path.join(dest, new_name)
+    xml_path = os.path.join(dest, _task.xml_filename)
+    if xml_path != new_name_path:
+        shutil.copy(xml_path, new_name_path)
+        _task.xml_filename = new_name
+    xml = XML()
+    try:
+        xml.open(new_name_path)
+    except FileNotFoundError:
+        return None
+    fine_data = {}
+    pattern = re.compile(r'^(\S+?)(\d*)-(\S+)$')
+    for name, data in symbol_data.items():
+        m = pattern.search(name)
+        true_name, row, col = m.groups()
+        col = f'_{col}' if col.isdigit() else col.replace('_', '')
 
-            if true_name not in fine_data.keys():
-                fine_data[true_name] = {row: {col: data}}
+        if true_name not in fine_data.keys():
+            fine_data[true_name] = {row: {col: data}}
+        else:
+            if row not in fine_data[true_name].keys():
+                fine_data[true_name][row] = {col: data}
             else:
-                if row not in fine_data[true_name].keys():
-                    fine_data[true_name][row] = {col: data}
-                else:
-                    fine_data[true_name][row].update({col: data})
+                fine_data[true_name][row].update({col: data})
 
-        p_list = [p for p in symbol_data if 'P_' in p]
-        t_list = [p for p in symbol_data if 'P_' not in p]
-        xml.update(p_list, t_list, **fine_data)
+    p_list = [p for p in symbol_data if 'P_' in p]
+    t_list = [p for p in symbol_data if 'P_' not in p]
+    xml.update(p_list, t_list, **fine_data)
 
-        readme_text = os.path.join(dest, 'README.txt')
-        with open(readme_text, 'a', encoding='utf-8') as f:
-            spec = ("")
-            f.write(spec)
+    readme_text = os.path.join(dest, 'README.txt')
+    with open(readme_text, 'a', encoding='utf-8') as f:
+        f.write(description)
 
-        # readme_path = os.path.join(dest, 'README.md')
-        # with open(readme_path, 'a+', encoding="utf-8") as f:
-        #     f.write(
-        #         "#### " + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' - {new_name}\n')
-        #     f.write("> " + description + '\n\n')
+    # readme_path = os.path.join(dest, 'README.md')
+    # with open(readme_path, 'a+', encoding="utf-8") as f:
+    #     f.write(
+    #         "#### " + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' - {new_name}\n')
+    #     f.write("> " + description + '\n\n')
 
-        # git_commit_push(git_path, description, wait_push=True)
-        _task.status = "Dirty" if _task.isgitted else "Saved"
+    # git_commit_push(git_path, description, wait_push=True)
+    _task.status = "Dirty" if _task.isgitted else "Saved"
 
-    if target == "git":  # 提交至Git并push
+    if isgitted:  # 提交至Git并push
         git_commit_push(git_path, description)
         _task.status = "Clean"
 
-    return initial_value(taskname, obj)
+    return initial_value(taskname)
 
 
-@task.route('search/<taskname>/<obj>', methods=['POST'])
+# @task.route('search/<taskname>/<obj>', methods=['POST'])
+@task.route('search/<taskname>', methods=['POST'])
 @login_required
-def search_list(taskname, obj):
+def search_list(taskname):
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
     # dest = os.path.join(current_app.config.get(
@@ -413,15 +411,15 @@ def search_list(taskname, obj):
     key_word = request.json.strip()
     names = []
 
-    if key_word and obj == 'symbol':
-        db_symbol_path = os.path.join(dest, taskname + '.db')
-        db_symbol = SymbolDB()
-        db_symbol.load_db(db_symbol_path)
-        db_symbol.connect()
-        result = db_symbol.query(key_word.replace('_', '/_'))
-        names = [r[0] for r in result]
-        db_symbol.close()
-    if key_word and obj == 'xml':
+    # if key_word and obj == 'symbol':
+    #     db_symbol_path = os.path.join(dest, taskname + '.db')
+    #     db_symbol = SymbolDB()
+    #     db_symbol.load_db(db_symbol_path)
+    #     db_symbol.connect()
+    #     result = db_symbol.query(key_word.replace('_', '/_'))
+    #     names = [r[0] for r in result]
+    #     db_symbol.close()
+    if key_word:
         xml_path = os.path.join(dest, _task.xml_filename)
         xml = XML()
         try:
@@ -434,9 +432,10 @@ def search_list(taskname, obj):
     return jsonify(names)
 
 
-@task.route('search/<taskname>/<obj>/<param>', methods=['POST'])
+# @task.route('search/<taskname>/<obj>/<param>', methods=['POST'])
+@task.route('search/<taskname>/<param>', methods=['POST'])
 @login_required
-def search(taskname, obj, param):
+def search(taskname, param):
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
     # dest = os.path.join(current_app.config.get(
@@ -446,223 +445,224 @@ def search(taskname, obj, param):
 
     symbols_value = {'params': [], 'filters': [], 'schedules': []}
 
-    if obj == "symbol":
-        db_symbol_path = os.path.join(dest, taskname + '.db')
-        db_symbol = SymbolDB()
-        db_symbol.load_db(db_symbol_path)
-        db_symbol.connect()
+    # if obj == "symbol":
+    #     db_symbol_path = os.path.join(dest, taskname + '.db')
+    #     db_symbol = SymbolDB()
+    #     db_symbol.load_db(db_symbol_path)
+    #     db_symbol.connect()
 
-        p_queried = {} if param[:2] in [
-            'F_', 'T_'] else db_symbol.multi_query([param])
-        f_queried = {} if 'F_' not in param else db_symbol.multi_query([param])
-        t_queried = {} if 'T_' not in param else db_symbol.multi_query([param])
-        db_symbol.close()
+    #     p_queried = {} if param[:2] in [
+    #         'F_', 'T_'] else db_symbol.multi_query([param])
+    #     f_queried = {} if 'F_' not in param else db_symbol.multi_query([param])
+    #     t_queried = {} if 'T_' not in param else db_symbol.multi_query([param])
+    #     db_symbol.close()
 
-        if task is not None:
-            pattern = re.compile(r'\d+$')
-            # 保证显示顺序
-            symbols_value['params'] = [{
+    #     if task is not None:
+    #         pattern = re.compile(r'\d+$')
+    #         # 保证显示顺序
+    #         symbols_value['params'] = [{
+    #             'name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
+    #             f'{value.at["Description_en_GB"]}">{name}</span>',
+    #             'bladed_value': '-',
+    #             'symbol_value': f'<input type="text" class="table-value text-primary" id="{name}-symbol" '
+    #             f'disabled value="{value.at["Initial_Value"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+    #             'description': value.at["Description_en_GB"]
+    #         }
+    #             for name, value in p_queried.items()
+    #         ]
+    #         symbols_value['schedules'] = [{
+    #             'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
+    #             f'{t_queried[name].at["Description_en_GB"]}">{pattern.sub("", name, 1)}</span>',
+    #             'Enabled':
+    #             f'<input type="text" class="table-value enable-col  text-danger" id="{name}-Enabled" disabled value="{t_queried[name].at["Enabled"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
+    #             'Display_Name': t_queried[name].at['Display_Name'],
+    #             '0': '-' if t_queried[name].at['_0'] == 'None' else
+    #             f'<input type="text" class="table-value text-primary" id="{name}-0" disabled value="{t_queried[name].at["_0"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+    #             '1': '-' if t_queried[name].at['_1'] == 'None' else
+    #             f'<input type="text" class="table-value text-primary" id="{name}-1" disabled value="{t_queried[name].at["_1"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+    #             '2': '-' if t_queried[name].at['_2'] == 'None' else
+    #             f'<input type="text" class="table-value text-primary" id="{name}-2" disabled value="{t_queried[name].at["_2"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+    #             '3': '-' if t_queried[name].at['_3'] == 'None' else
+    #             f'<input type="text" class="table-value text-primary" id="{name}-3" disabled value="{t_queried[name].at["_3"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+    #             '4': '-' if t_queried[name].at['_4'] == 'None' else
+    #             f'<input type="text" class="table-value text-primary" id="{name}-4" disabled value="{t_queried[name].at["_4"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+    #             '5': '-' if t_queried[name].at['_5'] == 'None' else
+    #             f'<input type="text" class="table-value text-primary" id="{name}-5" disabled value="{t_queried[name].at["_5"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+    #             '6': '-' if t_queried[name].at['_6'] == 'None' else
+    #             f'<input type="text" class="table-value text-primary" id="{name}-6" disabled value="{t_queried[name].at["_6"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+    #             '7': '-' if t_queried[name].at['_7'] == 'None' else
+    #             f'<input type="text" class="table-value text-primary" id="{name}-7" disabled value="{t_queried[name].at["_7"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+    #             '8': '-' if t_queried[name].at['_8'] == 'None' else
+    #             f'<input type="text" class="table-value text-primary" id="{name}-8" disabled value="{t_queried[name].at["_8"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+    #             '9': '-' if t_queried[name].at['_9'] == 'None' else
+    #             f'<input type="text" class="table-value text-primary" id="{name}-9" disabled value="{t_queried[name].at["_9"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">'
+    #         } for name in t_queried.keys()
+    #         ]
+    #         symbols_value['filters'] = [{
+    #             'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
+    #             f'{value.at["Description_en_GB"]}">{pattern.sub("", name, 1)}</span>',
+    #             'Enabled':
+    #             f'<input type="text" class="table-value enable-col  text-danger" id="{name}-Enabled" disabled value="{value.at["Enabled"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
+    #             'Display_Name': value.at["Display_Name"],
+    #             'Numerator_Type': value.at["Numerator_Type"],
+    #             'Denominator_Type': value.at["Denominator_Type"],
+    #             'Numerator_TC': value.at["Numerator_TC"],
+    #             # f'<input type="text" class="table-value" disabled value="{f_queried[name].at["Numerator_TC"]}"'
+    #             # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+    #             'Denominator_TC': value.at["Denominator_TC"],
+    #             # f'<input type="text" class="table-value" disabled value="{f_queried[name].at["Denominator_TC"]}"'
+    #             # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+    #             'Numerator_Frequency':
+    #             f'<input type="text" class="table-value text-primary num-frequency-col" id="{name}-Numerator_Frequency" disabled value="{value.at["Numerator_Frequency"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}-Numerator_Frequency\', \'{name}-Denominator_Frequency\')">',
+    #             'Numerator_Damping_Ratio':
+    #             f'<input type="text" class="table-value text-primary" id="{name}-Numerator_Damping_Ratio" disabled value="{value.at["Numerator_Damping_Ratio"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+    #             'Denominator_Frequency':
+    #             f'<input type="text" class="table-value text-primary den-frequency-col" id="{name}-Denominator_Frequency" disabled value="{value.at["Denominator_Frequency"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}-Denominator_Frequency\', \'{name}-Numerator_Frequency\')">',
+    #             'Denominator_Damping_Ratio':
+    #             f'<input type="text" class="table-value text-primary" id="{name}-Denominator_Damping_Ratio" disabled value="{value.at["Denominator_Damping_Ratio"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+    #             'W0':
+    #             f'<input type="text" class="table-value text-primary" id="{name}-W0" disabled value="{value.at["W0"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+    #             'Prewarping_Wc':
+    #             f'<input type="text" class="table-value text-primary" id="{name}-Prewarping_Wc" disabled value="{value.at["Prewarping_Wc"]}"'
+    #             f'style="background-color:transparent;border:0;text-align:center;width:100px;">'
+    #         } for name, value in f_queried.items()
+    #         ]
+
+    # if obj == 'xml':
+    symbols_db_path = os.path.join(current_app.instance_path, 'symbols.db')
+
+    pattern = re.compile(r'\d+$')
+    symbols = SymbolDB()
+    symbols.load_db(symbols_db_path)
+    symbols.connect()
+    queried = symbols.multi_query([param])
+    symbols.close()
+
+    queried = {pattern.sub("", k, 1): v for k, v in queried.items()}
+
+    xml_path = os.path.join(dest, _task.xml_filename)
+    xml = XML()
+    try:
+        xml.open(xml_path)
+    except FileNotFoundError:
+        return jsonify(symbols_value)
+
+    xml_values = xml.find(param)
+    value = xml_values[param]
+
+    if task is not None:
+        if 'P_' in param:
+            symbols_value['params'].append({
                 'name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                f'{value.at["Description_en_GB"]}">{name}</span>',
+                f'{queried[param].at["Description_en_GB"] if param in queried.keys() else param}">{param}</span>',
                 'bladed_value': '-',
-                'symbol_value': f'<input type="text" class="table-value text-primary" id="{name}-symbol" '
-                f'disabled value="{value.at["Initial_Value"]}"'
+                'symbol_value':
+                f'<input type="text" class="table-value text-primary" id="{param}-symbol" disabled value="{value}"'
                 f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                'description': value.at["Description_en_GB"]
-            }
-                for name, value in p_queried.items()
-            ]
-            symbols_value['schedules'] = [{
-                'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                f'{t_queried[name].at["Description_en_GB"]}">{pattern.sub("", name, 1)}</span>',
-                'Enabled':
-                f'<input type="text" class="table-value enable-col  text-danger" id="{name}-Enabled" disabled value="{t_queried[name].at["Enabled"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
-                'Display_Name': t_queried[name].at['Display_Name'],
-                '0': '-' if t_queried[name].at['_0'] == 'None' else
-                f'<input type="text" class="table-value text-primary" id="{name}-0" disabled value="{t_queried[name].at["_0"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                '1': '-' if t_queried[name].at['_1'] == 'None' else
-                f'<input type="text" class="table-value text-primary" id="{name}-1" disabled value="{t_queried[name].at["_1"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                '2': '-' if t_queried[name].at['_2'] == 'None' else
-                f'<input type="text" class="table-value text-primary" id="{name}-2" disabled value="{t_queried[name].at["_2"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                '3': '-' if t_queried[name].at['_3'] == 'None' else
-                f'<input type="text" class="table-value text-primary" id="{name}-3" disabled value="{t_queried[name].at["_3"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                '4': '-' if t_queried[name].at['_4'] == 'None' else
-                f'<input type="text" class="table-value text-primary" id="{name}-4" disabled value="{t_queried[name].at["_4"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                '5': '-' if t_queried[name].at['_5'] == 'None' else
-                f'<input type="text" class="table-value text-primary" id="{name}-5" disabled value="{t_queried[name].at["_5"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                '6': '-' if t_queried[name].at['_6'] == 'None' else
-                f'<input type="text" class="table-value text-primary" id="{name}-6" disabled value="{t_queried[name].at["_6"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                '7': '-' if t_queried[name].at['_7'] == 'None' else
-                f'<input type="text" class="table-value text-primary" id="{name}-7" disabled value="{t_queried[name].at["_7"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                '8': '-' if t_queried[name].at['_8'] == 'None' else
-                f'<input type="text" class="table-value text-primary" id="{name}-8" disabled value="{t_queried[name].at["_8"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                '9': '-' if t_queried[name].at['_9'] == 'None' else
-                f'<input type="text" class="table-value text-primary" id="{name}-9" disabled value="{t_queried[name].at["_9"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">'
-            } for name in t_queried.keys()
-            ]
-            symbols_value['filters'] = [{
-                'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                f'{value.at["Description_en_GB"]}">{pattern.sub("", name, 1)}</span>',
-                'Enabled':
-                f'<input type="text" class="table-value enable-col  text-danger" id="{name}-Enabled" disabled value="{value.at["Enabled"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
-                'Display_Name': value.at["Display_Name"],
-                'Numerator_Type': value.at["Numerator_Type"],
-                'Denominator_Type': value.at["Denominator_Type"],
-                'Numerator_TC': value.at["Numerator_TC"],
-                # f'<input type="text" class="table-value" disabled value="{f_queried[name].at["Numerator_TC"]}"'
-                # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                'Denominator_TC': value.at["Denominator_TC"],
-                # f'<input type="text" class="table-value" disabled value="{f_queried[name].at["Denominator_TC"]}"'
-                # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                'Numerator_Frequency':
-                f'<input type="text" class="table-value text-primary num-frequency-col" id="{name}-Numerator_Frequency" disabled value="{value.at["Numerator_Frequency"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}-Numerator_Frequency\', \'{name}-Denominator_Frequency\')">',
-                'Numerator_Damping_Ratio':
-                f'<input type="text" class="table-value text-primary" id="{name}-Numerator_Damping_Ratio" disabled value="{value.at["Numerator_Damping_Ratio"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                'Denominator_Frequency':
-                f'<input type="text" class="table-value text-primary den-frequency-col" id="{name}-Denominator_Frequency" disabled value="{value.at["Denominator_Frequency"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{name}-Denominator_Frequency\', \'{name}-Numerator_Frequency\')">',
-                'Denominator_Damping_Ratio':
-                f'<input type="text" class="table-value text-primary" id="{name}-Denominator_Damping_Ratio" disabled value="{value.at["Denominator_Damping_Ratio"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                'W0':
-                f'<input type="text" class="table-value text-primary" id="{name}-W0" disabled value="{value.at["W0"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                'Prewarping_Wc':
-                f'<input type="text" class="table-value text-primary" id="{name}-Prewarping_Wc" disabled value="{value.at["Prewarping_Wc"]}"'
-                f'style="background-color:transparent;border:0;text-align:center;width:100px;">'
-            } for name, value in f_queried.items()
-            ]
-
-    if obj == 'xml':
-        symbols_db_path = os.path.join(current_app.instance_path, 'symbols.db')
-
-        pattern = re.compile(r'\d+$')
-        symbols = SymbolDB()
-        symbols.load_db(symbols_db_path)
-        symbols.connect()
-        queried = symbols.multi_query([param])
-        symbols.close()
-
-        queried = {pattern.sub("", k, 1): v for k, v in queried.items()}
-
-        xml_path = os.path.join(dest, _task.xml_filename)
-        xml = XML()
-        try:
-            xml.open(xml_path)
-        except FileNotFoundError:
-            return jsonify(symbols_value)
-
-        xml_values = xml.find(param)
-        value = xml_values[param]
-
-        if task is not None:
-            if 'P_' in param:
-                symbols_value['params'].append({
-                    'name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
+                'description': ""
+            })
+        if 'T_' in param:
+            for index in value.index:
+                symbols_value['schedules'].append({
+                    'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
                     f'{queried[param].at["Description_en_GB"] if param in queried.keys() else param}">{param}</span>',
-                    'bladed_value': '-',
-                    'symbol_value':
-                    f'<input type="text" class="table-value text-primary" id="{param}-symbol" disabled value="{value}"'
-                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                    'description': ""
-                })
-            if 'T_' in param:
-                for index in value.index:
-                    symbols_value['schedules'].append({
-                        'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                        f'{queried[param].at["Description_en_GB"] if param in queried.keys() else param}">{param}</span>',
-                        'Enabled':
-                            f'<input type="text" class="table-value enable-col  text-danger" id="{param}{index}-Enabled" disabled value="{value.at[0, "Enabled"]}"'
-                            f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
-                        'Display_Name': '-',
-                        '0': '-' if '_0' not in value.columns else
-                        f'<input type="text" class="table-value text-primary" id="{param}{index}-0" disabled value="{value.at[index, "_0"]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        '1': '-' if '_1' not in value.columns else
-                        f'<input type="text" class="table-value text-primary" id="{param}{index}-1" disabled value="{value.at[index, "_1"]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        '2': '-' if '_2' not in value.columns else
-                        f'<input type="text" class="table-value text-primary" id="{param}{index}-2" disabled value="{value.at[index, "_2"]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        '3': '-' if '_3' not in value.columns else
-                        f'<input type="text" class="table-value text-primary" id="{param}{index}-3" disabled value="{value.at[index, "_3"]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        '4': '-' if '_4' not in value.columns else
-                        f'<input type="text" class="table-value text-primary" id="{param}{index}-4" disabled value="{value.at[index, "_4"]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        '5': '-' if '_5' not in value.columns else
-                        f'<input type="text" class="table-value text-primary" id="{param}{index}-5" disabled value="{value.at[index, "_5"]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        '6': '-' if '_6' not in value.columns else
-                        f'<input type="text" class="table-value text-primary" id="{param}{index}-6" disabled value="{value.at[index, "_6"]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        '7': '-' if '_7' not in value.columns else
-                        f'<input type="text" class="table-value text-primary" id="{param}{index}-7" disabled value="{value.at[index, "_7"]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        '8': '-' if '_8' not in value.columns else
-                        f'<input type="text" class="table-value text-primary" id="{param}{index}-8" disabled value="{value.at[index, "_8"]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        '9': '-' if '_9' not in value.columns else
-                        f'<input type="text" class="table-value text-primary" id="{param}{index}-9" disabled value="{value.at[index, "_9"]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">'
-                    })
-            if 'F_' in param:
-                for index in value.index:
-                    symbols_value['filters'].append({
-                        'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                        f'{queried[param].at["Description_en_GB"] if param in queried.keys() else param}">{param}</span>',
-                        'Enabled':
-                        f'<input type="text" class="table-value enable-col text-danger" id="{param}{index}-Enabled" disabled value="{value.at[index, "Enabled"]}"'
+                    'Enabled':
+                        f'<input type="text" class="table-value enable-col  text-danger" id="{param}{index}-Enabled" disabled value="{value.at[0, "Enabled"]}"'
                         f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
-                        'Display_Name': f'{index+1}',
-                        'Numerator_Type': value.at[index, "Numerator_Type"],
-                        'Denominator_Type': value.at[index, "Denominator_Type"],
-                        'Numerator_TC': value.at[index, "Numerator_TC"],
-                        # f'<input type="text" class="table-value" disabled value="{value.at[index, "Numerator_TC"]}"'
-                        # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        'Denominator_TC': value.at[index, "Denominator_TC"],
-                        # f'<input type="text" class="table-value" disabled value="{value.at[index, "Denominator_TC"]}"'
-                        # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        'Numerator_Frequency':
-                        f'<input type="text" class="table-value num-frequency-col text-primary" id="{param}{index}-Numerator_Frequency" disabled value="{value.at[index, "Numerator_Frequency"]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{param}{index}-Numerator_Frequency\', \'{param}{index}-Denominator_Frequency\')">',
-                        'Numerator_Damping_Ratio':
-                        f'<input type="text" class="table-value text-primary" id="{param}{index}-Numerator_Damping_Ratio" disabled value="{value.at[index, "Numerator_Damping_Ratio"]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        'Denominator_Frequency':
-                        f'<input type="text" class="table-value den-frequency-col text-primary" id="{param}{index}-Denominator_Frequency" disabled value="{value.at[index, "Denominator_Frequency"]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{param}{index}-Denominator_Frequency\', \'{param}{index}-Numerator_Frequency\')">',
-                        'Denominator_Damping_Ratio':
-                        f'<input type="text" class="table-value text-primary" id="{param}{index}-Denominator_Damping_Ratio" disabled value="{value.at[index, "Denominator_Damping_Ratio"]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        'W0':
-                        f'<input type="text" class="table-value text-primary" id="{param}{index}-W0" disabled value="{value.at[index, "W0"]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                        'Prewarping_Wc':
-                        f'<input type="text" class="table-value text-primary" id="{param}{index}-Prewarping_Wc" disabled value="{value.at[index, "Prewarping_Wc"]}"'
-                        f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
-                    })
+                    'Display_Name': '-',
+                    '0': '-' if '_0' not in value.columns else
+                    f'<input type="text" class="table-value text-primary" id="{param}{index}-0" disabled value="{value.at[index, "_0"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    '1': '-' if '_1' not in value.columns else
+                    f'<input type="text" class="table-value text-primary" id="{param}{index}-1" disabled value="{value.at[index, "_1"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    '2': '-' if '_2' not in value.columns else
+                    f'<input type="text" class="table-value text-primary" id="{param}{index}-2" disabled value="{value.at[index, "_2"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    '3': '-' if '_3' not in value.columns else
+                    f'<input type="text" class="table-value text-primary" id="{param}{index}-3" disabled value="{value.at[index, "_3"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    '4': '-' if '_4' not in value.columns else
+                    f'<input type="text" class="table-value text-primary" id="{param}{index}-4" disabled value="{value.at[index, "_4"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    '5': '-' if '_5' not in value.columns else
+                    f'<input type="text" class="table-value text-primary" id="{param}{index}-5" disabled value="{value.at[index, "_5"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    '6': '-' if '_6' not in value.columns else
+                    f'<input type="text" class="table-value text-primary" id="{param}{index}-6" disabled value="{value.at[index, "_6"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    '7': '-' if '_7' not in value.columns else
+                    f'<input type="text" class="table-value text-primary" id="{param}{index}-7" disabled value="{value.at[index, "_7"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    '8': '-' if '_8' not in value.columns else
+                    f'<input type="text" class="table-value text-primary" id="{param}{index}-8" disabled value="{value.at[index, "_8"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    '9': '-' if '_9' not in value.columns else
+                    f'<input type="text" class="table-value text-primary" id="{param}{index}-9" disabled value="{value.at[index, "_9"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">'
+                })
+        if 'F_' in param:
+            for index in value.index:
+                symbols_value['filters'].append({
+                    'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
+                    f'{queried[param].at["Description_en_GB"] if param in queried.keys() else param}">{param}</span>',
+                    'Enabled':
+                    f'<input type="text" class="table-value enable-col text-danger" id="{param}{index}-Enabled" disabled value="{value.at[index, "Enabled"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
+                    'Display_Name': f'{index+1}',
+                    'Numerator_Type': value.at[index, "Numerator_Type"],
+                    'Denominator_Type': value.at[index, "Denominator_Type"],
+                    'Numerator_TC': value.at[index, "Numerator_TC"],
+                    # f'<input type="text" class="table-value" disabled value="{value.at[index, "Numerator_TC"]}"'
+                    # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    'Denominator_TC': value.at[index, "Denominator_TC"],
+                    # f'<input type="text" class="table-value" disabled value="{value.at[index, "Denominator_TC"]}"'
+                    # f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    'Numerator_Frequency':
+                    f'<input type="text" class="table-value num-frequency-col text-primary" id="{param}{index}-Numerator_Frequency" disabled value="{value.at[index, "Numerator_Frequency"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{param}{index}-Numerator_Frequency\', \'{param}{index}-Denominator_Frequency\')">',
+                    'Numerator_Damping_Ratio':
+                    f'<input type="text" class="table-value text-primary" id="{param}{index}-Numerator_Damping_Ratio" disabled value="{value.at[index, "Numerator_Damping_Ratio"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    'Denominator_Frequency':
+                    f'<input type="text" class="table-value den-frequency-col text-primary" id="{param}{index}-Denominator_Frequency" disabled value="{value.at[index, "Denominator_Frequency"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;" onkeyup="equals(\'{param}{index}-Denominator_Frequency\', \'{param}{index}-Numerator_Frequency\')">',
+                    'Denominator_Damping_Ratio':
+                    f'<input type="text" class="table-value text-primary" id="{param}{index}-Denominator_Damping_Ratio" disabled value="{value.at[index, "Denominator_Damping_Ratio"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    'W0':
+                    f'<input type="text" class="table-value text-primary" id="{param}{index}-W0" disabled value="{value.at[index, "W0"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                    'Prewarping_Wc':
+                    f'<input type="text" class="table-value text-primary" id="{param}{index}-Prewarping_Wc" disabled value="{value.at[index, "Prewarping_Wc"]}"'
+                    f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
+                })
 
     return jsonify(symbols_value)
 
 
-@task.route('download/<taskname>/<obj>')
+# @task.route('download/<taskname>/<obj>')
+@task.route('download/<taskname>')
 @login_required
-def download(taskname, obj):
+def download(taskname):
     _task = Task.query.filter_by(name=taskname).first()
     user = User.query.filter_by(id=_task.user_id).first()
     if _task is None:
@@ -686,8 +686,8 @@ def download(taskname, obj):
         ctrlzip.write(xml_file, arcname=os.path.basename(xml_file))
         ctrlzip.write(readme_file, arcname=os.path.basename(readme_file))
             
-    if obj == "symbol":
-        return send_from_directory(directory=folder, filename=_task.symbol_filename, as_attachment=True)
+    # if obj == "symbol":
+    #     return send_from_directory(directory=folder, filename=_task.symbol_filename, as_attachment=True)
     if obj == 'xml':
         return send_from_directory(directory=folder, filename=os.path.basename(ctrl_zip), as_attachment=True)
 

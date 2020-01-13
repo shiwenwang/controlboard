@@ -42,14 +42,23 @@
     .card {
         background: white;
         box-shadow: 0px 0px 0px grey;
-        transition: box-shadow .3s ease-out;
+        transition: box-shadow .2s ease-out;
         box-shadow: .8px .9px 3px grey;
     }
 
     .card:hover {
         box-shadow: 1px 8px 20px grey;
-        transition: box-shadow .3s ease-in;
+        transition: box-shadow .2s ease-in;
     }
+
+    .tuning-type .dropdown-toggle {
+        width: 120px!important;
+    }
+
+    .tuning-type .dropdown-menu {
+        min-width: 120px!important;
+    }
+    
 
     /* svg path,svg rect{fill: #FF6700;} */
 </style>
@@ -80,27 +89,13 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
-                    {% if obj == 'symbol' %}
-                    <a class="nav-link active" id="nav-symbol"
-                        href="{{ url_for('task.work', taskname=task.name, obj='symbol') }}">Symbol</a>
-                    {% else %}
-                    <a class="nav-link" id="nav-symbol"
-                        href="{{ url_for('task.work', taskname=task.name, obj='symbol') }}">Symbol</a>
-                    {% endif %}
-                </li>
-                <li class="nav-item">
-                    {% if obj == 'xml' %}
                     <a class="nav-link active" id="nav-xml"
-                        href="{{ url_for('task.work', taskname=task.name, obj='xml') }}">XML</a>
-                    {% else %}
-                    <a class="nav-link" id="nav-xml"
-                        href="{{ url_for('task.work', taskname=task.name, obj='xml') }}">XML</a>
-                    {% endif %}
+                        href="{{ url_for('task.work', taskname=task.name) }}">Symbols</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" target="blank" onclick="campbellTrigger()">Campbell</a>
                 </li>
-                <li class="nav-item" style="border-color: #ffe484;">
+                <li class="nav-item" style="border-color: #ffe484;padding: 0px 16px;">
                     <span class="algolia-autocomplete algolia-autocomplete-left"
                         style="position: relative; display: inline-block; direction: ltr;"><input type="search"
                             class="form-control ds-input" id="symbol-search-input" placeholder="Search..."
@@ -109,8 +104,8 @@
                             aria-owns="algolia-autocomplete-listbox-0" dir="auto"
                             style="position: relative; vertical-align: top; width: 400px;"
                             oninput="searchInpuChanged()">
-                        <span class="ds-dropdown-menu" role="listbox" id="algolia-autocomplete-listbox-0"
-                            style="position: absolute; top: 100%; z-index: 100; display: none; width: 500px; max-height: 500px;">
+                        <span class="dropdown-menu dropdown-menu-left" role="listbox"
+                            id="algolia-autocomplete-listbox-0" style="min-width: 100%;">
                             <div class="list-group list-group-flush" id="name-list"></div>
                         </span>
                     </span>
@@ -238,29 +233,23 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            {% if obj == 'symbol' %}
-            <div class="modal-body">
-                <ul>
-                    <!-- <li>保存至Symbol表将花费较长时间，且暂未找到读写Excel更快速的方法。</li> -->
-                    <li>保存后的Symbol表文件打开时有弹出修复的提示，这是由Setting页中的图片丢失导致，忽略即可。</li>
-                    <li>除上述问题外，其余功能正常。</li>
-                </ul>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">放弃</button>
-                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="savePage('db')"
-                    data-toggle="modal" data-target="#SavingModal">仅更新数据库</button>
-                <button type="button" class="btn btn-primary symbol-save-btn" data-dismiss="modal" data-toggle="modal"
-                    data-target="#SavingModal" onclick="savePage('symbol')">保存至Symbol表</button>
-            </div>
-            {% else %}
             <div class="modal-body">
                 <form>
-                    <div class="form-group">
-                        <label for="rename">文件名：</label>
-                        <input type="text" class="form-control" id="rename" autocomplete="off"
-                            placeholder="{{ task.xml_filename }}">
-                        <div class="invalid-feedback" id="rename-feedback"></div>
+                    <div class="form-row">
+                        <div class="form-group col-10">
+                            <label for="rename">文件名：</label>
+                            <input type="text" class="form-control" id="rename" autocomplete="off"
+                                placeholder="{{ task.xml_filename }}">
+                        </div>
+
+                        <div class="form-group col-2 tuning-type">
+                            <label for="uning-type-selectpicker">调参类型：</label>
+                            <select class="selectpicker" id="tuning-type-selectpicker" data-style="btn-outline-0">
+                                <option value="1">初版整定</option>
+                                <option value="2">降载迭代</option>
+                                <option value="3">特殊需求</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="description">备注：</label>
@@ -271,16 +260,15 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">放弃</button>
                 <button type="button" class="btn btn-info symbol-save-btn" data-dismiss="modal" id="save-btn"
-                    onclick="savePage('xml')">保存至工作区</button>
+                    onclick="savePage(false)">保存至工作区</button>
                 {% if task.isgitted %}
                 <button type="button" class="btn btn-primary symbol-save-btn" data-dismiss="modal" data-toggle="modal"
-                    id="save-git-btn" data-target="#SavingModal" onclick="savePage('git')">保存并提交至Git</button>
+                    id="save-git-btn" data-target="#SavingModal" onclick="savePage(true)">保存并提交至Git</button>
                 {% else %}
                 <button type="button" class="btn btn-primary symbol-save-btn" data-dismiss="modal" data-toggle="modal"
-                    data-target="#SavingModal" disabled onclick="savePage('git')">保存并提交至Git</button>
+                    data-target="#SavingModal" disabled">保存并提交至Git</button>
                 {% endif %}
             </div>
-            {% endif %}
 
         </div>
     </div>
@@ -370,26 +358,18 @@
                 </button>
             </div>
             <div class="p-2 align-self-center">
-                <a class="btn btn-bd-primary" href="{{ url_for('task.download', taskname=task.name, obj=obj) }}">
+                <a class="btn btn-bd-primary" href="{{ url_for('task.download', taskname=task.name) }}">
                     <i class="fas fa-cloud-download-alt"></i> 下载
                 </a>
                 <!-- <button type="submit" class="btn btn-bd-primary" id="download" onclick="download()">
                     <i class="fas fa-cloud-download-alt"></i> 下载
                 </button> -->
             </div>
-            {% if obj == "xml" %}
             <div class="p-2 align-self-center">
                 <a class="btn btn-bd-primary" href="{{ url_for('task.watch', taskname=task.name) }}" target="blank">
                     <i class="fas fa-eye"></i> 查看
                 </a>
             </div>
-            {% else %}
-            <div class="p-2 align-self-center">
-                <button type="submit" class="btn btn-bd-primary" id="save-submit">
-                    <i class="fas fa-cube"></i> 控制器编译
-                </button>
-            </div>
-            {% endif %}
         </div>
 
         <nav id="tabs-nav" style="display: block;">
@@ -415,8 +395,8 @@
                             <div class="card-header">
                                 参数变动
                             </div>
-                            <div class="card-body">
-                                <table id="changed-table" data-resizable="true" class="table table-sm"></table>
+                            <div class="card-body" id="changedShowArea">
+                                
                             </div>
                         </div>
                         <div style="padding-top: 24px;" id="unit-block">
@@ -426,7 +406,7 @@
                                 </div>
                                 <div class="card-body">
                                     <form>
-                                        <div class="d-flex">                                            
+                                        <div class="d-flex">
                                             <div class="p-2 align-self-center flex-grow-1">
                                                 <div class="form-label-group" style="margin-bottom: 0px;">
                                                     <input type="text" id="deg" class="form-control" placeholder="Deg">
@@ -443,7 +423,7 @@
                                             </div>
                                             <div class="p-2 align-self-center flex-grow-1">
                                                 <div class="form-label-group" style="margin-bottom: 0px;">
-                                                    <input type="text" id="rad" class="form-control" placeholder="Rad" >
+                                                    <input type="text" id="rad" class="form-control" placeholder="Rad">
                                                     <label style="color: #7952b3;">Rad</label>
                                                 </div>
                                             </div>
@@ -451,7 +431,7 @@
                                         <div class="d-flex">
                                             <div class="p-2 align-self-center flex-grow-1">
                                                 <div class="form-label-group" style="margin-bottom: 0px;">
-                                                    <input type="text" id="rpm" class="form-control" placeholder="rpm" >
+                                                    <input type="text" id="rpm" class="form-control" placeholder="rpm">
                                                     <label style="color: #7952b3;">rpm</label>
                                                 </div>
                                             </div>
@@ -465,7 +445,8 @@
                                             </div>
                                             <div class="p-2 align-self-center flex-grow-1">
                                                 <div class="form-label-group" style="margin-bottom: 0px;">
-                                                    <input type="text" id="radpsrpm" class="form-control" placeholder="rad/s" >
+                                                    <input type="text" id="radpsrpm" class="form-control"
+                                                        placeholder="rad/s">
                                                     <label style="color: #7952b3;">rad/s</label>
                                                 </div>
                                             </div>
@@ -473,7 +454,7 @@
                                         <div class="d-flex">
                                             <div class="p-2 align-self-center flex-grow-1">
                                                 <div class="form-label-group" style="margin-bottom: 0px;">
-                                                    <input type="text" id="Hz" class="form-control" placeholder="Hz" >
+                                                    <input type="text" id="Hz" class="form-control" placeholder="Hz">
                                                     <label style="color: #7952b3;">Hz</label>
                                                 </div>
                                             </div>
@@ -487,7 +468,8 @@
                                             </div>
                                             <div class="p-2 align-self-center flex-grow-1">
                                                 <div class="form-label-group" style="margin-bottom: 0px;">
-                                                    <input type="text" id="rad/s" class="form-control" placeholder="rad/s" >
+                                                    <input type="text" id="radpshz" class="form-control"
+                                                        placeholder="rad/s">
                                                     <label style="color: #7952b3;">rad/s</label>
                                                 </div>
                                             </div>
@@ -528,20 +510,20 @@
                                     </div>
                                     <div class="d-flex">
                                         <div class="form-label-group">
-                                            <input type="text" style="color: green;"
-                                                class="form-control" id="tower1st-radps">
+                                            <input type="text" style="color: green;" class="form-control"
+                                                id="tower1st-radps">
                                             <label style="color: #7952b3;font-size:5px;">塔架一阶(rad/s)</label>
                                         </div>
                                         <div class="p-2" style="padding: 3px!important;"></div>
                                         <div class="form-label-group">
-                                            <input type="text" style="color: green;"
-                                                class="form-control" id="tower1st-hz">
+                                            <input type="text" style="color: green;" class="form-control"
+                                                id="tower1st-hz">
                                             <label style="color: #7952b3;">塔架一阶(Hz)</label>
                                         </div>
                                         <div class="p-2" style="padding: 3px!important;"></div>
                                         <div class="form-label-group">
-                                            <input type="text" style="color: green;"
-                                                class="form-control" id="tower1st-rpm">
+                                            <input type="text" style="color: green;" class="form-control"
+                                                id="tower1st-rpm">
                                             <label style="color: #7952b3;">塔架一阶(rpm)</label>
                                         </div>
                                     </div>
@@ -572,15 +554,15 @@
                                     </div>
                                     <div class="d-flex">
                                         <div class="form-label-group">
-                                            <input type="text" style="color: blue;" class="form-control"
-                                                id="LowSpeed" disabled>
+                                            <input type="text" style="color: blue;" class="form-control" id="LowSpeed"
+                                                disabled>
                                             <label style="color: #7952b3;">低转速<label id="LowSpeed-rpm"
                                                     style="color: green;"></label></label>
                                         </div>
                                         <div class="p-2" style="padding: 3px!important;"></div>
                                         <div class="form-label-group">
-                                            <input type="text" style="color: blue;" class="form-control"
-                                                id="HighSpeed" disabled>
+                                            <input type="text" style="color: blue;" class="form-control" id="HighSpeed"
+                                                disabled>
                                             <label style="color: #7952b3;">高转速<label id="HighSpeed-rpm"
                                                     style="color: green;"></label></label>
                                         </div>
@@ -929,6 +911,7 @@
             $('#P_MaximumGeneratorTorque-symbol').val(Math.round($('#P_DMGT-bladed').val() * 1.1));
             $('#P_SteadyShaftPowerLimit-symbol').val(($('#P_RatedGeneratorSpeed-symbol').val() * Number($('#P_DMGT-bladed').val())).toFixed(1));
             $('#P_OptimalModeGain-symbol').val($('#P_OptimalModeGain-bladed').val());
+            checkChanged();
         })
         $(function () {
             $('#P_OptimalModeGain-bladed').keyup(function () {
@@ -1013,7 +996,7 @@
             var keyWord = $(this).val().toLowerCase();
             $.ajax({
                 type: 'POST',
-                url: "/task/search/{{ task.name }}/{{ obj }}",
+                url: "/task/search/{{ task.name }}",
                 dataType: "json",
                 contentType: 'application/json; charset=UTF-8',
                 data: JSON.stringify(keyWord),
@@ -1075,10 +1058,10 @@
             $.ajax({
                 cache: false,
                 type: 'POST',
-                url: "/task/write/{{ task.name }}/{{ obj }}",
+                url: "/task/write/{{ task.name }}",
                 dataType: "json",
                 contentType: 'application/json; charset=UTF-8',
-                data: postData(dataChanged, '{{ obj }}'),
+                data: postData(dataChanged, false),
                 success: function (data) {
                     if (JSON.stringify(dataChanged) != "{}") {
                         var list = $(".alert")[0].classList;
@@ -1098,7 +1081,7 @@
         var tableData = {};
         $.ajax({
             type: 'POST',
-            url: "/task/search/{{ task.name }}/{{ obj }}/" + param,
+            url: "/task/search/{{ task.name }}/" + param,
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
             data: JSON.stringify({
@@ -1131,7 +1114,6 @@
 
     function initTable(data) {
         var $paramsTable = $('#params-table');
-        var symbol_head = { 'symbol': 'Symbol值', 'xml': 'XML值' }
         $paramsTable.bootstrapTable('destroy').bootstrapTable({
             columns: [
                 {
@@ -1150,7 +1132,7 @@
                     class: "thead",
                 },
                 {
-                    title: symbol_head['{{ obj }}'],
+                    title: 'Symbol值',
                     field: 'symbol_value',
                     align: 'center',
                     valign: 'middle',
@@ -1397,7 +1379,7 @@
 
         $.ajax({
             type: 'POST',
-            url: "/task/read/{{ task.name }}/{{ obj }}",
+            url: "/task/read/{{ task.name }}",
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
             data: JSON.stringify({
@@ -1429,22 +1411,53 @@
         return data;
     }
 
+    function checkChanged() {
+        var changed = getModifiedTableData();
+        var changedArray = [];
+        var patt = /(\S+?)\d*-/;
+        var changedBadge = '<div class="row">';
+        for (property in changed) {
+            var m = patt.exec(property);
+            if (-1 == changedArray.indexOf(m[1])) {
+                changedArray.push(m[1]);
+                changedBadge += '<div class="col-auto" style="padding: 5px;">' +
+                    '<span class="badge badge-info">' + m[1] + '</span>' +
+                    '</div>';
+            }
+        }
+        changedBadge += '</div>';
+        $("#changedShowArea").html(changedBadge);
+    }
+
     function getModifiedTableData() {
         var tableValues = document.getElementsByClassName("table-value");
         var data = {};
         for (var i = 0; i < tableValues.length; i++) {
             var id = tableValues[i].id;
             if ($("#" + id).val() != window.pageInitialData[id]) {
-                data[id] = $("#" + id).val();
+                data[id] = { 'new': $("#" + id).val(), 'old': window.pageInitialData[id] };
             }
         }
         return data;
     }
 
-    function savePageTrigger() {
-        if ("{{ obj }}" == "xml") {
-            $("#rename").val("{{ task.xml_filename }}");
+    function savePageTrigger() {        
+        var spec = "调参说明：\n\t\n参数变动：\n\t";
+        var changed = getModifiedTableData();
+        var patt = /(\S+?)(\d*)-(\S+)/;
+        for (property in changed){
+            var m = patt.exec(property);
+            if (0 == property.indexOf('P_')){
+                spec += m[1] + ": " + changed[property].old + " -> " + changed[property].new + "\n\t";
+            } else{
+                spec += (-1 != property.indexOf('Enabled')) ? 
+                        m[1] + "[" + m[3] + "]: " + changed[property].old + " -> " + changed[property].new + "\n\t" : 
+                        m[1] + "[" + m[2] + "][" + m[3] + "]: " + changed[property].old + " -> " + changed[property].new + "\n\t";
+            }
         }
+        $("#rename").val("{{ task.xml_filename }}");
+        var specShow = ("{}" == JSON.stringify(changed)) ? "" : spec;
+        $("#description").text(specShow);
         $("#ConfirmSaveModal").modal();
     }
 
@@ -1463,26 +1476,19 @@
         }
     })
 
-    function postData(dataChanged, target) {
-        if ("{{ obj }}" == "xml") {
-            var data = JSON.stringify({
-                'data': dataChanged,
-                'target': target,
-                'newname': $("#rename").val(),
-                'description': $("#description").val()
-            })
-        } else {
-            var data = JSON.stringify({
-                'data': dataChanged,
-                'target': target
-            })
-        }
+    function postData(dataChanged, isgitted) {
+        var data = JSON.stringify({
+            'data': dataChanged,
+            'isgitted': isgitted,
+            'newname': $("#rename").val(),
+            'description': $("#description").text()
+        })
         return data;
     }
 
-    function savePage(target) {
+    function savePage(isgitted) {
         var dataChanged = getModifiedTableData();
-        if (target == "xml" && JSON.stringify(dataChanged) == "{}") {
+        if (isgitted == false && JSON.stringify(dataChanged) == "{}") {
             var list = $(".alert")[0].classList;
             for (var i = 3; i < list.length; i++) {
                 $('.alert').removeClass(list[i]);
@@ -1492,17 +1498,21 @@
             return;
         }
 
-        var tips = (target == "git") ? "Saving, Committing & Pushing..." : "Saving...";
+        if (isgitted == false) {
+            $("#SavingModal").modal('show');
+        }
+
+        var tips = (isgitted == true) ? "Saving, Committing & Pushing..." : "Saving...";
         $("#modal-status").html(tips);
         var tableData = {};
         $.ajax({
             cache: false,
             type: 'POST',
-            url: "/task/write/{{ task.name }}/{{ obj }}",
+            url: "/task/write/{{ task.name }}",
             timeout: 30000,
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
-            data: postData(dataChanged, target),
+            data: postData(dataChanged, isgitted),
             success: function (data) { //成功的话，得到消息
                 tableData = data;
             },
@@ -1519,7 +1529,7 @@
                         $('.alert').addClass('alert-warning').show().delay(2000).fadeOut();
                         break;
                     case "success":
-                        var msg = (JSON.stringify(dataChanged) == "{}") ? '未修改，已提交' : (target == "git") ? "已保存，修改已提交" : "已保存";
+                        var msg = (JSON.stringify(dataChanged) == "{}") ? '未修改，已提交' : (isgitted == true) ? "已保存，修改已提交" : "已保存";
                         $("#alert-text").html(msg);
                         $('.alert').addClass('alert-success').show().delay(2000).fadeOut();
                         break;
@@ -1530,6 +1540,8 @@
                 }
                 initTable(tableData);
                 window.pageInitialData = getInitialTableData();
+                $("#description").text("");
+                $("#changedShowArea").html("");
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
             }

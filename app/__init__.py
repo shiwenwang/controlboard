@@ -4,7 +4,7 @@
 @Author: wangshiwen@36719
 @Date: 2019-10-02 14:35:27
 @LastEditors  : wangshiwen@36719
-@LastEditTime : 2020-01-02 17:28:53
+@LastEditTime : 2020-01-14 09:00:40
 '''
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -14,7 +14,7 @@ from flask_uploads import UploadSet, configure_uploads, patch_request_class
 from config import config
 from flask_wtf.csrf import CSRFProtect
 from logging.config import dictConfig
-import os, json, yaml, logging
+import os, json, logging
 
 
 csrf = CSRFProtect()

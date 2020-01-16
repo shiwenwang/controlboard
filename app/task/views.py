@@ -577,6 +577,10 @@ def campbell(taskname):
         os.path.join(file_folder, _task.bladed_filename))
     run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))
 
+    lin1_cm = os.path.join(run_dir, 'lin1.$CM')
+    if os.path.exists(lin1_cm):
+        os.remove(lin1_cm)
+
     bladed = Bladed(bladed_path)
     try:
         # bladed.campbell(run_dir)

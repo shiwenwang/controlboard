@@ -4,7 +4,7 @@
 @Author: wangshiwen@36719
 @Date: 2019-09-26 09:30:42
 @LastEditors  : wangshiwen@36719
-@LastEditTime : 2020-01-13 17:23:22
+@LastEditTime : 2020-01-13 18:26:17
 '''
 import os, re
 from subprocess import Popen, TimeoutExpired, PIPE, STDOUT
@@ -191,7 +191,7 @@ class Bladed(object):
         m_lpw1 = re.search(r'LPW1[\t ]+(\S+)\n', out)
         m_ipw1 = re.search(r'IPW1[\t ]+(.+)MSTART RMODE', out, re.DOTALL)
         if m_ipw is None or m_ipw1 is None:
-            logging.warning(f'{out_path} 中没有IPW1，IPW或LPW1。({self.version}版本)')
+            logging.info(f'{out_path} 中没有IPW1，IPW或LPW1。({self.version}版本)')
             # return False
         else:
             ipw, lpw1 = m_ipw.group(1), m_lpw1.group(1)

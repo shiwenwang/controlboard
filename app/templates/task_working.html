@@ -20,6 +20,7 @@
     .alert {
         position: fixed;
         top: 56px;
+        padding: 12px 20px;
     }
 
     .table-striped>tbody>tr:nth-child(2n+1)>td,
@@ -43,11 +44,11 @@
         background: white;
         box-shadow: 0px 0px 0px grey;
         transition: box-shadow .2s ease-out;
-        box-shadow: .8px .9px 3px grey;
+        /* box-shadow: .8px .9px 3px grey; */
     }
 
     .card:hover {
-        box-shadow: 1px 8px 20px grey;
+        box-shadow: 1px 8px 10px grey;
         transition: box-shadow .2s ease-in;
     }
 
@@ -395,7 +396,7 @@
                             <div class="card-header">
                                 参数变动
                             </div>
-                            <div class="card-body" id="changedShowArea">
+                            <div class="card-body" id="changedShowArea" style="max-width: 500px;">
                                 
                             </div>
                         </div>
@@ -547,7 +548,7 @@
                                         </div>
                                         <div class="p-2" style="padding: 3px!important;"></div>
                                         <div class="form-label-group">
-                                            <input type="text" style="color: #FF6600" class="form-control" value="0.09"
+                                            <input type="text" style="color: #FF6600" class="form-control" value="0.9"
                                                 id="HighTorqueFactor">
                                             <label style="color: #7952b3;">扭矩系数high</label>
                                         </div>
@@ -825,7 +826,7 @@
         $("#SpeedFactor").val(0.05);
         $("#SpeedOffset").val(0.5);
         $("#LowTorqueFactor").val(1.05);
-        $("#HighTorqueFactor").val(0.09);
+        $("#HighTorqueFactor").val(0.9);
         var kopt = Number($("#P_OptimalModeGain-bladed").val());
         towerExcCalc(kopt, $('#tower1st-radps').val());
     }

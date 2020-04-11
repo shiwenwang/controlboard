@@ -4,15 +4,15 @@
  * @Author: wangshiwen@36719
  * @Date: 2019-11-21 16:32:33
  * @LastEditors  : wangshiwen@36719
- * @LastEditTime : 2020-02-06 13:40:58
+ * @LastEditTime : 2020-02-11 20:46:42
  -->
 {% extends 'base.html' %}
 
 {% block styles %}
 {{ super() }}
-<link href="{{ url_for('static', filename='css/theme.min.css') }}" rel="stylesheet">
+<link href="{{ url_for('static',filename='css/theme.min.css') }}" rel="stylesheet">
 <script src="{{ url_for('static',filename='js/theme.min.js') }}"></script>
-<!-- <script src="{{ url_for('static',filename='js/compare.js') }}"></script> -->
+<title>XML Tools - Control Board - Farm Insight平台</title>
 <style>
     #head-div {
         position: fixed;
@@ -26,13 +26,12 @@
     .fancybox-lock-test {
         overflow-y: hidden !important;
     }
-    
-    .thead{
-         font-size: 12px;
-     }
 
-     
-    .details{
+    .thead {
+        font-size: 12px;
+    }
+
+    .details {
         text-align: center;
         background: white;
         box-shadow: 0px 0px 0px grey;
@@ -44,39 +43,114 @@
         box-shadow: 2px 2px 8px grey;
         transition: box-shadow .3s ease-in;
     }
+
+    #search-input:focus {
+        border-color: #7952b3;
+        box-shadow: 0 0 0 3px rgba(121, 82, 179, .25)
+    }
     
+    .list-group-item-search {
+        padding-top: 0;
+        padding-bottom: 0;
+        border: none;
+    }
+
+    .dropdown-menu {
+        max-height: 300px;
+    }
+
+    .thead-sm {
+        font-size: 10px;
+    }
+
+    .card-interactive {
+        background: white;
+        box-shadow: 0px 0px 0px grey;
+        transition: box-shadow .2s ease-out;
+        /* box-shadow: .8px .9px 3px grey; */
+    }
+
+    .card-interactive:hover {
+        box-shadow: 1px 8px 10px grey;
+        transition: box-shadow .2s ease-in;
+    }
 </style>
 {% endblock styles %}
 
 {% block content %}
+
 <div class="container-fluid" id="head-div">
     <div class="card" id="head-card">
         <div class="card-body" style="padding: 5px;">
             <div class="d-flex justify-content-between">
                 <div class="p-2 align-self-center">
-                    <i class="fas fa-info-circle tips" data-toggle="tooltip" title="本页不会上传文件，所有数据均在内存中，刷新页面后数据丢失。">
-                    </i>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse"
+                        data-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent"
+                        aria-expanded="false" aria-label="Toggle navigation" style="border-color: darkgrey;">
+                        <span class="fas fa-bars" style="color: darkgray;width: 1.2em;height: 1.2em;"></span>
+                    </button>
                 </div>
-                <div class="p-2 d-flex justify-content-center" style="padding: 0px 0px!important;">
-                    <div class="p-2">
-                        <button type="button" class="btn btn-outline-primary" target="blank" data-toggle="modal"
-                            data-target="#XMLUploadModal">选择文件</button>
+                <div class="p-2 justify-content-center tab-content" style="padding: 0px 0px!important;" id="toolbar">
+                    <div class="tab-pane fade show active" id="compare-tools" role="tabpanel"
+                        aria-labelledby="list-compare">
+                        <div class="d-flex">
+                            <div class="p-2">
+                                <button type="button" class="btn btn-outline-primary" target="blank" data-toggle="modal"
+                                    data-target="#XMLUploadModal">选择文件</button>
+                            </div>
+                            <div class="p-2">
+                                <button type="button" class="btn btn-outline-warning" onclick="preDiff()">上一处</button>
+                            </div>
+                            <div class="p-2">
+                                <button type="button" class="btn btn-outline-warning" onclick="nextDiff()">下一处</button>
+                            </div>
+                            <div class="p-2 align-self-center">
+                                <div class="custom-control custom-switch" id="switch">
+                                    <input type="checkbox" class="custom-control-input" id="diff-view-switch"
+                                        onchange="view_switch()">
+                                    <label class="custom-control-label" for="diff-view-switch">只看不同</label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="p-2">
-                        <button type="button" class="btn btn-outline-warning" onclick="preDiff()">上一处</button>
-                    </div>
-                    <div class="p-2">
-                        <button type="button" class="btn btn-outline-warning" onclick="nextDiff()">下一处</button>
-                    </div>
-                    <div class="p-2 align-self-center">
-                        <div class="custom-control custom-switch" id="switch">
-                            <input type="checkbox" class="custom-control-input" id="diff-view-switch"
-                                onchange="view_switch()">
-                            <label class="custom-control-label" for="diff-view-switch">只看不同</label>
+                    <div class="tab-pane fade" id="parse-tools" role="tabpanel" aria-labelledby="list-parse">
+                        <div class="d-flex">
+                            <div class="p-2">
+                                <button type="button" class="btn btn-outline-primary" target="blank" data-toggle="modal"
+                                    data-target="#XMLUploadModal-parse">选择文件</button>
+                            </div>
+                            <div class="p-2">
+                                <button type="button" class="btn btn-outline-warning" target="blank"
+                                    onclick="download()">下载文件</button>
+                            </div>
+                            <div class="p-2 align-self-center">
+                                <span class="algolia-autocomplete algolia-autocomplete-left"
+                                    style="position: relative; display: inline-block; direction: ltr;">
+                                    <input type="search" class="form-control" id="search-input" placeholder="参数查询..."                                        
+                                        style="position: relative; vertical-align: top; width: 350px;"
+                                        oninput="searchInpuChanged()">
+                                    <span class="dropdown-menu dropdown-menu-left" role="listbox"
+                                        id="algolia-autocomplete-listbox-0" style="min-width: 100%;">
+                                        <div class="list-group list-group-flush" id="name-list"></div>
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="p-2 align-self-center">
+                                <div class="custom-control custom-switch" id="switch">
+                                    <input type="checkbox" class="custom-control-input" id="edit-switch"
+                                        onchange="editModeSwitch()">
+                                    <label class="custom-control-label" for="edit-switch"
+                                        id="edit-switch-label">只读</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="p-2" id="space" style="display: block"></div>
+                <div class="p-2" id="space" style="display: none"></div>
+                <div class="p-2 align-self-center" id="hint" style="display: block">
+                    <i class="fas fa-info-circle tips" data-toggle="tooltip" title="本页不会上传文件，所有数据均在内存中，刷新页面后数据丢失。">
+                    </i>
+                </div>
                 <div class="p-2 align-self-center" id="num" style="display: none">
                     <span>
                         <label class="status">共</label>
@@ -89,10 +163,20 @@
             </div>
         </div>
     </div>
+    <div class="collapse" id="navbarToggleExternalContent">
+        <div class="col-4" style="width: 150px;">
+            <div class="list-group" id="list-tab" role="tablist">
+                <a class="list-group-item list-group-item-action list-group-item-primary" id="list-compare" role="tab"
+                    data-toggle="list" href="#compare-tools" aria-controls="compare">XML对比</a>
+                <a class="list-group-item list-group-item-action list-group-item-info" id="list-parse" role="tab"
+                    data-toggle="list" href="#parse-tools" aria-controls="parse">XML解析</a>
+            </div>
+        </div>
+    </div>
 </div>
-<div class="container-fluid" style="padding-top:70px;">
+<div class="container-fluid" style="padding-top:70px;display: block;" id="compare-container">
     <form>
-        <div class="card card-body" id="result" style="padding: 10px 20px;">
+        <div class="card card-body" id="compare-result" style="padding: 10px 20px;">
             <div class="text-center" style="font-weight: bold;">
                 NO DATA
             </div>
@@ -101,7 +185,7 @@
 </div>
 
 <div class="container-fluid" id="diff-detials" style="padding-bottom:10px;">
-    
+
 </div>
 
 <div class="modal fade" id="dataModal" tabindex="-1" role="dialog">
@@ -112,19 +196,19 @@
             </div>
             <div class="modal-body">
                 <div class="table-responsive" id="p-table-div" style="height:100%">
-                    <table id="p-table" class="table table-sm table-bordered"></table>
+                    <table id="p-table" class="table table-striped table-sm table-bordered table-hover"></table>
                 </div>
                 <div class="table-responsive" id="t-table-div" style="height:100%">
                     <div id="t-filename1" class="text-dark text-center"></div>
-                    <table id="t-table1" class="table table-sm table-bordered"></table>
+                    <table id="t-table1" class="table table-striped table-sm table-bordered table-hover"></table>
                     <div id="t-filename2" class="thtext-dark text-center"></div>
-                    <table id="t-table2" class="table table-sm table-bordered"></table>
+                    <table id="t-table2" class="table table-striped table-sm table-bordered table-hover"></table>
                 </div>
                 <div class="table-responsive" id="f-table-div" style="height:100%">
                     <div id="f-filename1" class="thtext-dark text-center"></div>
-                    <table id="f-table1" class="table table-sm table-bordered"></table>
+                    <table id="f-table1" class="table table-striped table-sm table-bordered table-hover"></table>
                     <div id="f-filename2" class="thtext-dark text-center"></div>
-                    <table id="f-table2" class="table table-sm table-bordered"></table>
+                    <table id="f-table2" class="table table-striped table-sm table-bordered table-hover"></table>
                 </div>
             </div>
             <div class="modal-footer">
@@ -160,6 +244,48 @@
     </div>
 </div>
 
+<!-- XML files upload modal -->
+<div class="modal fade" id="XMLUploadModal-parse" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color: #7952b3;font-weight: bold;">选择文件</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="inputForm">
+                    <div class="form-group">
+                        <span>
+                            <label for="xml-check">XML文件：</label>
+                        </span>
+                        <div class="file-loading">
+                            <input id="xml-input" type="file" name="xml-file">
+                        </div>
+                        <div class="invalid-feedback" id="xml-input-feedback"></div>
+                    </div>
+                    <div class="form-group">
+                        <span>
+                            <input type="checkbox" name="bladed-check" id="bladed-check" checked
+                                onchange="bladedCheckedChange()">
+                            <label for="bladed-check">Bladed文件：</label>
+                        </span>
+                        <div class="file-loading">
+                            <input id="bladed-input" type="file" name="bladed-file">
+                        </div>
+                        <div class="invalid-feedback" id="bladed-input-feedback"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" onclick="parse()">打开</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Waiting Modal -->
 <div class="modal fade" id="WaitingModal" role="dialog" data-backdrop="static">
     <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
@@ -185,10 +311,255 @@
     </div>
 </div>
 
+<div class="container-fluid" style="padding-top:70px;display: none;" id="parse-container">
+    <form>
+        <div class="card card-body" id="parse-result" style="padding: 5px;">
+            <div class="text-center" style="display: block;font-weight: bold;padding: 5px;" id="no-data">NO DATA</div>
+            <div style="display: none;" id="xml-data">
+                <nav id="tabs-nav" style="display: block;">
+                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                        <a class="nav-item nav-link active" id="nav-params-tab" data-toggle="tab" href="#nav-params"
+                            role="tab" aria-controls="nav-home" aria-selected="true">Params</a>
+                        <a class="nav-item nav-link" id="nav-schedules-tab" data-toggle="tab" href="#nav-schedules"
+                            role="tab" aria-controls="nav-profile" aria-selected="false">Schedules</a>
+                        <a class="nav-item nav-link" id="nav-filters-tab" data-toggle="tab" href="#nav-filters"
+                            role="tab" aria-controls="nav-contact" aria-selected="false">Filters</a>
+                    </div>
+                </nav>
+                <div class="tab-content" id="nav-tabContent">
+                    <div class="tab-pane fade show active" id="nav-params" role="tabpanel"
+                        aria-labelledby="nav-params-tab">
+                        <div class="d-lg-flex">
+                            <div class="p-4 table-responsive">
+                                <table id="params-table" data-resizable="true"
+                                    class="table table-striped table-sm table-bordered table-hover">
+                                </table>
+                            </div>
+                            <div class="p-4" style="padding-top: 24px; position: relative;" id="tool-block">
+                                <div class="card card-interactive">
+                                    <div class="card-header">
+                                        参数变动
+                                    </div>
+                                    <div class="card-body" id="changedShowArea" style="max-width: 500px;">
+
+                                    </div>
+                                </div>
+                                <div style="padding-top: 24px;" id="unit-block">
+                                    <div class="card card-interactive">
+                                        <div class="card-header">
+                                            单位换算
+                                        </div>
+                                        <div class="card-body">
+                                            <form>
+                                                <div class="d-flex">
+                                                    <div class="p-2 align-self-center flex-grow-1">
+                                                        <div class="form-label-group" style="margin-bottom: 0px;">
+                                                            <input type="text" id="deg" class="form-control"
+                                                                placeholder="Deg">
+                                                            <label style="color: #7952b3;">Deg</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="p-1 align-self-center arrow" id="rad-to-deg"
+                                                        style="cursor: pointer;">
+                                                        <i class="fas fa-arrow-alt-circle-left"></i>
+                                                    </div>
+                                                    <div class="p-1 align-self-center arrow" id="deg-to-rad"
+                                                        style="cursor: pointer;">
+                                                        <i class="fas fa-arrow-alt-circle-right"></i>
+                                                    </div>
+                                                    <div class="p-2 align-self-center flex-grow-1">
+                                                        <div class="form-label-group" style="margin-bottom: 0px;">
+                                                            <input type="text" id="rad" class="form-control"
+                                                                placeholder="Rad">
+                                                            <label style="color: #7952b3;">Rad</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex">
+                                                    <div class="p-2 align-self-center flex-grow-1">
+                                                        <div class="form-label-group" style="margin-bottom: 0px;">
+                                                            <input type="text" id="rpm" class="form-control"
+                                                                placeholder="rpm">
+                                                            <label style="color: #7952b3;">rpm</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="p-1 align-self-center arrow" id="radpsto-rpm"
+                                                        style="cursor: pointer;">
+                                                        <i class="fas fa-arrow-alt-circle-left"></i>
+                                                    </div>
+                                                    <div class=" p-1 align-self-center arrow" id="rpm-toradps"
+                                                        style="cursor: pointer;">
+                                                        <i class="fas fa-arrow-alt-circle-right"></i>
+                                                    </div>
+                                                    <div class="p-2 align-self-center flex-grow-1">
+                                                        <div class="form-label-group" style="margin-bottom: 0px;">
+                                                            <input type="text" id="radpsrpm" class="form-control"
+                                                                placeholder="rad/s">
+                                                            <label style="color: #7952b3;">rad/s</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex">
+                                                    <div class="p-2 align-self-center flex-grow-1">
+                                                        <div class="form-label-group" style="margin-bottom: 0px;">
+                                                            <input type="text" id="Hz" class="form-control"
+                                                                placeholder="Hz">
+                                                            <label style="color: #7952b3;">Hz</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="p-1 align-self-center arrow" id="radpsto-Hz"
+                                                        style="cursor: pointer;">
+                                                        <i class="fas fa-arrow-alt-circle-left"></i>
+                                                    </div>
+                                                    <div class="p-1 align-self-center arrow" id="Hz-toradps"
+                                                        style="cursor: pointer;">
+                                                        <i class="fas fa-arrow-alt-circle-right"></i>
+                                                    </div>
+                                                    <div class="p-2 align-self-center flex-grow-1">
+                                                        <div class="form-label-group" style="margin-bottom: 0px;">
+                                                            <input type="text" id="radpshz" class="form-control"
+                                                                placeholder="rad/s">
+                                                            <label style="color: #7952b3;">rad/s</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="padding-top: 24px;" id="towerExc-block">
+                                    <div class="card card-interactive">
+                                        <div class="card-header">
+                                            <span>
+                                                跳转速设置
+                                            </span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between" style="padding-bottom: 16px;">
+                                                <div class="p-2 align-self-center" style="padding: 0px 0px!important">
+                                                    <div class="custom-control custom-switch">
+                                                        <input type="checkbox" class="custom-control-input"
+                                                            id="towerExc-switch" onchange="towerExcSwitch()">
+                                                        <label class="custom-control-label" for="towerExc-switch"
+                                                            id="towerExcSwitch-label">开关</label>
+                                                    </div>
+                                                </div>
+                                                <div class="p-2 align-self-center" style="padding: 0px 0px!important;"
+                                                    fade>
+                                                    <span class="badge badge-success" id="result-badge"
+                                                        style="display: none;">通过</span>
+                                                </div>
+                                                <div class="p-2 align-self-center" style="padding: 0px 0px!important">
+                                                    <button class="btn btn-sm btn-info" id="reset" data-toggle="tooltip"
+                                                        title="恢复默认" onclick="reset()"><i
+                                                            class="fas fa-redo"></i></button>
+                                                    <button class="btn btn-sm btn-primary" id="apply"
+                                                        onclick="setTowerExc()">应用</button>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex">
+                                                <div class="form-label-group">
+                                                    <input type="text" style="color: green;" class="form-control"
+                                                        id="tower1st-radps">
+                                                    <label style="color: #7952b3;font-size:5px;">塔架一阶(rad/s)</label>
+                                                </div>
+                                                <div class="p-2" style="padding: 3px!important;"></div>
+                                                <div class="form-label-group">
+                                                    <input type="text" style="color: green;" class="form-control"
+                                                        id="tower1st-hz">
+                                                    <label style="color: #7952b3;">塔架一阶(Hz)</label>
+                                                </div>
+                                                <div class="p-2" style="padding: 3px!important;"></div>
+                                                <div class="form-label-group">
+                                                    <input type="text" style="color: green;" class="form-control"
+                                                        id="tower1st-rpm">
+                                                    <label style="color: #7952b3;">塔架一阶(rpm)</label>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex">
+                                                <div class="form-label-group">
+                                                    <input type="text" style="color: #FF6600" class="form-control"
+                                                        value="0.05" id="SpeedFactor">
+                                                    <label style="color: #7952b3;">转速系数</label>
+                                                </div>
+                                                <div class="p-2" style="padding: 3px!important;"></div>
+                                                <div class="form-label-group">
+                                                    <input type="text" style="color: #FF6600" class="form-control"
+                                                        value="0.5" id="SpeedOffset">
+                                                    <label style="color: #7952b3;">转速偏移(rpm)</label>
+                                                </div>
+                                                <div class="p-2" style="padding: 3px!important;"></div>
+                                                <div class="form-label-group">
+                                                    <input type="text" style="color: #FF6600" class="form-control"
+                                                        value="1.05" id="LowTorqueFactor">
+                                                    <label style="color: #7952b3;">扭矩系数low</label>
+                                                </div>
+                                                <div class="p-2" style="padding: 3px!important;"></div>
+                                                <div class="form-label-group">
+                                                    <input type="text" style="color: #FF6600" class="form-control"
+                                                        value="0.9" id="HighTorqueFactor">
+                                                    <label style="color: #7952b3;">扭矩系数high</label>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex">
+                                                <div class="form-label-group">
+                                                    <input type="text" style="color: blue;" class="form-control"
+                                                        id="LowSpeed" disabled>
+                                                    <label style="color: #7952b3;">低转速<label id="LowSpeed-rpm"
+                                                            style="color: green;"></label></label>
+                                                </div>
+                                                <div class="p-2" style="padding: 3px!important;"></div>
+                                                <div class="form-label-group">
+                                                    <input type="text" style="color: blue;" class="form-control"
+                                                        id="HighSpeed" disabled>
+                                                    <label style="color: #7952b3;">高转速<label id="HighSpeed-rpm"
+                                                            style="color: green;"></label></label>
+                                                </div>
+                                                <div class="p-2" style="padding: 3px!important;"></div>
+                                                <div class="form-label-group">
+                                                    <input type="text" style="color: blue;" class="form-control"
+                                                        id="LowSpeedMaxTorque" disabled>
+                                                    <label style="color: #7952b3;">低转速扭矩</label>
+                                                </div>
+                                                <div class="p-2" style="padding: 3px!important;"></div>
+                                                <div class="form-label-group">
+                                                    <input type="text" style="color: blue;" class="form-control"
+                                                        id="HighSpeedMaxTorque" disabled>
+                                                    <label style="color: #7952b3;">高转速扭矩</label>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="nav-schedules" role="tabpanel" aria-labelledby="nav-schedules-tab">
+                        <div class="table-responsive">
+                            <table id="schedules-table" data-resizable="true"
+                                class="table table-striped table-sm table-bordered table-hover">
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="nav-filters" role="tabpanel" aria-labelledby="nav-filters-tab">
+                        <div class="table-responsive">
+                            <table id="filters-table" data-resizable="true"
+                                class="table table-striped table-sm table-bordered table-hover table-header-rotated">
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
 <script>
     window.onscroll = function () {
         if (document.documentElement.scrollTop > 5) {
-            $("#head-card")[0].style.boxShadow = "0px 5px 4px rgba(121,82,179,.25)";
+            $("#head-card")[0].style.boxShadow = "0px 6px 5px rgba(121,82,179,.25)";
         } else {
             $("#head-card")[0].style.boxShadow = "";
         }
@@ -203,7 +574,6 @@
             minFileCount: 2,
             maxFileCount: 2,
             showUpload: false,
-            autoReplace: true,
             previewFileIcon: '<i class="fas fa-file"></i>',
             preferIconicPreview: true, // this will force thumbnails to display icons for following file extensions
             previewFileIconSettings: { // configure your icon file extensions
@@ -227,6 +597,47 @@
         }).on('filecleared', function (event) {
             window.files = [];
         });
+
+        $("#xml-input").fileinput({
+            showPreview: false,
+            showUpload: false,
+            allowedFileExtensions: ['xml']
+        }).on('fileloaded', function (event, numFiles, label) {
+            var xmlfileerrors = document.getElementById("xml-input-feedback");
+            xmlfileerrors.style.display = "none";
+        }).on('fileerror', function (event, data, msg) {
+            var xmlfileerrors = document.getElementById("xml-input-feedback");
+            xmlfileerrors.innerHTML = 'Invalid extension for file "' + data.file.name + '". Only "xml" file is supported.';
+            xmlfileerrors.style.display = "block";
+        }).on('fileloaded', function (event, file, previewId, index, reader) {
+            window.xmlfile = file;
+        }).on('filecleared', function (event) {
+            window.xmlfile = null;
+        });
+
+        $("#bladed-input").fileinput({
+            showPreview: false,
+            showUpload: false,
+            allowedFileExtensions: ['$pj', 'prj']
+        }).on('fileloaded', function (event, numFiles, label) {
+            var bladedfileerrors = document.getElementById("bladed-input-feedback");
+            bladedfileerrors.style.display = "none";
+        }).on('fileerror', function (event, data, msg) {
+            var bladedfileerrors = document.getElementById("bladed-input-feedback");
+            bladedfileerrors.innerHTML = 'Invalid extension for file "' + data.file.name + '". Only "$pj, prj" files are supported.';
+            bladedfileerrors.style.display = "block";
+        }).on('fileloaded', function (event, file, previewId, index, reader) {
+            window.bladedfile = file;
+        }).on('filecleared', function (event) {
+            window.bladedfile = null;
+        });
+    });
+
+    $(document).click(function (e) {
+        // 单击收起 navbarToggleExternalContent
+        var target = e ? e.target : window.event.srcElement;
+        if (target.id != "navbarToggleExternalContent")
+            $("#navbarToggleExternalContent").collapse('hide');
     });
 
     function compare() {
@@ -240,18 +651,23 @@
         formData.append('xml-files', window.files[0]);
         formData.append('xml-files', window.files[1]);
         $("#XMLUploadModal").modal('hide');
+        // $("#WaitingModal").modal('show');
         $.ajax({
             type: 'POST',
-            url: "/compare/contrast",
+            url: "/utils/compare",
             cache: false,
             processData: false,
             contentType: false,
             data: formData,
             success: function (data) {
+                // $("#WaitingModal").modal('hide');
                 window.data = data;
                 window.currentDiffIndex = -1;
                 window.lastDiffIndex = -1;
                 dataInit();
+                $("#parse-container")[0].style.display = "none";
+                $("#compare-container")[0].style.display = "block";
+                $("#diff-detials")[0].style.display = "block";
             },
             complete: function () {
             }
@@ -263,6 +679,7 @@
         $("#num-all").text(Math.max(Object.keys(window.data.xml1).length, Object.keys(window.data.xml2).length));
         $("#num-diff").text(window.data.diff.length);
         $("#num")[0].style.display = "block";
+        $("#hint")[0].style.display = "none";
         $("#space")[0].style.display = "none";
         var all_data = Object.keys(window.data.xml1).length > Object.keys(window.data.xml2).length ? window.data.xml1 : window.data.xml2;
         result_html += '<div class="row">';
@@ -284,42 +701,42 @@
                 '</div>';
         }
         result_html += '</div>';
-        $("#result").html(result_html);
-        if ($("#diff-view-switch")[0].checked){
+        $("#compare-result").html(result_html);
+        if ($("#diff-view-switch")[0].checked) {
             showDiffDetials();
         }
     }
 
-    function showDiffDetials(){
+    function showDiffDetials() {
         // var all_data = Object.keys(window.data.xml1).length > Object.keys(window.data.xml2).length ? window.data.xml1 : window.data.xml2;
         $("#diff-detials").html("");
-        for (var i=0; i<window.showDiff.length; i++){
-            var html = 
-                '<div class="card details" style="margin-top:10px;">' + 
-                    '<div class="card-header text-center" style="color:#7952b3; background-color: #CCFFFF;">' + 
-                        '<h6 style="margin-bottom:0;font-weight: bold;">' + window.showDiff[i] + '</6>' +
-                    '</div>' + 
-                    '<div class="card-body">' + 
-                        '<div class="table-responsive" id="p-table-div-' + window.showDiff[i] + '" style="height:100%">' + 
-                            '<table id="p-table-' + window.showDiff[i] + '" class="table table-sm table-bordered"></table>' + 
-                        '</div>' + 
-                        '<div class="table-responsive" id="t-table-div-' + window.showDiff[i] + '" style="height:100%">' + 
-                            '<div id="t-filename1-' + window.showDiff[i] + '" class="text-dark text-center"></div>' + 
-                            '<table id="t-table1-' + window.showDiff[i] + '" class="table table-sm table-bordered"></table>' + 
-                            '<div id="t-filename2-' + window.showDiff[i] + '" class="thtext-dark text-center"></div>' + 
-                            '<table id="t-table2-' + window.showDiff[i] + '" class="table table-sm table-bordered"></table>' + 
-                        '</div>' + 
-                        '<div class="table-responsive" id="f-table-div-' + window.showDiff[i] + '" style="height:100%">' + 
-                            '<div id="f-filename1-' + window.showDiff[i] + '" class="thtext-dark text-center"></div>' + 
-                            '<table id="f-table1-' + window.showDiff[i] + '" class="table table-sm table-bordered"></table>' + 
-                            '<div id="f-filename2-' + window.showDiff[i] + '" class="thtext-dark text-center"></div>' + 
-                            '<table id="f-table2-' + window.showDiff[i] + '" class="table table-sm table-bordered"></table>' + 
-                        '</div>' + 
-                    '</div>' + 
-                '</div>';            
+        for (var i = 0; i < window.showDiff.length; i++) {
+            var html =
+                '<div class="card details" style="margin-top:10px;">' +
+                '<div class="card-header text-center" style="color:#7952b3; background-color: #CCFFFF;">' +
+                '<h6 style="margin-bottom:0;font-weight: bold;">' + window.showDiff[i] + '</6>' +
+                '</div>' +
+                '<div class="card-body">' +
+                '<div class="table-responsive" id="p-table-div-' + window.showDiff[i] + '" style="height:100%">' +
+                '<table id="p-table-' + window.showDiff[i] + '" class="table table-sm table-bordered table-hover"></table>' +
+                '</div>' +
+                '<div class="table-responsive" id="t-table-div-' + window.showDiff[i] + '" style="height:100%">' +
+                '<div id="t-filename1-' + window.showDiff[i] + '" class="text-dark text-center"></div>' +
+                '<table id="t-table1-' + window.showDiff[i] + '" class="table table-striped table-sm table-bordered table-hover"></table>' +
+                '<div id="t-filename2-' + window.showDiff[i] + '" class="thtext-dark text-center"></div>' +
+                '<table id="t-table2-' + window.showDiff[i] + '" class="table table-striped table-sm table-bordered table-hover"></table>' +
+                '</div>' +
+                '<div class="table-responsive" id="f-table-div-' + window.showDiff[i] + '" style="height:100%">' +
+                '<div id="f-filename1-' + window.showDiff[i] + '" class="thtext-dark text-center"></div>' +
+                '<table id="f-table1-' + window.showDiff[i] + '" class="table table-striped table-sm table-bordered table-hover"></table>' +
+                '<div id="f-filename2-' + window.showDiff[i] + '" class="thtext-dark text-center"></div>' +
+                '<table id="f-table2-' + window.showDiff[i] + '" class="table table-striped table-sm table-bordered table-hover"></table>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
             $("#diff-detials").append(html);
             initTableDetails(window.showDiff[i]);
-        }      
+        }
     }
 
     function preDiff() {
@@ -370,13 +787,13 @@
 
     function view_switch() {
         if ("undefined" != typeof (window.data)) {
-            dataInit();                        
+            dataInit();
         }
         $("#diff-detials")[0].style.display = $("#diff-view-switch")[0].checked ? "block" : "none";
-        if ($("#diff-view-switch")[0].checked && !window.showDiff.length){
-            $("#result").html(
-                '<div class="text-center" style="font-weight: bold;">' + 
-                    'NO DIFFERENCE' + 
+        if ($("#diff-view-switch")[0].checked && !window.showDiff.length) {
+            $("#compare-result").html(
+                '<div class="text-center" style="font-weight: bold;">' +
+                'NO DIFFERENCE' +
                 '</div>'
             );
         }
@@ -2175,5 +2592,882 @@
                 break;
         }
     }
+
+    //以下 是XML解析js
+
+    function bladedCheckedChange() {
+        var bladedCheck = document.getElementById("bladed-check");
+        if (bladedCheck.checked) {
+            $("#bladed-input").fileinput('enable');
+        } else {
+            $("#bladed-input").fileinput('disable');
+            $("#bladed-input-feedback")[0].style.display = "none";
+        }
+    }
+
+    function parse() {
+        if (window.xmlfile == null) {
+            var xmlfileerrors = document.getElementById("xml-input-feedback");
+            xmlfileerrors.innerHTML = 'XML文件不能为空。';
+            xmlfileerrors.style.display = "block";
+            return;
+        }
+
+        if ($("#bladed-check")[0].checked && window.bladedfile == null) {
+            var bladedfileerrors = document.getElementById("bladed-input-feedback");
+            bladedfileerrors.innerHTML = 'Bladed文件此时为必需项。';
+            bladedfileerrors.style.display = "block";
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append('bladed-check', $("#bladed-check")[0].checked);
+        if (window.xmlfile != null)
+            formData.append('xml-input', window.xmlfile);
+        if (window.bladedfile != null)
+            formData.append('bladed-input', window.bladedfile);
+        $("#XMLUploadModal-parse").modal('hide');
+        // $("#WaitingModal").modal('show');
+        $.ajax({
+            type: 'POST',
+            url: "/utils/parse",
+            cache: false,
+            processData: false,
+            contentType: false,
+            data: formData,
+            success: function (data) {
+                window.fulldata = data;
+                initTable(data);
+                window.pageInitialData = getInitialTableData();
+                $("#edit-switch")[0].checked = false;
+                $("#no-data")[0].style.display = "none";
+                $("#xml-data")[0].style.display = "block";
+                $("#compare-container")[0].style.display = "none";
+                $("#diff-detials")[0].style.display = "none";
+                $("#num").html("");
+                $("#parse-container")[0].style.display = "block";
+                // $("#WaitingModal").modal('hide');             
+            },
+        });
+    }
+
+    function download() {
+        if (window.xmlfile == null) {
+            $('.alert').removeClass('fade');
+            $(".alert").html("没有文件");
+            $('.alert').show().delay(500).fadeOut();
+            return;
+        }
+    }
+
+    function getInitialTableData() {
+        var tableValues = document.getElementsByClassName("table-value");
+        var data = {};
+        for (var i = 0; i < tableValues.length; i++) {
+            data[tableValues[i].id] = tableValues[i].value;
+        }
+        return data;
+    }
+
+    $(function () {
+        $('#deg').keyup(function () {
+            var src = $(this).val();
+            if (isNaN(src) || src == "") {
+                $('#rad').val("");
+            } else {
+                $('#rad').val(src * Math.PI / 180);
+            }
+        })
+    })
+    $(function () {
+        $('#rad').keyup(function () {
+            var src = $(this).val();
+            if (isNaN(src) || src == "") {
+                $('#deg').val("");
+            } else {
+                $('#deg').val(src * 180 / Math.PI);
+            }
+        })
+    })
+    $(function () {
+        $('#rpm').keyup(function () {
+            var src = $(this).val();
+            if (isNaN(src) || src == "") {
+                $('#radpsrpm').val("");
+            } else {
+                $('#radpsrpm').val(src * Math.PI / 30);
+            }
+        })
+    })
+    $(function () {
+        $('#radpsrpm').keyup(function () {
+            var src = $(this).val();
+            if (isNaN(src) || src == "") {
+                $('#rpm').val("");
+            } else {
+                $('#rpm').val(src * 30 / Math.PI);
+            }
+        })
+    })
+    $(function () {
+        $('#Hz').keyup(function () {
+            var src = $(this).val();
+            if (isNaN(src) || src == "") {
+                $('#radpshz').val("");
+            } else {
+                $('#radpshz').val(src * 2 * Math.PI);
+            }
+        })
+    })
+    $(function () {
+        $('#radpshz').keyup(function () {
+            var src = $(this).val();
+            if (isNaN(src) || src == "") {
+                $('#Hz').val("");
+            } else {
+                $('#Hz').val(src / 2 / Math.PI);
+            }
+        })
+    })
+
+    $(function () {
+        $('#tower1st-radps').keyup(function () {
+            var src = $(this).val();
+            var kopt = Number($("#P_OptimalModeGain-symbol").val());
+            if (isNaN(src) || src == "") {
+                $('#tower1st-hz').val("");
+                $('#tower1st-rpm').val("");
+                $("#LowSpeed").val("");
+                $("#HighSpeed").val("");
+                enableApplyBtn();
+            } else {
+                $('#tower1st-hz').val((src / 2 / Math.PI).toFixed(5));
+                $('#tower1st-rpm').val((src * 30 / Math.PI).toFixed(5));
+                // enableApplyBtn();
+            }
+            towerExcCalc(kopt, src);
+        })
+    })
+
+    $(function () {
+        $('#tower1st-hz').keyup(function () {
+            var src = $(this).val();
+            var kopt = Number($("#P_OptimalModeGain-symbol").val());
+            if (isNaN(src) || src == "") {
+                $('#tower1st-radps').val("");
+                $('#tower1st-rpm').val("");
+                $("#LowSpeed").val("");
+                $("#HighSpeed").val("");
+                enableApplyBtn();
+                $("#result-badge")[0].style.display = "none";
+            } else {
+                $('#tower1st-radps').val((src * 2 * Math.PI));
+                $('#tower1st-rpm').val(src * 60);
+                // enableApplyBtn();
+            }
+            towerExcCalc(kopt, $('#tower1st-radps').val());
+        })
+    })
+
+    $(function () {
+        $('#tower1st-rpm').keyup(function () {
+            var src = $(this).val();
+            var kopt = Number($("#P_OptimalModeGain-symbol").val());
+            if (isNaN(src) || src == "") {
+                $('#tower1st-radps').val("");
+                $('#tower1st-hz').val("");
+                $("#LowSpeed").val("");
+                $("#HighSpeed").val("");
+                enableApplyBtn();
+                $("#result-badge")[0].style.display = "none";
+            } else {
+                $('#tower1st-radps').val((src * Math.PI / 30));
+                $('#tower1st-hz').val((src / 60));
+                // enableApplyBtn();
+            }
+            towerExcCalc(kopt, $('#tower1st-radps').val());
+        })
+    })
+
+    $(function () {
+        $('#SpeedFactor').keyup(function () {
+            var src = $('#tower1st-radps').val();
+            var kopt = Number($("#P_OptimalModeGain-symbol").val());
+            if (isNaN(src) || src == "") {
+                $('#tower1st-radps').val("");
+                $('#tower1st-hz').val("");
+                $("#LowSpeed").val("");
+                $("#HighSpeed").val("");
+                enableApplyBtn();
+                $("#result-badge")[0].style.display = "none";
+            } else {
+                // enableApplyBtn();
+            }
+            towerExcCalc(kopt, src);
+        })
+    })
+
+    $(function () {
+        $('#SpeedOffset').keyup(function () {
+            var src = $('#tower1st-radps').val();
+            var kopt = Number($("#P_OptimalModeGain-symbol").val());
+            if (isNaN(src) || src == "") {
+                $('#tower1st-radps').val("");
+                $('#tower1st-hz').val("");
+                $("#LowSpeed").val("");
+                $("#HighSpeed").val("");
+                enableApplyBtn();
+                $("#result-badge")[0].style.display = "none";
+            } else {
+                // enableApplyBtn();
+            }
+            towerExcCalc(kopt, src);
+        })
+    })
+
+    $(function () {
+        $('#LowTorqueFactor').keyup(function () {
+            var src = $('#tower1st-radps').val();
+            var kopt = Number($("#P_OptimalModeGain-symbol").val());
+            if (isNaN(src) || src == "") {
+                $('#tower1st-radps').val("");
+                $('#tower1st-hz').val("");
+                $("#LowSpeed").val("");
+                $("#HighSpeed").val("");
+                enableApplyBtn();
+                $("#result-badge")[0].style.display = "none";
+            } else {
+                // enableApplyBtn();
+            }
+            towerExcCalc(kopt, src);
+        })
+    })
+
+    $(function () {
+        $('#HighTorqueFactor').keyup(function () {
+            var src = $('#tower1st-radps').val();
+            var kopt = Number($("#P_OptimalModeGain-symbol").val());
+            if (isNaN(src) || src == "") {
+                $('#tower1st-radps').val("");
+                $('#tower1st-hz').val("");
+                $("#LowSpeed").val("");
+                $("#HighSpeed").val("");
+                enableApplyBtn();
+                $("#result-badge")[0].style.display = "none";
+            } else {
+                // enableApplyBtn();
+            }
+            towerExcCalc(kopt, src);
+        })
+    })
+
+    function enableApplyBtn() {
+        $("#apply")[0].classList.remove("btn-secondary");
+        $("#apply")[0].classList.add("btn-primary");
+        $("#apply")[0].disabled = false;
+    }
+
+    function disableApplyBtn() {
+        $("#apply")[0].classList.remove("btn-primary");
+        $("#apply")[0].classList.add("btn-secondary");
+        $("#apply")[0].disabled = true;
+    }
+
+    function reset() {
+        $("#SpeedFactor").val(0.05);
+        $("#SpeedOffset").val(0.5);
+        $("#LowTorqueFactor").val(1.05);
+        $("#HighTorqueFactor").val(0.9);
+        var kopt = Number($("#P_OptimalModeGain-symbol").val());
+        towerExcCalc(kopt, $('#tower1st-radps').val());
+    }
+
+    function towerExcCalc(Kopt, tower1st_) {
+        var tower1st = Number(tower1st_);
+        var ratedSpeed = Number($("#P_RatedGeneratorSpeed-symbol").val());
+        if (isNaN(tower1st) || tower1st == "") {
+            $("#LowSpeed").val("");
+            $("#HighSpeed").val("");
+            $("#LowSpeedMaxTorque").val("");
+            $("#HighSpeedMaxTorque").val("");
+            $("#LowSpeed-rpm").text("");
+            $("#HighSpeed-rpm").text("");
+            $("#result-badge")[0].style.display = "none";
+        } else {
+            var speedFactor = Number($("#SpeedFactor").val()),
+                speedOffset = Number($("#SpeedOffset").val()),
+                lowTorqueFactor = Number($("#LowTorqueFactor").val()),
+                highTorqueFactor = Number($("#HighTorqueFactor").val()),
+                lowSpeed = Math.min(tower1st * (1 - speedFactor), tower1st - speedOffset * Math.PI / 30),
+                highSpeed = Math.max(tower1st * (1 + speedFactor), tower1st + speedOffset * Math.PI / 30),
+                lowTorque = lowTorqueFactor * Kopt * lowSpeed * lowSpeed,
+                highTorque = highTorqueFactor * Kopt * Math.pow(lowSpeed, 3) / highSpeed;
+            $("#LowSpeed").val(lowSpeed.toFixed(5));
+            $("#HighSpeed").val(highSpeed.toFixed(5));
+            $("#LowSpeed-rpm").text((lowSpeed * 30 / Math.PI).toFixed(1) + "rpm");
+            $("#HighSpeed-rpm").text((highSpeed * 30 / Math.PI).toFixed(1) + "rpm");
+            $("#LowSpeedMaxTorque").val(Math.round(lowTorque));
+            $("#HighSpeedMaxTorque").val(Math.round(highTorque));
+            var tower1st_radps = $('#tower1st-radps').val();
+            if (tower1st_radps.length > 15) {
+                $('#tower1st-radps').val(Number(tower1st_radps).toFixed(5));
+            }
+            var tower1st_hz = $('#tower1st-hz').val();
+            if (tower1st_hz.length > 15) {
+                $('#tower1st-hz').val(Number(tower1st_hz).toFixed(5));
+            }
+            var tower1st_rpm = $('#tower1st-rpm').val();
+            if (tower1st_rpm.length > 15) {
+                $('#tower1st-rpm').val(Number(tower1st_rpm).toFixed(5));
+            }
+
+            // 判断是否通过
+            if (highSpeed <= 0.92 * ratedSpeed && highSpeed < ratedSpeed - Math.PI / 30) {
+                $("#result-badge").removeClass("badge-danger");
+                $("#result-badge").addClass("badge-success");
+                $("#result-badge").html("通过");
+                $("#result-badge")[0].style.display = "block";
+                enableApplyBtn();
+            } else {
+                disableApplyBtn();
+                $("#result-badge").removeClass("badge-success");
+                $("#result-badge").addClass("badge-danger");
+                $("#result-badge").html("不通过");
+                $("#result-badge")[0].style.display = "block";
+            }
+        }
+    }
+
+    function setTowerExc() {
+        $("#P_TowerExcEnabled-symbol").val(String($("#towerExc-switch")[0].checked));
+        if ("" != $("#LowSpeed").val())
+            $("#P_TowerExcLowSpeed-symbol").val($("#LowSpeed").val());
+        if ("" != $("#HighSpeed").val())
+            $("#P_TowerExcHighSpeed-symbol").val($("#HighSpeed").val());
+        if ("" != $("#LowSpeedMaxTorque").val())
+            $("#P_TowerExcLowSpeedMaxTorque-symbol").val($("#LowSpeedMaxTorque").val());
+        if ("" != $("#HighSpeedMaxTorque").val())
+            $("#P_TowerExcHighSpeedMinTorque-symbol").val($("#HighSpeedMaxTorque").val());
+    }
+
+    function equals(src, dst) {
+        if (src.match(/(\d+)-/)[1] != "0") {
+            $("#" + dst).val($("#" + src).val());
+        }
+    }
+
+    function towerExcSwitch() {
+        $("#P_TowerExcEnabled-symbol").val(String($("#towerExc-switch")[0].checked));
+    }
+
+
+    function checkChanged() {
+        var changed = getModifiedTableData();
+        var changedArray = [];
+        var patt = /(\S+?)\d*-/;
+        var changedBadge = '<div class="row">';
+        for (property in changed) {
+            var m = patt.exec(property);
+            if (-1 == changedArray.indexOf(m[1])) {
+                changedArray.push(m[1]);
+                changedBadge += '<div class="col-auto" style="padding: 5px;">' +
+                    '<span class="badge badge-info">' + m[1] + '</span>' +
+                    '</div>';
+            }
+        }
+        changedBadge += '</div>';
+        $("#changedShowArea").html(changedBadge);
+    }
+
+    function getModifiedTableData() {
+        var tableValues = document.getElementsByClassName("table-value");
+        var data = {};
+        for (var i = 0; i < tableValues.length; i++) {
+            var id = tableValues[i].id;
+            if ($("#" + id).val() != window.pageInitialData[id]) {
+                data[id] = { 'new': $("#" + id).val(), 'old': window.pageInitialData[id] };
+            }
+        }
+        return data;
+    }
+
+    function editModeSwitch() {
+        $(function () {
+            if (window.bladedfile != null) {
+                $('#P_MaximumGeneratorTorque-symbol').val(Math.round($('#P_DMGT-bladed').val() * 1.1));
+                $('#P_SteadyShaftPowerLimit-symbol').val(($('#P_RatedGeneratorSpeed-symbol').val() * Number($('#P_DMGT-bladed').val())).toFixed(1));
+                $('#P_OptimalModeGain-symbol').val($('#P_OptimalModeGain-bladed').val());
+            }
+            checkChanged();
+        })
+        $(function () {
+            $('#P_OptimalModeGain-bladed').keyup(function () {
+                var src = $(this).val();
+                if (isNaN(src) || src == "") {
+                    $('#P_OptimalModeGain-symbol').val("");
+                } else {
+                    $('#P_OptimalModeGain-symbol').val(src);
+                }
+            })
+        })
+        $(function () {
+            $('#P_DMGT-bladed').keyup(function () {
+                var src = $(this).val();
+                if (isNaN(src) || src == "") {
+                    $('#P_MaximumGeneratorTorque-symbol').val("");
+                } else {
+                    $('#P_MaximumGeneratorTorque-symbol').val(src * 1.1);
+                }
+            })
+        })
+        $(function () {
+            $('#P_RatedGeneratorSpeed-symbol').keyup(function () {
+                if (window.bladedfile != null) {
+                    var src = $(this).val();
+                    if (isNaN(src) || src == "") {
+                        $('#P_SteadyShaftPowerLimit-symbol').val("");
+                    } else {
+                        $('#P_SteadyShaftPowerLimit-symbol').val(src * Number($('#P_DMGT-bladed').val()));
+                    }
+                }
+            })
+        })
+        var tableValues = document.getElementsByClassName("table-value");
+        if ($("#edit-switch")[0].checked) {
+            $("#edit-switch-label").html("编辑");
+            $("#edit-switch-label")[0].classList.add('text-primary');
+            for (var i = 0; i < tableValues.length; i++) {
+                tableValues[i].removeAttribute('style');
+                tableValues[i].style.textAlign = "center";
+                tableValues[i].disabled = false;
+                tableValues[i].classList.add("form-control");
+                tableValues[i].classList.add("form-control-sm");
+                tableValues[i].style.width = "100px";
+                tableValues[i].style.marginLeft = "auto";
+                tableValues[i].style.marginRight = "auto";
+                if (tableValues[i].classList.contains('enable-col')) {
+                    tableValues[i].style.width = "50px";
+                    tableValues[i].style.marginLeft = "auto";
+                    tableValues[i].style.marginRight = "auto";
+                }
+                if (tableValues[i].classList.contains('enable-col') ||
+                    tableValues[i].classList.contains('num-frequency-col') ||
+                    tableValues[i].classList.contains('den-frequency-col')) {
+                    tableValues[i].style.backgroundColor = "#ffe484";
+                }
+            }
+        }
+        else {
+            $("#edit-switch-label").html("只读");
+            $("#edit-switch-label")[0].classList.remove('text-primary');
+            for (var i = 0; i < tableValues.length; i++) {
+                tableValues[i].style.backgroundColor = "transparent";
+                tableValues[i].style.textAlign = "center";
+                tableValues[i].style.border = 0;
+                tableValues[i].style.cursor = "text";
+                tableValues[i].disabled = true;
+                tableValues[i].classList.remove("form-control");
+                tableValues[i].classList.remove("form-control-sm");
+                tableValues[i].style.width = "100px";
+                tableValues[i].style.marginLeft = "auto";
+                tableValues[i].style.marginRight = "auto";
+                if (tableValues[i].classList.contains('enable-col')) {
+                    tableValues[i].style.width = "50px";
+                    tableValues[i].style.marginLeft = "auto";
+                    tableValues[i].style.marginRight = "auto";
+                }
+            }
+        }
+    }
+
+    function initTable(data) {
+        var $paramsTable = $('#params-table');
+        $paramsTable.bootstrapTable('destroy').bootstrapTable({
+            columns: [
+                {
+                    title: "参数",
+                    field: 'name',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead",
+                    sortable: true
+                },
+                {
+                    title: "Bladed值",
+                    field: 'bladed_value',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead",
+                },
+                {
+                    title: 'Symbol值',
+                    field: 'symbol_value',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead"
+                },
+                {
+                    title: "说明",
+                    field: "description",
+                    valign: 'middle',
+                    class: "thead-sm"
+                }
+            ],
+            data: data['params']
+        });
+        $("#towerExc-switch")[0].checked = eval($("#P_TowerExcEnabled-symbol").val());
+        var $schedulesTable = $('#schedules-table');
+        $schedulesTable.bootstrapTable('destroy').bootstrapTable({
+            columns: [
+                {
+                    title: "参数",
+                    field: 'Name',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead",
+                    width: "20%"
+                },
+                {
+                    title: "Enabled",
+                    field: 'Enabled',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead",
+                    width: "5%"
+                },
+                {
+                    title: "Display Name",
+                    field: 'Display_Name',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead",
+                    width: "10%"
+                },
+                {
+                    title: "0",
+                    field: '0',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead",
+                    width: "10%"
+                },
+                {
+                    title: "1",
+                    field: '1',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead",
+                    width: "10%"
+                },
+                {
+                    title: "2",
+                    field: '2',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead",
+                    width: "10%"
+                },
+                {
+                    title: "3",
+                    field: '3',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead",
+                    width: "10%"
+                },
+                {
+                    title: "4",
+                    field: '4',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead",
+                    width: "10%"
+                },
+                {
+                    title: "5",
+                    field: '5',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead",
+                    width: "10%"
+                },
+                {
+                    title: "6",
+                    field: '6',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead",
+                    width: "10%"
+                },
+                {
+                    title: "7",
+                    field: '7',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead",
+                    width: "10%"
+                },
+                // {
+                //     title: "8",
+                //     field: '8',
+                //     align: 'center',
+                //     valign: 'middle',
+                //     class: "thead",
+                //     width: "10%"
+                // },
+                // {
+                //     title: "9",
+                //     field: '9',
+                //     align: 'center',
+                //     valign: 'middle',
+                //     class: "thead",
+                //     width: "10%"
+                // }
+            ],
+            data: data['schedules']
+        });
+        if (JSON.stringify(data) != "{}") {
+            for (var i = 0; i <= data['schedules'].length; i += 2) {
+                $schedulesTable.bootstrapTable('mergeCells', { index: i, field: 'Name', colspan: 1, rowspan: 2 });
+                $schedulesTable.bootstrapTable('mergeCells', { index: i, field: 'Enabled', colspan: 1, rowspan: 2 });
+            };
+        }
+
+        var $filtersTable = $('#filters-table');
+        $filtersTable.bootstrapTable('destroy').bootstrapTable({
+            columns: [
+                {
+                    title: "参数",
+                    field: 'Name',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead"
+                },
+                {
+                    title: "Display</br>Name",
+                    field: 'Display_Name',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead"
+                },
+                {
+                    title: "Enabled",
+                    field: 'Enabled',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead"
+                },
+                {
+                    title: "Numerator</br>Type",
+                    field: 'Numerator_Type',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead"
+                },
+                {
+                    title: "Denominator</br>Type",
+                    field: 'Denominator_Type',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead"
+                },
+                {
+                    title: "Numerator</br>TC",
+                    field: 'Numerator_TC',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead"
+                },
+                {
+                    title: "Denominator</br>TC",
+                    field: 'Denominator_TC',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead"
+                },
+                {
+                    title: "Numerator</br>Frequency",
+                    field: 'Numerator_Frequency',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead"
+                },
+                {
+                    title: "Numerator</br>Damping</br>Ratio",
+                    field: 'Numerator_Damping_Ratio',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead"
+                },
+                {
+                    title: "Denominator</br>Frequency",
+                    field: 'Denominator_Frequency',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead"
+                },
+                {
+                    title: "Denominator</br>Damping</br>Ratio",
+                    field: 'Denominator_Damping_Ratio',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead"
+                },
+                {
+                    title: "W0",
+                    field: 'W0',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead"
+                },
+                {
+                    title: "Prewarping</br>Wc",
+                    field: 'Prewarping_Wc',
+                    align: 'center',
+                    valign: 'middle',
+                    class: "thead"
+                }
+            ],
+            data: data['filters']
+        });
+        if (JSON.stringify(data) != "{}") {
+            for (var i = 0, start = 0, delta = 0; i < data['filters'].length; i++) {
+                if (i > 0 && $filtersTable.bootstrapTable('getData')[i]['Display_Name'] <= 1) {
+                    delta = i - start;
+                    $filtersTable.bootstrapTable('mergeCells', { index: start, field: 'Name', colspan: 1, rowspan: delta });
+                    start = i;
+                }
+            }
+        }
+        $('.name').tooltip('show');
+        $('.name').tooltip('hide');
+    }
+
+    // function getData() {
+    //     var tableData = {};
+
+    //     $.ajax({
+    //         type: 'POST',
+    //         url: "/utils/parse",
+    //         dataType: "json",
+    //         contentType: 'application/json; charset=UTF-8',
+    //         data: JSON.stringify({
+    //         }),
+    //         success: function (data) { //成功的话，得到消息
+    //             tableData = data;
+    //         },
+    //         complete: function () {
+    //             initTable(tableData);
+    //             window.pageInitialData = getInitialTableData();
+    //             $("#edit-switch")[0].checked = false;
+    //         }
+    //     });
+    // }
+
+    $(function () {
+        $("#search-input").keyup(function () {
+            var keyWord = $(this).val().toLowerCase();
+            var formData = new FormData();
+            if (window.xmlfile != null)
+                formData.append('xml-input', window.xmlfile);
+            $.ajax({
+                type: 'POST',
+                url: "/utils/match/" + keyWord,
+                cache: false,
+                processData: false,
+                contentType: false,
+                data: formData,
+                success: function (data) { //成功的话，得到消息
+                    var htmlStr = "";
+                    for (var i = 0; i < data.length; i++) {
+                        start = data[i].toLowerCase().indexOf(keyWord);
+                        end = data[i].toLowerCase().indexOf(keyWord) + keyWord.length;
+                        prefix = data[i].slice(0, start);
+                        mid = data[i].slice(start, end);
+                        postfix = data[i].slice(end);
+                        htmlStr += '<a class="list-group-item list-group-item-action list-group-item-search" onclick="showSearchResultTrigger(\'' + data[i] + '\')">' +
+                            prefix +
+                            '<label style="color: #7952b3; font-weight: Bold; cursor: pointer; margin: 2px 0px 3px;">' + mid + '</label>' +
+                            postfix + '</a>\n';
+                    }
+                    var listBox = $("#algolia-autocomplete-listbox-0")[0];
+                    if (htmlStr != "") {
+                        if (data.length < 15) {
+                            listBox.style.overflow = "hidden";
+                        } else {
+                            listBox.style.overflow = "scroll";
+                        }
+                        $("#name-list").html(htmlStr);
+                        listBox.style.display = "block";
+                    } else {
+                        listBox.style.display = "none";
+                    }
+                }
+            });
+        })
+    });
+
+    function searchInpuChanged() {
+        var listBox = $("#algolia-autocomplete-listbox-0")[0];
+        if ($("#search-input").val() != "") {
+            listBox.style.display = "block";
+        } else {
+            listBox.style.display = "none";
+            initTable(window.fulldata);
+            $("#towerExc-block")[0].style.display = "block";
+            $("#tool-block")[0].style.display = "block";
+        }
+    }
+
+    function showSearchResultTrigger(param) {
+        window.searchParam = param;
+        // var dataChanged = getModifiedTableData();
+        // if (JSON.stringify(dataChanged) != "{}") {
+        //     $("#unsave-modal").modal('show');
+        //     return;
+        // }
+        showSearchResult('unsave');
+    }
+
+    function showSearchResult(flag) {
+        param = window.searchParam;
+        $("#search-input").val(param);
+        var tableData = {};
+        var formData = new FormData();
+        if (window.xmlfile != null)
+            formData.append('xml-input', window.xmlfile);
+        $.ajax({
+            type: 'POST',
+            url: "/utils/search/" + param,
+            cache: false,
+            processData: false,
+            contentType: false,
+            data: formData,
+            success: function (data) { //成功的话，得到消息
+                tableData = data;
+            },
+            complete: function () {
+                initTable(tableData);
+                setDisplay(tableData);
+                window.pageInitialData = getInitialTableData();
+                $("#edit-switch")[0].checked = false;
+            }
+        });
+    }
+
+    function setDisplay(tableData, displayname) {
+        $("#algolia-autocomplete-listbox-0")[0].style.display = "none";
+        for (var key in tableData) {
+            if (String(tableData[key]) != "") {
+                $('#nav-tab a[href="#nav-' + key + '"]').tab('show');
+                if (key == "filters") {
+                    $('#filters-table').bootstrapTable('mergeCells', { index: 0, field: 'Name', colspan: 1, rowspan: tableData['filters'].length });
+                }
+            }
+        }
+        $("#towerExc-block")[0].style.display = "none";
+        $("#tool-block")[0].style.display = "none";
+    }
+
 </script>
 {% endblock content %}

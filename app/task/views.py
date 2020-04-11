@@ -1,4 +1,4 @@
-from flask import (Blueprint, jsonify, render_template, request, abort, g,
+from flask import (Blueprint, jsonify, render_template, request, abort,
                    current_app, redirect, url_for, send_from_directory)
 from flask_login import current_user, login_required
 from sqlalchemy import and_, or_
@@ -15,7 +15,6 @@ import json
 import shutil
 import time
 from collections import OrderedDict
-from datetime import datetime
 from multiprocessing import Process
 from zipfile import ZipFile
 
@@ -162,36 +161,15 @@ def work(taskname):
 @login_required
 def initial_value(taskname):
     _task = Task.query.filter_by(name=taskname).first()
-    user = User.query.filter_by(id=_task.user_id).first()
+    # user = User.query.filter_by(id=_task.user_id).first()
     dest = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), taskname)
 
     bladed = Bladed(os.path.join(dest, _task.bladed_filename))
     only_in_bladed = ['P_DMGT']
 
-    with current_app.open_instance_resource('name_mapping.json') as f:
-        symbols_name = OrderedDict(json.load(f))
-
     symbols_value = {'params': [], 'filters': [], 'schedules': []}
-
-    symbols_db_path = os.path.join(current_app.instance_path, 'symbols.db')
-
-    pattern = re.compile(r'\d+$')
-    symbols = SymbolDB()
-    symbols.load_db(symbols_db_path)
-    symbols.connect()
-
-    p_name = [p for p in symbols_name.keys(
-    ) if 'P_' in p and p not in only_in_bladed]
-    f_name = [p for p in symbols_name.keys() if 'F_' in p]
-    t_name = [p for p in symbols_name.keys() if 'T_' in p]
-    p_queried = symbols.multi_query(p_name)
-    f_queried = symbols.multi_query(f_name)
-    t_queried = symbols.multi_query(t_name)
-    symbols.close()
-
-    t_queried = {pattern.sub("", k, 1): v for k, v in t_queried.items()}
-    f_queried = {pattern.sub("", k, 1): v for k, v in f_queried.items()}
+    p_items, t_items, f_items, symbols_name = get_query_names(current_app, only_in_bladed)
 
     xml_path = os.path.join(dest, _task.xml_filename)
     xml = XML()
@@ -212,7 +190,7 @@ def initial_value(taskname):
             if 'P_' in name:
                 symbols_value['params'].append({
                     'name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                    f'{p_queried[name].at["Description_en_GB"] if name not in only_in_bladed and name in p_queried.keys() else symbols_name[name]["description_zh"]}'
+                    f'{p_items[name].at["Description_en_GB"] if name not in only_in_bladed and name in p_items.keys() else symbols_name[name]["description_zh"]}'
                     f'">{name}</span>',
                     'bladed_value': '-' if not symbols_name[name]['bladed'] else
                     f'<input type="text" class="table-value-bladed text-primary" id="{name}-bladed" disabled value="{bladed.query(symbols_name[name]["bladed"])[1]}"'
@@ -226,11 +204,11 @@ def initial_value(taskname):
                 for index in value.index:
                     symbols_value['schedules'].append({
                         'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                        f'{t_queried[name].at["Description_en_GB"]}">{name}</span>',
+                        f'{t_items[f"{name}0"].at["Description_en_GB"]}">{name}</span>',
                         'Enabled':
                             f'<input type="text" class="table-value enable-col  text-danger" id="{name}{index}-Enabled" disabled value="{value.at[0, "Enabled"]}"'
                             f'style="background-color:transparent;border:0;text-align:center;width:50px;" onchange="checkChanged()">',
-                        'Display_Name': '-',
+                        'Display_Name': t_items[f'{name}{index}'].at["Display_Name"],
                         '0': '-' if '_0' not in value.columns else
                         f'<input type="text" class="table-value text-primary" id="{name}{index}-0" disabled value="{value.at[index, "_0"]}"'
                         f'style="background-color:transparent;border:0;text-align:center;width:100px;" onchange="checkChanged()">',
@@ -266,7 +244,7 @@ def initial_value(taskname):
                 for index in value.index:
                     symbols_value['filters'].append({
                         'Name': f'<span class="name text-theme" data-toggle="tooltip" data-placement="right" title="'
-                        f'{f_queried[name].at["Description_en_GB"]}">{name}</span>',
+                        f'{f_items[f"{name}0"].at["Description_en_GB"]}">{name}</span>',
                         'Enabled':
                         f'<input type="text" class="table-value enable-col text-danger" id="{name}{index}-Enabled" disabled value="{value.at[index, "Enabled"]}"'
                         f'style="background-color:transparent;border:0;text-align:center;width:50px;" onchange="checkChanged()">',
@@ -307,7 +285,7 @@ def initial_value(taskname):
 @login_required
 def set_value(taskname):
     _task = Task.query.filter_by(name=taskname).first()
-    user = User.query.filter_by(id=_task.user_id).first()
+    # user = User.query.filter_by(id=_task.user_id).first()
     # dest = os.path.join(current_app.config.get(
     #     'UPLOADS_DEFAULT_DEST'), user.username, taskname)
     dest = os.path.join(current_app.config.get(
@@ -329,8 +307,7 @@ def set_value(taskname):
             symbols_name = OrderedDict(json.load(f))
 
         bladed = Bladed(os.path.join(dest, _task.bladed_filename))
-        bladed_args = {symbols_name[k]['bladed']
-            : v for k, v in bladed_data.items()}
+        bladed_args = {symbols_name[k]['bladed']: v for k, v in bladed_data.items()}
         bladed.set(**bladed_args)
 
     new_name = request.json['newname'] if os.path.splitext(request.json['newname'])[-1] in ['.xml'] else \
@@ -381,7 +358,7 @@ def set_value(taskname):
 @login_required
 def search_list(taskname):
     _task = Task.query.filter_by(name=taskname).first()
-    user = User.query.filter_by(id=_task.user_id).first()
+    # user = User.query.filter_by(id=_task.user_id).first()
     dest = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), taskname)
 
@@ -405,7 +382,7 @@ def search_list(taskname):
 @login_required
 def search(taskname, param):
     _task = Task.query.filter_by(name=taskname).first()
-    user = User.query.filter_by(id=_task.user_id).first()
+    # user = User.query.filter_by(id=_task.user_id).first()
     dest = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), taskname)
 
@@ -420,7 +397,9 @@ def search(taskname, param):
     queried = symbols.multi_query([param])
     symbols.close()
 
-    queried = {pattern.sub("", k, 1): v for k, v in queried.items()}
+    # queried = {pattern.sub("", k, 1): v for k, v in queried.items()}
+    items_sorted = sorted(queried.items())
+    fine_items = {pattern.sub("", item[0], 1) + str(i): item[1] for i, item in enumerate(items_sorted)}
 
     xml_path = os.path.join(dest, _task.xml_filename)
     xml = XML()
@@ -451,7 +430,7 @@ def search(taskname, param):
                     'Enabled':
                         f'<input type="text" class="table-value enable-col  text-danger" id="{param}{index}-Enabled" disabled value="{value.at[0, "Enabled"]}"'
                         f'style="background-color:transparent;border:0;text-align:center;width:50px;">',
-                    'Display_Name': '-',
+                    'Display_Name': fine_items[f'{param}{index}'].at["Display_Name"],
                     '0': '-' if '_0' not in value.columns else
                     f'<input type="text" class="table-value text-primary" id="{param}{index}-0" disabled value="{value.at[index, "_0"]}"'
                     f'style="background-color:transparent;border:0;text-align:center;width:100px;">',
@@ -523,11 +502,47 @@ def search(taskname, param):
     return jsonify(symbols_value)
 
 
+def get_query_names(app, only_in_bladed):
+    with app.open_instance_resource('name_mapping.json') as f:
+        symbols_name = OrderedDict(json.load(f))
+
+    symbols_db_path = os.path.join(app.instance_path, 'symbols.db')
+
+    symbols = SymbolDB()
+    symbols.load_db(symbols_db_path)
+    symbols.connect()
+
+    p_name = [p for p in symbols_name.keys() if 'P_' in p and p not in only_in_bladed]
+    f_name = [p for p in symbols_name.keys() if 'F_' in p]
+    t_name = [p for p in symbols_name.keys() if 'T_' in p]
+    p_query = symbols.multi_query(p_name)
+    f_query = symbols.multi_query(f_name)
+    t_query = symbols.multi_query(t_name)
+    symbols.close()
+
+    t_items = handle_number_posx(t_name, t_query)
+    f_items = handle_number_posx(f_name, f_query)
+
+    return p_query, t_items, f_items, symbols_name
+
+
+def handle_number_posx(names, _query):
+    pattern = re.compile(r'\d+$')
+    _items = {}
+    for name in names:
+        items = {k: v for k, v in _query.items() if pattern.sub("", k, 1) == name}
+        items_sorted = sorted(items.items())
+        fine_items = {pattern.sub("", item[0], 1) + str(i): item[1] for i, item in enumerate(items_sorted)}
+        _items.update(fine_items)
+
+    return _items
+
+
 @task.route('download/<taskname>')
 @login_required
 def download(taskname):
     _task = Task.query.filter_by(name=taskname).first()
-    user = User.query.filter_by(id=_task.user_id).first()
+    # user = User.query.filter_by(id=_task.user_id).first()
     if _task is None:
         abort(404)
 
@@ -545,7 +560,7 @@ def download(taskname):
         ctrlzip.write(dll_file, arcname=os.path.basename(dll_file))
         ctrlzip.write(xml_file, arcname=os.path.basename(xml_file))
         ctrlzip.write(readme_file, arcname=os.path.basename(readme_file))
-            
+
     return send_from_directory(directory=folder, filename=os.path.basename(ctrl_zip), as_attachment=True)
 
 
@@ -553,7 +568,7 @@ def download(taskname):
 @login_required
 def watch(taskname):
     _task = Task.query.filter_by(name=taskname).first()
-    user = User.query.filter_by(id=_task.user_id).first()
+    # user = User.query.filter_by(id=_task.user_id).first()
     if _task is None:
         abort(404)
 
@@ -566,7 +581,7 @@ def watch(taskname):
 @login_required
 def campbell(taskname):
     _task = Task.query.filter_by(name=taskname).first()
-    user = User.query.filter_by(id=_task.user_id).first()
+    # user = User.query.filter_by(id=_task.user_id).first()
     file_folder = os.path.join(current_app.config.get(
         'UPLOADS_DEFAULT_DEST'), taskname)
     calc_folder = os.path.join(current_app.config.get(
@@ -587,7 +602,7 @@ def campbell(taskname):
         proc_campbell = Process(target=bladed.campbell, args=(run_dir,))
         proc_campbell.start()
         return jsonify({'calc': True})
-    except:
+    except Exception:
         return jsonify({'calc': False})
 
 
@@ -602,7 +617,7 @@ def check_lin1_cm(run_dir, _task):
 def mode_check(taskname):
     time.sleep(30)
     _task = Task.query.filter_by(name=taskname).first()
-    user = User.query.filter_by(id=_task.user_id).first()
+    # user = User.query.filter_by(id=_task.user_id).first()
     calc_folder = os.path.join(current_app.config.get(
         'CALCULATION_DEST'), taskname)
     run_dir = os.path.abspath(os.path.join(calc_folder, 'campbell_run'))

@@ -1,7 +1,16 @@
+'''
+@Descripttion:
+@version:
+@Author: wangshiwen@36719
+@Date: 2019-12-03 09:45:15
+@LastEditors: wangshiwen@36719
+@LastEditTime: 2020-02-13 10:19:01
+'''
 from bladed import Bladed
 from mode import Mode
 from multiprocessing import Process
-import os, pytest
+import os
+import pytest
 
 
 class TestBladed:
@@ -44,7 +53,7 @@ def supervisor(_bladed, _run_dir):
     mode = Mode(_run_dir)
     tower_mode_1 = mode.get_freq(mode_map[_bladed.version])
     print(tower_mode_1)
-    
+
 
 if __name__ == "__main__":
     info('main process.')

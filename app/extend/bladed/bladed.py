@@ -1,12 +1,13 @@
 '''
 @Descripttion: Bladed文件对象（包含参数读写、模态分析、Campbell图计算、仿真运行等方法）
-@version: 
+@version:
 @Author: wangshiwen@36719
 @Date: 2019-09-26 09:30:42
 @LastEditors  : wangshiwen@36719
-@LastEditTime : 2020-01-13 18:26:17
+@LastEditTime : 2020-02-13 10:13:26
 '''
-import os, re
+import os
+import re
 from subprocess import Popen, TimeoutExpired, PIPE, STDOUT
 from multiprocessing import Process
 import logging
@@ -14,11 +15,14 @@ import logging
 
 class Bladed(object):
 
-    def __init__(self, path):
-        self.content = None
-        self.path = path
-        with open(path, 'r') as f:
-            self.content = f.read()
+    def __init__(self, init_data):
+        if len(init_data) < 260:
+            with open(init_data, 'r') as f:
+                self.content = f.read()
+            self.path = init_data
+        else:
+            self.content = init_data
+            self.path = None
 
     @property
     def version(self):
@@ -75,24 +79,30 @@ class Bladed(object):
             with open(self.path, 'w') as f:
                 f.write(self.content)
 
-    def modify_v47(self):        
-        self.content = self.content.replace('<AerodynamicModule>New<', '<AerodynamicModule>Old<')
-        self.set(NBLADE=11, BDAMP='.005 .005 .005 .005 .005 .005 .005 .005 .005 .005 .005', write=False)
+    def modify_v47(self):
+        self.content = self.content.replace(
+            '<AerodynamicModule>New<', '<AerodynamicModule>Old<')
+        self.set(
+            NBLADE=11, BDAMP='.005 .005 .005 .005 .005 .005 .005 .005 .005 .005 .005', write=False)
         self.content = self.content.replace('0RMODE\n', '')
-        self.content = re.sub(r'DTBLADEDi.*DTBLADEDa\t""', '', self.content, flags=re.S)
-        self.content = re.sub(r'MSTART RMODE.*?MEND', '', self.content, flags=re.S)        
+        self.content = re.sub(r'DTBLADEDi.*DTBLADEDa\t""',
+                              '', self.content, flags=re.S)
+        self.content = re.sub(r'MSTART RMODE.*?MEND', '',
+                              self.content, flags=re.S)
 
         with open(self.path, 'w') as f:
             f.write(self.content)
 
     def solo_run(self, run_dir, dll_path, xml_path, name=None, windf=None):
-        name = os.path.splitext(os.path.basename(self.path))[0] if name is None else name
+        name = os.path.splitext(os.path.basename(self.path))[
+            0] if name is None else name
         if '0RMODE' not in self.content:
             modal_dir = os.path.abspath(os.path.join(run_dir, 'modal'))
             success = self.modal_analysis(modal_dir)
             if not success:
                 os._exit(0)  # modal 计算失败，及时退出子进程
-        self.content = re.sub(r'<Filepath>.*</Filepath>', lambda m: f'<Filepath>{dll_path}</Filepath>', self.content)
+        self.content = re.sub(r'<Filepath>.*</Filepath>',
+                              lambda m: f'<Filepath>{dll_path}</Filepath>', self.content)
         self.content = re.sub(r'<AdditionalParameters>.*</AdditionalParameters>', lambda m:
                               f'<AdditionalParameters>READ {xml_path}</AdditionalParameters>', self.content)
 
@@ -107,7 +117,7 @@ class Bladed(object):
     def batch_run(self):
         pass
 
-    def campbell(self, run_dir):        
+    def campbell(self, run_dir):
         if self.version == '4.7':
             self.modify_v47()
 
@@ -122,31 +132,31 @@ class Bladed(object):
         cut_out = self.query('CUTOUT')[1].split('.')[0]  # 等同向下取整
         if '0LINEARISE' not in self.content:
             linearise_block = '\n'.join([
-                                'MSTART LINEARISE',
-                                'LINIDLING	0',
-                                'LINPOWPROD	-1',
-                                'LINTYPE	 1',
-                                'WRLO	 0',
-                                'WRHI	 0',
-                                'WRSTEP	 .1047197',
-                                'IDLEWIND	 10',
-                                f'WINDLO	 {cut_in}',
-                                f'WINDHI	 {cut_out}',
-                                'WINDSTEP	 1',
-                                'AZLO	 0',
-                                'AZHI	 0',
-                                'AZSTEP	 1.745328E-02',
-                                'WINDPERT	 0',
-                                'INDIVWIND	 0',
-                                'PITCHPERT	 0',
-                                'INDIVPITCH	 0',
-                                'QGPERT	 0',
-                                'MAXFREQ	 1',
-                                'CCCRIT	 .8',
-                                'MBCFLAG	 0',
-                                'MEND\n',
-                                'MSTART ADAT'
-                                ])
+                'MSTART LINEARISE',
+                'LINIDLING	0',
+                'LINPOWPROD	-1',
+                'LINTYPE	 1',
+                'WRLO	 0',
+                'WRHI	 0',
+                'WRSTEP	 .1047197',
+                'IDLEWIND	 10',
+                f'WINDLO	 {cut_in}',
+                f'WINDHI	 {cut_out}',
+                'WINDSTEP	 1',
+                'AZLO	 0',
+                'AZHI	 0',
+                'AZSTEP	 1.745328E-02',
+                'WINDPERT	 0',
+                'INDIVWIND	 0',
+                'PITCHPERT	 0',
+                'INDIVPITCH	 0',
+                'QGPERT	 0',
+                'MAXFREQ	 1',
+                'CCCRIT	 .8',
+                'MBCFLAG	 0',
+                'MEND\n',
+                'MSTART ADAT'
+            ])
             self.content = self.content.replace('MSTART ADAT', linearise_block)
             self.content = self.content.replace('0LOSS', '0LINEARISE\n0LOSS')
         else:
@@ -172,9 +182,10 @@ class Bladed(object):
                 out = f.read()
         except FileNotFoundError:
             logging.error(f'FileNotFoundError: {out_path}')
-            terminal_path = os.path.abspath(os.path.join(run_dir, 'dteigen.$TE'))
+            terminal_path = os.path.abspath(
+                os.path.join(run_dir, 'dteigen.$TE'))
             with open(terminal_path, 'r') as f:
-                lines = f.readlines()                
+                lines = f.readlines()
                 logging.error(lines[1])
             return False
         m_rmode = re.search(r'MSTART RMODE.*MEND', out, re.DOTALL)
@@ -186,7 +197,7 @@ class Bladed(object):
             '\n\t\t]]>', '\n0RMODE\n' + rmode + '\n\n\t\t]]>')
 
         # if self.version != '4.7':
-        # try:            
+        # try:
         m_ipw = re.search(r'IPW[\t ]+(\S+)\n', out)
         m_lpw1 = re.search(r'LPW1[\t ]+(\S+)\n', out)
         m_ipw1 = re.search(r'IPW1[\t ]+(.+)MSTART RMODE', out, re.DOTALL)
@@ -202,13 +213,14 @@ class Bladed(object):
 
     def run(self, run_dir, run_name=None, **env):
         """
-        [执行Bladed中的 "RUN NOW" ] 
+        [执行Bladed中的 "RUN NOW" ]
 
         该函数应该在子进程中运行，避免web主进程阻塞！！！
 
         Arguments:
             run_dir {[str]} -- [计算结果所在文件夹]
-            env {[dict]} -- [命令行执行所需的环境变量，例如：计算所需的mclmcrrt72.dll的路径需指定到PATH中(dtlinmod)]
+            env {[dict]} -- [命令行执行所需的环境变量，
+            例如：计算所需的mclmcrrt72.dll的路径需指定到PATH中(dtlinmod)]
         """
         bladed_dir_map = {
             'BLADED_V3.82': 'C:\\Program Files (x86)\\GH Bladed 3.82',
@@ -217,20 +229,23 @@ class Bladed(object):
             'BLADED_V4.7': 'C:\\Program Files (x86)\\DNV GL\\Bladed 4.7',
         }
 
-        bladed_dir = os.environ.get(f'BLADED_V{self.version}') or bladed_dir_map[f'BLADED_V{self.version}']
+        bladed_dir = os.environ.get(
+            f'BLADED_V{self.version}') or \
+            bladed_dir_map[f'BLADED_V{self.version}']
 
         bladed_m72_path = os.path.abspath(
-            os.path.join(bladed_dir, 'Bladed_m72.exe'))        
+            os.path.join(bladed_dir, 'Bladed_m72.exe'))
 
-        # 生.in文件        
+        # 生.in文件
         if run_name is None:
             proc_batch = Popen(
-            [bladed_m72_path, '-Prj', self.path, '-RunDir', run_dir],
-            stdout=PIPE, stderr=STDOUT)
+                [bladed_m72_path, '-Prj', self.path, '-RunDir', run_dir],
+                stdout=PIPE, stderr=STDOUT)
         else:
             run_path = os.path.abspath(os.path.join(run_dir, run_name))
             proc_batch = Popen(
-                [bladed_m72_path, '-Prj', self.path, '-RunDir', run_dir, '-ResultsPath', run_path],
+                [bladed_m72_path, '-Prj', self.path, '-RunDir',
+                    run_dir, '-ResultsPath', run_path],
                 stdout=PIPE, stderr=STDOUT)
         try:
             proc_batch.communicate(timeout=60)
